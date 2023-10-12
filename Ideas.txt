@@ -1,5 +1,4 @@
 1. main : 
-
     Game()    
     
     while(game not over())
@@ -19,7 +18,7 @@ public :
         turn = white
     
     isCheckmate()
-    
+
     Game()
         newgame()
 
@@ -63,5 +62,6 @@ Queen : public piece
 Rook : public piece
 Bishop : public piece
 Knight : public piece
-Pawn : public piece
+Pawn : public piece { promoteTo(PieceType) }
+
 
