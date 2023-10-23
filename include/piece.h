@@ -34,95 +34,81 @@ struct Piece {
         int numOffsets;
 };
 
-constexpr Piece* Pawn(Color color) {
-    Piece* piece = new Piece();
-    piece->color = color;
-    piece->type = PieceType::Pawn;
-    piece->numOffsets = 4;
-    
-    piece->offsets[0] = 2 * Offsets::NorthWest * color;
-    piece->offsets[1] = Offsets::NorthWest * color;
-    piece->offsets[2] = Offsets::North * color;
-    piece->offsets[3] = Offsets::NorthEast * color;
+class PieceFactory {
+    public:
+        PieceFactory() = default;
+        ~PieceFactory() = default;
 
-    return piece;
-} 
+        Piece * constructPiece(Color color, PieceType type) const {
+            Piece* newPiece = new Piece;
 
-constexpr Piece* Queen(Color color) {
-    Piece* piece = new Piece();
+            newPiece->color = color;
+            newPiece->type = type;
 
-    piece->color = color;
-    piece->type = PieceType::Queen;
-    piece->numOffsets = 4;
+            switch (type) {
+                case Pawn:
+                    newPiece->numOffsets = 4;
 
-    piece->offsets[0] = Offsets::NorthWest;
-    piece->offsets[1] = Offsets::North;
-    piece->offsets[2] = Offsets::NorthEast;
-    piece->offsets[3] = Offsets::East;
-    
-    return piece;
-} 
+                    newPiece->offsets[0] = 2 * Offsets::North * color;
+                    newPiece->offsets[1] = Offsets::NorthWest * color;
+                    newPiece->offsets[2] = Offsets::North * color;
+                    newPiece->offsets[3] = Offsets::NorthEast * color;
+                    break;
 
-constexpr Piece* Rook(Color color) {
-    Piece* piece = new Piece();
+                case Queen:
+                    newPiece->numOffsets = 4;
 
-    piece->color = color;
-    piece->type = PieceType::Rook;
-    piece->numOffsets = 2;
+                    newPiece->offsets[0] = Offsets::NorthWest;
+                    newPiece->offsets[1] = Offsets::North;
+                    newPiece->offsets[2] = Offsets::NorthEast;
+                    newPiece->offsets[3] = Offsets::East;
+                    break;
 
-    piece->offsets[0] = Offsets::North;
-    piece->offsets[1] = Offsets::East;
-    
-    return piece;
-} 
+                case Rook:
+                    newPiece->numOffsets = 2;
 
-constexpr Piece* Bishop(Color color) {
-    Piece* piece = new Piece();
+                    newPiece->offsets[0] = Offsets::North;
+                    newPiece->offsets[1] = Offsets::East;
+                    break;
 
-    piece->color = color;
-    piece->type = PieceType::Bishop;
-    piece->numOffsets = 2;
+                case Bishop:
+                    newPiece->numOffsets = 2;
 
-    piece->offsets[0] = Offsets::NorthWest;
-    piece->offsets[1] = Offsets::NorthEast;
-    
-    return piece;
-} 
+                    newPiece->offsets[0] = Offsets::NorthWest;
+                    newPiece->offsets[1] = Offsets::NorthEast;
+                    break;
 
-constexpr Piece* King(Color color) {
-    Piece* piece = new Piece();
+                case Knight:
+                    newPiece->numOffsets = 8;
 
-    piece->color = color;
-    piece->type = PieceType::Queen;
-    piece->numOffsets = 8;
+                    newPiece->offsets[0] = Offsets::NorthWest + Offsets::North;
+                    newPiece->offsets[1] = Offsets::NorthEast + Offsets::North;
+                    newPiece->offsets[2] = Offsets::NorthWest + Offsets::West;
+                    newPiece->offsets[3] = Offsets::NorthEast + Offsets::East;
+                    newPiece->offsets[4] = Offsets::SouthWest + Offsets::West;
+                    newPiece->offsets[5] = Offsets::SouthEast + Offsets::East;
+                    newPiece->offsets[6] = Offsets::SouthWest + Offsets::South;
+                    newPiece->offsets[7] = Offsets::SouthEast + Offsets::South;
+                    break;
 
-    piece->offsets[0] = Offsets::NorthWest;
-    piece->offsets[1] = Offsets::North;
-    piece->offsets[2] = Offsets::NorthEast;
-    piece->offsets[3] = Offsets::West;
-    piece->offsets[4] = Offsets::East;
-    piece->offsets[5] = Offsets::SouthWest;
-    piece->offsets[6] = Offsets::South;
-    piece->offsets[7] = Offsets::SouthEast;
+                case King:
+                    newPiece->numOffsets = 8;
 
-    return piece;
-} 
+                    newPiece->offsets[0] = Offsets::NorthWest;
+                    newPiece->offsets[1] = Offsets::North;
+                    newPiece->offsets[2] = Offsets::NorthEast;
+                    newPiece->offsets[3] = Offsets::West;
+                    newPiece->offsets[4] = Offsets::East;
+                    newPiece->offsets[5] = Offsets::SouthWest;
+                    newPiece->offsets[6] = Offsets::South;
+                    newPiece->offsets[7] = Offsets::SouthEast;
+                    break;
 
-constexpr Piece* Knight(Color color) {
-    Piece* piece = new Piece();
+                default:
+                    delete newPiece;
+                    return nullptr;
+            }
 
-    piece->color = color;
-    piece->type = PieceType::Bishop;
-    piece->numOffsets = 8;
-
-    piece->offsets[0] = Offsets::NorthWest + Offsets::North;
-    piece->offsets[1] = Offsets::NorthEast + Offsets::North;
-    piece->offsets[2] = Offsets::NorthWest + Offsets::West;
-    piece->offsets[3] = Offsets::NorthEast + Offsets::East;
-    piece->offsets[4] = Offsets::SouthWest + Offsets::West;
-    piece->offsets[5] = Offsets::SouthEast + Offsets::East;
-    piece->offsets[6] = Offsets::SouthWest + Offsets::South;
-    piece->offsets[7] = Offsets::SouthEast + Offsets::South;
-    
-    return piece;
-}
+            return newPiece;
+        }
+};

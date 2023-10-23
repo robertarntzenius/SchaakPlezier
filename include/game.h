@@ -1,13 +1,14 @@
 #pragma once
 
-#include "include/board.h"
-#include "include/piece.h"
+#include "board.h"
+#include "piece.h"
 
 
 class Game {
     public:
         Game() = default;
         ~Game() = default;
+
         bool isOver();
         
     private:

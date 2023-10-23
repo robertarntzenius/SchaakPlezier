@@ -5,8 +5,8 @@
 int main() {
     Game* game = new Game();
     
-    while(!game->isOver()) {
-        
-    }
+//    while(!game->isOver()) {
+//
+//    }
     delete game;
 }

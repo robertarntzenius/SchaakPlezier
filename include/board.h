@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+
 #include "piece.h"
 
 #define BOARDSIZE 8
@@ -13,23 +16,29 @@ struct Move {
 
 class Board {
     public:
-        // Board() : FENSTRING ;
+        // Board() : FENSTRING ; TODO
 
         Board();
-        ~Board() = default;
+        ~Board();
         int* getPossibleMoves();
 
 
+        // FIXME operator overload ostream
+        void show() const;
+
+
     private:
-        const Piece** InitPieces(Color color) const;
+        std::vector<Piece*> InitPieces(Color color) const;
 
         bool wKC, wQC, bKC, bQC;
         int enPassant;
 
         Color turn;
 
-        Piece* whitePieces[2*BOARDSIZE];
-        Piece* blackPieces[2*BOARDSIZE];
+
+        // FIXME aparte piece structuur zo (moet gewoon 1 van elke type)
+        std::vector<Piece*> whitePieces;
+        std::vector<Piece*> blackPieces;
 
         bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
 
