@@ -3,24 +3,25 @@
 
 #define BOARDSIZE 8
 
-typedef bool bitboard[BOARDSIZE][BOARDSIZE];
+typedef unsigned long bitboard;
 
 struct Move {
     int from;
     int to;
     PieceType pType;
-
 };
 
 class Board {
     public:
-        Board() = default;
+        // Board() : FENSTRING ;
+
+        Board();
         ~Board() = default;
-        
         int* getPossibleMoves();
 
 
     private:
+        const Piece** InitPieces(Color color) const;
 
         bool wKC, wQC, bKC, bQC;
         int enPassant;

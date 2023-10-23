@@ -1,5 +1,5 @@
 #include "game.h"
 
-Game::isOver()
+bool Game::isOver()
 {
 }

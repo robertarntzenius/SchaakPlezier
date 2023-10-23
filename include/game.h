@@ -4,12 +4,11 @@
 #include "include/piece.h"
 
 
-
 class Game {
     public:
         Game() = default;
         ~Game() = default;
-        int isOver();
+        bool isOver();
         
     private:
         Board board;

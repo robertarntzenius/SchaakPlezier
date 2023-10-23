@@ -3,9 +3,10 @@
 
 
 int main() {
-    Game game();
-
-    while(game.isOver()) {
-
+    Game* game = new Game();
+    
+    while(!game->isOver()) {
+        
     }
+    delete game;
 }
