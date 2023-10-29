@@ -13,6 +13,4 @@ class Game {
         
     private:
         Board board;
-        unsigned int turn;
-
 };

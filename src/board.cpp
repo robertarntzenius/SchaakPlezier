@@ -6,8 +6,8 @@
 
 Board::Board()
     : wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
-    turn    ( Color::White), 
-    pieces  ( InitPieces()),
+    turn    ( Color::White ), 
+    pieces  ( InitPieces() ),
     white   ( Bitboard( ((1UL << 16) -1) << 48 ) ), 
     black   ( Bitboard( (1UL << 16) -1) ),
     pawns   ( Bitboard( (((1UL << 8) -1) << 8) | (((1UL << 8) -1) << 40) ) ), 
@@ -67,9 +67,9 @@ Board::Board(const std::string& fenString)
 
 void Board::InitializeBitboardsFromFEN(const std::string& fenString) {
     int square = 0;
-    int FENIndex = 0;
+    size_t FENIndex = 0;
 
-    while ((square < 64) && (FENIndex < fenString.length())) {
+    while ( (FENIndex < fenString.length()) && (square < 64) ) {
         char ch = fenString[FENIndex];
         if (isalpha(ch)) {
             switch(ch) {
@@ -128,7 +128,7 @@ void Board::InitializeBitboardsFromFEN(const std::string& fenString) {
 
     enPassant = (fenString[++FENIndex] != '-') ? -1 : (fenString[FENIndex] - '0');
     FENIndex++;
-    while ((fenString[++FENIndex] != ' ') && (FENIndex < fenString.length())) {
+    while ( (FENIndex < fenString.length()) && (fenString[++FENIndex] != ' ') ) {
         if (!isdigit(fenString[FENIndex])) {
             std::cerr << "invalid FENstring" << std::endl;
             // FIXME implement real error handling
@@ -137,7 +137,7 @@ void Board::InitializeBitboardsFromFEN(const std::string& fenString) {
         halfMoves += fenString[FENIndex] - '0';
     }
 
-    while ((fenString[++FENIndex] != ' ') && (FENIndex < fenString.length())) {
+    while ( (FENIndex < fenString.length())) {
         if (!isdigit(fenString[FENIndex])) {
             std::cerr << "invalid FENstring" << std::endl; 
             // FIXME implement real error handling

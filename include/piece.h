@@ -27,12 +27,13 @@ enum Color : int {
     Black = -1,
 };
 
-struct Piece {
+struct Piece
+{
     public:
         int offsets[8] = {0};
-        int color;
-        PieceType type;
-        int numOffsets;
+        int color = Color::White;
+        PieceType type = PieceType::NoType;
+        int numOffsets = 0;
 };
 
 class PieceFactory {
