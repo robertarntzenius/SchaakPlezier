@@ -6,7 +6,7 @@
 
 class Game {
     public:
-        Game() = default;
+        Game();
         ~Game() = default;
 
         bool isOver();

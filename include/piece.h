@@ -13,7 +13,8 @@ enum Offsets : int {
 
 enum PieceType {
     NoType = 0,
-    Pawn,
+    wPawn,
+    bPawn,
     Knight,
     Bishop,
     Rook,
@@ -39,22 +40,28 @@ class PieceFactory {
         PieceFactory() = default;
         ~PieceFactory() = default;
 
-        Piece * constructPiece(Color color, PieceType type) const {
+        Piece * constructPiece(PieceType type) const {
             Piece* newPiece = new Piece;
 
-            newPiece->color = color;
             newPiece->type = type;
 
             switch (type) {
-                case Pawn:
+                case wPawn:
                     newPiece->numOffsets = 4;
 
-                    newPiece->offsets[0] = 2 * Offsets::North * color;
-                    newPiece->offsets[1] = Offsets::NorthWest * color;
-                    newPiece->offsets[2] = Offsets::North * color;
-                    newPiece->offsets[3] = Offsets::NorthEast * color;
+                    newPiece->offsets[0] = 2 * Offsets::North;
+                    newPiece->offsets[1] = Offsets::NorthWest;
+                    newPiece->offsets[2] = Offsets::North;
+                    newPiece->offsets[3] = Offsets::NorthEast;
                     break;
+            case bPawn:
+                    newPiece->numOffsets = 4;
 
+                    newPiece->offsets[0] = -2 * Offsets::North;
+                    newPiece->offsets[1] = -Offsets::NorthWest;
+                    newPiece->offsets[2] = -Offsets::North;
+                    newPiece->offsets[3] = -Offsets::NorthEast;
+                    break;
                 case Queen:
                     newPiece->numOffsets = 4;
 

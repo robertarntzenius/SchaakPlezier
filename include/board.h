@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
+#include <string>
 
 #include "bitboard.h"
 #include "piece.h"
@@ -19,20 +19,21 @@ class Board {
         // Board() : FENSTRING ; TODO
 
         Board();
+        Board(const std::string& FENString);
         ~Board();
         int* getPossibleMoves();
 
     private:
-        std::vector<Piece*> InitPieces(Color color) const;
+        void InitializeBitboardsFromFEN(const std::string& fenString);
+        std::vector<Piece*> InitPieces() const;
 
         bool wKC, wQC, bKC, bQC;
-        int enPassant;
+        int enPassant, halfMoves, fullMoves;
 
         Color turn;
 
-        // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) static?
-        std::vector<Piece*> whitePieces;
-        std::vector<Piece*> blackPieces;
+        // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
+        std::vector<Piece*> pieces;
 
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
         
@@ -41,7 +42,7 @@ class Board {
         // blackAttacks(sq) whiteAttacks(sq) (add all attacked squares in one bitboard)
             // dan later legalKingMoves = Kingmoves[sq] & (!black/whiteAttacks)
         
-        // NON SLIDING PIECES (psuedolegal moves)
+        // NON-SLIDING PIECES (psuedolegal moves)
         // TODO add bitboards / getterFunctions that return bitboards for 
             // empty
             //  white/black:
@@ -52,7 +53,7 @@ class Board {
             //  knightsAttacks[sq] (using emtpy & NotAFile & NotABFile & NotGHFile & NotHFile)
         
         // SLIDING PIECES (psuedolegal moves)
-        // TODO Add directions enum to generate bitboard masks for north east etc 
+        // TODO Add directions enum to generate bitboard masks for north east etc
         // TODO add rankMask(sq), fileMask(sq), diagonalMask(sq), antidiagonalMask(sq) functions
         // RookAttacks[sq]   = rankMask[sq]     | fileMask[sq];
         // BishopAttacks[sq] = DiagonalMask[sq] | AntiDiagonalMask[sq];
