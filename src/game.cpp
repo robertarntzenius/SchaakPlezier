@@ -2,4 +2,5 @@
 
 bool Game::isOver()
 {
+    return true;
 }
