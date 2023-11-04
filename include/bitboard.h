@@ -7,7 +7,9 @@
 
 class Bitboard : public std::bitset<BOARDSIZE * BOARDSIZE> {
     public:
+        Bitboard();
         Bitboard(unsigned long bits);
+        Bitboard(std::bitset<BOARDSIZE*BOARDSIZE>);
         ~Bitboard();
 
         // Custom operator<< for Bitboard

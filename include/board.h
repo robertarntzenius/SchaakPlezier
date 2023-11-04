@@ -16,13 +16,15 @@ struct Move {
 
 class Board {
     public:
-        // Board() : FENSTRING ; TODO
-
         Board();
         Board(const std::string& FENString);
         ~Board();
-        int* getPossibleMoves();
+        Bitboard getFileMask(size_t square);
+        Bitboard getRankMask(size_t square);
 
+        int* getPossibleMoves();
+        void switchTurn();
+        // Bitboard bPawnAttacks();
     private:
         void InitializeBitboardsFromFEN(const std::string& fenString);
         std::vector<Piece*> InitPieces() const;
@@ -34,9 +36,19 @@ class Board {
 
         // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
         std::vector<Piece*> pieces;
+        
+        // Global constant bitboards
+        const Bitboard empty = Bitboard( (unsigned long)0 );
+        const Bitboard universe = Bitboard( ~empty );
 
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
+        Bitboard notAFile, notBFile, notCFile, notDFile, notEFile, notFFile, notGFile, notHFile;
+        // NOTE I initialized all of these, but are probably not necessary
         
+        Bitboard getPawnAttacks();
+
+
+        // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
         // bv KingMoves[sq] = bitboard van de goede squareIndex
         // blackAttacks(sq) whiteAttacks(sq) (add all attacked squares in one bitboard)

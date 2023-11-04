@@ -4,9 +4,15 @@
 
 int main() {
     Game* game = new Game();
+
     
-//    while(!game->isOver()) {
-//
-//    }
+    // for testing purposes, play 2 turns
+    for (int i = 0; i < 2; i++) {
+        game->getPossibleMoves();
+        game->switchTurn();
+    }
+    //    while(!game->isOver() ) {
+    //
+    //    }
     delete game;
 }

@@ -10,12 +10,20 @@ Board::Board()
     pieces  ( InitPieces() ),
     white   ( Bitboard( ((1UL << 16) -1) << 48 ) ), 
     black   ( Bitboard( (1UL << 16) -1) ),
-    pawns   ( Bitboard( (((1UL << 8) -1) << 8) | (((1UL << 8) -1) << 40) ) ), 
+    pawns   ( Bitboard( (((1UL << 8) -1) << 8) | (((1UL << 8) -1) << 48) ) ), 
     knights ( Bitboard( (1UL << 1) | (1UL << 6) | (1UL << 57) | (1UL << 62) ) ), 
     bishops ( Bitboard( (1UL << 2) | (1UL << 5) | (1UL << 58) | (1UL << 61)) ), 
     rooks   ( Bitboard( (1UL) | (1UL << 7) | (1UL << 56) | (1UL << 63)) ), 
     queens  ( Bitboard( (1UL << 3) | (1UL << 59) ) ),
-    kings   ( Bitboard( (1UL << 4) | (1UL << 60) ) )
+    kings   ( Bitboard( (1UL << 4) | (1UL << 60) ) ),
+    notAFile( ~getFileMask(0) ),
+    notBFile( ~getFileMask(1) ),
+    notCFile( ~getFileMask(2) ),
+    notDFile( ~getFileMask(3) ),
+    notEFile( ~getFileMask(4) ),
+    notFFile( ~getFileMask(5) ),
+    notGFile( ~getFileMask(6) ),
+    notHFile( ~getFileMask(7) )
 {
     std::cout << "white" << std::endl;
     std::cout << white << std::endl;
@@ -35,8 +43,15 @@ Board::Board(const std::string& fenString)
     bishops ( Bitboard( 0UL )),
     rooks   ( Bitboard( 0UL )),
     queens  ( Bitboard( 0UL )),
-    kings   ( Bitboard( 0UL ))
-
+    kings   ( Bitboard( 0UL )),
+    notAFile( ~getFileMask(0) ),
+    notBFile( ~getFileMask(1) ),
+    notCFile( ~getFileMask(2) ),
+    notDFile( ~getFileMask(3) ),
+    notEFile( ~getFileMask(4) ),
+    notFFile( ~getFileMask(5) ),
+    notGFile( ~getFileMask(6) ),
+    notHFile( ~getFileMask(7) )
 {
     InitializeBitboardsFromFEN(fenString);
 
@@ -152,9 +167,59 @@ Board::~Board() {
         delete piece;
 }
 
+Bitboard Board::getFileMask(size_t square)
+{
+    size_t file = square % 8;
+    Bitboard fileMask;
+    for (size_t i=0; i<BOARDSIZE*BOARDSIZE; i++) {
+        if (i % 8 == 0)
+            fileMask.set(i);
+    }
+    fileMask = fileMask << file;
+    return fileMask;
+}
+
+Bitboard Board::getRankMask(size_t square)
+{
+    size_t rank = (int) square/8;
+    Bitboard rankMask( ( (1UL << 8) -1) << rank*8);
+    return rankMask;
+}
+
 int *Board::getPossibleMoves()
 {
+    Bitboard PawnAttacks = getPawnAttacks();
+    std::cout << PawnAttacks << std::endl;
+
     return nullptr;
+}
+
+void Board::switchTurn() // FIXME is there a better solution for this?
+{
+    if (turn == Color::White) 
+        turn = Color::Black;
+    else {
+        turn = Color::White;
+    }
+    // std::cout << "switched to " << turn << std::endl; 
+}
+
+Bitboard Board::getPawnAttacks() // FIXME refactor the use of offsets here
+{
+    Bitboard Pawns, PawnAttacks, PawnAttacksWest, PawnAttacksEast;
+    
+    if (turn == Color::White) {
+        Pawns = (pawns & white);
+        PawnAttacksWest = (Pawns >> -Offsets::NorthWest ) & notHFile;
+        PawnAttacksEast = (Pawns >> -Offsets::NorthEast) & notAFile;
+    } 
+    // NOTE bitshifting with negative values is undefined behaviour in C++
+    else {
+        Pawns = (pawns & black);
+        PawnAttacksWest = (Pawns << Offsets::SouthWest ) & notHFile;
+        PawnAttacksEast = (Pawns << Offsets::SouthEast) & notAFile;
+    }
+    return (PawnAttacksWest | PawnAttacksEast);
 }
 
 std::vector<Piece*> Board::InitPieces() const
