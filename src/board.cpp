@@ -3,10 +3,13 @@
 
 #include "board.h"
 #include "bitboard.h"
+#include "log.h"
+
 
 Board::Board()
-    : wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
-    turn    ( Color::White ), 
+    : logger(ChessLogger::getInstance()),
+    wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
+    turn    ( Color::White ),
     pieces  ( InitPieces() ),
     white   ( Bitboard( ((1UL << 16) -1) << 48 ) ), 
     black   ( Bitboard( (1UL << 16) -1) ),
@@ -25,15 +28,13 @@ Board::Board()
     notGFile( ~getFileMask(6) ),
     notHFile( ~getFileMask(7) )
 {
-    std::cout << "white" << std::endl;
-    std::cout << white << std::endl;
-
-    std::cout << "black" << std::endl;
-    std::cout << black << std::endl;
+    logger.log("white", white);
+    logger.log("black", black);
 }
 
 Board::Board(const std::string& fenString)
-    : wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
+    : logger(ChessLogger::getInstance()),
+    wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
     turn(Color::White),
     pieces(InitPieces()),
     white   ( Bitboard( 0UL )),
@@ -54,30 +55,14 @@ Board::Board(const std::string& fenString)
     notHFile( ~getFileMask(7) )
 {
     InitializeBitboardsFromFEN(fenString);
-
-    std::cout << "white" << std::endl;
-    std::cout << white << std::endl;
-
-    std::cout << "black" << std::endl;
-    std::cout << black << std::endl;
-
-    std::cout << "pawns" << std::endl;
-    std::cout << pawns << std::endl;
-
-    std::cout << "knights" << std::endl;
-    std::cout << knights << std::endl;
-
-    std::cout << "bishops" << std::endl;
-    std::cout << bishops << std::endl;
-    
-    std::cout << "rooks" << std::endl;
-    std::cout << rooks << std::endl;
-
-    std::cout << "queens" << std::endl;
-    std::cout << queens << std::endl;
-
-    std::cout << "kings" << std::endl;
-    std::cout << kings << std::endl;
+    logger.log("white", white);
+    logger.log("black", black);
+    logger.log("pawns", pawns);
+    logger.log("knights", knights);
+    logger.log("bishops", bishops);
+    logger.log("rooks", rooks);
+    logger.log("queens", queens);
+    logger.log("kings", kings);
 }
 
 void Board::InitializeBitboardsFromFEN(const std::string& fenString) {
@@ -171,11 +156,9 @@ Bitboard Board::getFileMask(size_t square)
 {
     size_t file = square % 8;
     Bitboard fileMask;
-    for (size_t i=0; i<BOARDSIZE*BOARDSIZE; i++) {
-        if (i % 8 == 0)
-            fileMask.set(i);
+    for (size_t i=0; i<BOARDSIZE; i++) {
+        fileMask.set(BOARDSIZE * i + file);
     }
-    fileMask = fileMask << file;
     return fileMask;
 }
 
@@ -189,19 +172,25 @@ Bitboard Board::getRankMask(size_t square)
 int *Board::getPossibleMoves()
 {
     Bitboard PawnAttacks = getPawnAttacks();
-    std::cout << PawnAttacks << std::endl;
-
+    logger.log("PawnAttacks", PawnAttacks);
     return nullptr;
 }
 
-void Board::switchTurn() // FIXME is there a better solution for this?
+Color Board::switchTurn() // FIXME is there a better solution for this?
 {
-    if (turn == Color::White) 
+    if (turn == Color::White) {
         turn = Color::Black;
+        return Color::Black;
+    }
     else {
         turn = Color::White;
+        return Color::White;
     }
-    // std::cout << "switched to " << turn << std::endl; 
+}
+
+Color Board::getTurn()
+{
+    return turn;
 }
 
 Bitboard Board::getPawnAttacks() // FIXME refactor the use of offsets here
@@ -220,6 +209,25 @@ Bitboard Board::getPawnAttacks() // FIXME refactor the use of offsets here
         PawnAttacksEast = (Pawns << Offsets::SouthEast) & notAFile;
     }
     return (PawnAttacksWest | PawnAttacksEast);
+}
+
+Bitboard Board::getPawnPushes() // FIXME refactor the use of offsets here
+{
+    Bitboard Pawns, PawnPushesSingle, PawnPushesDouble;
+    
+    if (turn == Color::White) {
+        Pawns = (pawns & white);
+        PawnPushesSingle = (Pawns >> -Offsets::North ) & empty;
+        PawnPushesDouble = (Pawns >> 2*Offsets::North) & empty;
+    }
+    // NOTE bitshifting with negative values is undefined behaviour in C++
+    else {
+        Pawns = (pawns & black);
+        PawnPushesSingle = (Pawns >> -Offsets::South ) & empty;
+        PawnPushesDouble = (Pawns >> 2*Offsets::South) & empty;
+    }
+
+    return (PawnPushesSingle | PawnPushesDouble);
 }
 
 std::vector<Piece*> Board::InitPieces() const

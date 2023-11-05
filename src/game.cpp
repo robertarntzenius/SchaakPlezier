@@ -1,13 +1,15 @@
 #include "game.h"
+#include "log.h"
 
 Game::Game() 
-    : board()
+    : logger(ChessLogger::getInstance()), _board()
 {
 }
 
 int *Game::getPossibleMoves()
 {
-    return board.getPossibleMoves();
+    logger.log("Starting move generation for turn %d", _board.getTurn());
+    return _board.getPossibleMoves();
 }
 
 bool Game::isOver()
@@ -15,7 +17,12 @@ bool Game::isOver()
     return true;
 }
 
-void Game::switchTurn()
+Color Game::switchTurn()
 {
-    board.switchTurn();
+    return _board.switchTurn();
+}
+
+Color Game::getTurn()
+{
+    return _board.getTurn();
 }

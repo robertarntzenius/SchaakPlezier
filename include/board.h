@@ -5,6 +5,7 @@
 
 #include "bitboard.h"
 #include "piece.h"
+#include "log.h"
 
 #define BOARDSIZE 8
 
@@ -23,9 +24,12 @@ class Board {
         Bitboard getRankMask(size_t square);
 
         int* getPossibleMoves();
-        void switchTurn();
+        Color switchTurn();
+        Color getTurn();
         // Bitboard bPawnAttacks();
     private:
+        ChessLogger& logger;
+
         void InitializeBitboardsFromFEN(const std::string& fenString);
         std::vector<Piece*> InitPieces() const;
 
@@ -46,7 +50,7 @@ class Board {
         // NOTE I initialized all of these, but are probably not necessary
         
         Bitboard getPawnAttacks();
-
+        Bitboard getPawnPushes();
 
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup

@@ -2,6 +2,7 @@
 
 #include "board.h"
 #include "piece.h"
+#include "log.h"
 
 
 class Game {
@@ -10,7 +11,9 @@ class Game {
         ~Game() = default;
         int* getPossibleMoves();
         bool isOver();
-        void switchTurn();
+        Color switchTurn();
+        Color getTurn();
     private:
-        Board board;
+        ChessLogger& logger;
+        Board _board;
 };

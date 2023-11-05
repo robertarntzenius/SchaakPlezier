@@ -11,8 +11,10 @@ add_executable(SchaakPlezier
         include/game.h
         include/piece.h
         include/bitboard.h
+        include/log.h
 
         src/board.cpp
         src/bitboard.cpp
         src/game.cpp
+        src/log.cpp
         src/main.cpp)
