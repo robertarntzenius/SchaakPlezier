@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 14)
-add_compile_options(-Wall -Werror -Wextra -Wpedantic -Weffc++ -O3)
+add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -O3)
 
 include_directories(include)
 

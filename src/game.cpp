@@ -4,25 +4,57 @@
 Game::Game() 
     : logger(ChessLogger::getInstance()), _board()
 {
+    logger.log("New game created!");
 }
 
-int *Game::getPossibleMoves()
+void Game::start()
 {
-    logger.log("Starting move generation for turn %d", _board.getTurn());
-    return _board.getPossibleMoves();
+    // TODO implement
+
+//    while (!this->isOver())
+//    {
+//        Move *possibleMoves = _board.getPossibleMoves();
+//
+//        // get active player to decide on one of the possible moves
+//
+//        selectedMove = ()? : ;
+//
+//
+//        _board.doMove(selectedMove);
+//
+//        _board.switchTurn();
+//    }
 }
 
-bool Game::isOver()
+void Game::test()
 {
-    return true;
+    Move *moves = _board.getPossibleMoves();
+
+    _board.switchTurn();
+
+    moves = _board.getPossibleMoves();
 }
 
-Color Game::switchTurn()
+bool Game::isOver () const
 {
-    return _board.switchTurn();
+    // TODO implement
+    return false;
 }
 
-Color Game::getTurn()
-{
-    return _board.getTurn();
-}
+
+
+//int *Game::getPossibleMoves()
+//{
+//    logger.log("Starting move generation for player %d", _board.getTurn());
+//    return _board.getPossibleMoves();
+//}
+//
+//Color Game::switchTurn()
+//{
+//    return _board.switchTurn();
+//}
+//
+//Color Game::getTurn()
+//{
+//    return _board.getTurn();
+//}

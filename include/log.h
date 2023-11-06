@@ -50,7 +50,7 @@ private:
     template <typename... Args>
     void formatAndLog(std::ostringstream& oss, const char* format, Args... args) {
         char buffer[256];
-        std::sprintf(buffer, format, args...);
+        std::snprintf(buffer, 256, format, args...);
         oss << buffer;
     }
 

@@ -17,21 +17,25 @@ struct Move {
 
 class Board {
     public:
-        Board();
-        Board(const std::string& FENString);
+        Board(const std::string& FENString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         ~Board();
-        Bitboard getFileMask(size_t square);
-        Bitboard getRankMask(size_t square);
 
-        int* getPossibleMoves();
+        Move* getPossibleMoves();
+        void doMove(Move &move);
+
         Color switchTurn();
-        Color getTurn();
-        // Bitboard bPawnAttacks();
     private:
-        ChessLogger& logger;
-
         void InitializeBitboardsFromFEN(const std::string& fenString);
-        std::vector<Piece*> InitPieces() const;
+
+        Bitboard getPawnPushes();
+        Bitboard getPawnAttacks();
+
+        Bitboard getRankMask(size_t square);
+        Bitboard getFileMask(size_t square);
+
+        void logBitboards();
+
+        ChessLogger& logger;
 
         bool wKC, wQC, bKC, bQC;
         int enPassant, halfMoves, fullMoves;
@@ -39,18 +43,15 @@ class Board {
         Color turn;
 
         // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
-        std::vector<Piece*> pieces;
+//        std::vector<Piece*> pieces;
         
         // Global constant bitboards
         const Bitboard empty = Bitboard( (unsigned long)0 );
         const Bitboard universe = Bitboard( ~empty );
 
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
-        Bitboard notAFile, notBFile, notCFile, notDFile, notEFile, notFFile, notGFile, notHFile;
-        // NOTE I initialized all of these, but are probably not necessary
-        
-        Bitboard getPawnAttacks();
-        Bitboard getPawnPushes();
+        Bitboard notAFile, notBFile, notGFile, notHFile;
+        Bitboard rank4, rank5;
 
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
