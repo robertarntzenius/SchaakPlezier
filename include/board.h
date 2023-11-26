@@ -13,6 +13,7 @@ struct Move {
     int from;
     int to;
     PieceType pType;
+    PieceType capture;
 };
 
 class Board {
@@ -30,9 +31,10 @@ class Board {
         Bitboard getPawnPushes();
         Bitboard getPawnAttacks();
 
-        Bitboard getRankMask(size_t square);
-        Bitboard getFileMask(size_t square);
-
+        Bitboard getRankMask(size_t rank);
+        Bitboard getFileMask(size_t file);
+        Bitboard getRankMaskFromSquare(size_t square);
+        Bitboard getFileMaskFromSquare(size_t square);
         void logBitboards();
 
         ChessLogger& logger;
@@ -45,11 +47,11 @@ class Board {
         // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
 //        std::vector<Piece*> pieces;
         
-        // Global constant bitboards
-        const Bitboard empty = Bitboard( (unsigned long)0 );
-        const Bitboard universe = Bitboard( ~empty );
 
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
+        
+        // Global constant bitboards
+        Bitboard occupied, empty;
         Bitboard notAFile, notBFile, notGFile, notHFile;
         Bitboard rank4, rank5;
 
