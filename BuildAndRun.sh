@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-source_dir="$HOME/Projects/SchaakPlezier"
+source_dir="$PWD"
 build_dir="$source_dir/build"
 
 # Check if the build directory exists
