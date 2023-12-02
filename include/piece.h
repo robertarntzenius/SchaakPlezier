@@ -22,6 +22,17 @@ enum PieceType {
     King,
 };
 
+static const std::unordered_map<PieceType, std::string> pieceTypeStrings = {
+    {PieceType::NoType, "NoType"},
+    {PieceType::wPawn, "White Pawn"},
+    {PieceType::bPawn, "Black Pawn"},
+    {PieceType::Knight, "Knight"},
+    {PieceType::Bishop, "Bishop"},
+    {PieceType::Rook, "Rook"},
+    {PieceType::Queen, "Queen"},
+    {PieceType::King, "King"},
+};
+
 enum Color : int {
     White = 1,
     Black = -1,

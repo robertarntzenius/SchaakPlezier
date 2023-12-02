@@ -30,7 +30,7 @@ void Game::test()
 {
     std::vector<Move> moves = _board.getPossibleMoves();
     for (const auto& move : moves)
-        logger.log("Moves: %d %d %d %d", move.from, move.to, move.pType, move.capture);
+        logger.log(move);
 
     _board.switchTurn();
 

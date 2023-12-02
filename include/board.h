@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "bitboard.h"
 #include "piece.h"
@@ -28,6 +29,18 @@ struct Move {
 
     Move(Square from, Square to, PieceType pType, PieceType capture) 
     : from(from), to(to), pType(pType), capture(capture) {}
+
+    friend std::ostream& operator<<(std::ostream& os, const Move& move) {
+        std::string fromSquare = static_cast<char>('a' + static_cast<int>(move.from) % 8) +
+                                std::to_string(8 - static_cast<int>(move.from) / 8);
+        std::string toSquare = static_cast<char>('a' + static_cast<int>(move.to) % 8) +
+                                std::to_string(8 - static_cast<int>(move.to) / 8);
+
+        std::string pTypeStr = pieceTypeStrings.at(move.pType);;
+        std::string captureStr = pieceTypeStrings.at(move.capture);;
+        os << "From: " << fromSquare << ", To: " << toSquare << ", Piece: " << pTypeStr << ", Capture: " << captureStr;
+        return os;
+    }
 };
 
 class Board {

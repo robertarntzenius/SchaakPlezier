@@ -121,7 +121,7 @@ Board::~Board() {
 void Board::FillLookupTables()
 {
     logger.log("Filling Lookup Tables...");
-    for(int i=0; i<BOARDSIZE*BOARDSIZE; i++) {
+    for(int i=BOARDSIZE; i<BOARDSIZE*BOARDSIZE - BOARDSIZE; i++) {
         // white
         PawnAttacks[0][i] = getPawnAttacksFromSquare(static_cast<Square>(i), Color::White);
         
@@ -182,8 +182,7 @@ Bitboard Board::getFileMaskFromSquare(Square square)
 
 std::vector<Move> Board::getPossibleMoves()
 {
-//    Bitboard PawnAttacks = getPawnAttacks();
-//    logger.log("PawnAttacks", PawnAttacks);
+
     std::vector<Move> moves, testmoves;
     testmoves.emplace_back(a2, a4, wPawn, NoType);
     testmoves.emplace_back(b2, b4, wPawn, NoType);
@@ -454,11 +453,5 @@ Bitboard Board::getPawnAttacksFromSquare(Square square, Color color)
         pawnAttacksWest = (playerPawn << Offsets::SouthWest) & notHFile;
         pawnAttacksEast = (playerPawn << Offsets::SouthEast) & notAFile;
     }
-    Bitboard pawnAttacks = (pawnAttacksEast | pawnAttacksWest);
-    char logstring[100];
-    const char* side = (color == 1) ? "white" : "black";
-    sprintf(logstring, "getPawnAttacksFromSquare - %d - %s", square, side);
-
-    logger.log(logstring, pawnAttacks);
-    return pawnAttacks;
+    return Bitboard(pawnAttacksEast | pawnAttacksWest);
 }
