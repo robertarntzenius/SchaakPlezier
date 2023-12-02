@@ -4,8 +4,6 @@ project(SchaakPlezier)
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -O3)
 
-include_directories(include)
-
 add_executable(SchaakPlezier
         include/board.h
         include/game.h
@@ -18,3 +16,5 @@ add_executable(SchaakPlezier
         src/game.cpp
         src/log.cpp
         src/main.cpp)
+
+target_include_directories(SchaakPlezier PUBLIC include)

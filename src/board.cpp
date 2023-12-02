@@ -20,14 +20,17 @@ Board::Board(const std::string& fenString)
     kings   ( Bitboard()),
     occupied( Bitboard(black & white)),
     empty   ( Bitboard(~occupied)),
-    notAFile( ~getFileMask(0) ),
-    notBFile( ~getFileMask(1) ),
-    notGFile( ~getFileMask(6) ),
-    notHFile( ~getFileMask(7) ),
-    rank4(getRankMask(4)),
-    rank5(getRankMask(3))
+    notAFile( ~getFileMaskFromSquare(a1) ),
+    notBFile( ~getFileMaskFromSquare(b1) ),
+    notGFile( ~getFileMaskFromSquare(g1) ),
+    notHFile( ~getFileMaskFromSquare(h1) ),
+    rank4(getRankMaskFromSquare(a4)),
+    rank5(getRankMaskFromSquare(a5)),
+    PawnAttacks(2, std::vector<Bitboard>(64))
 {
+    logger.log("New Board created!");
     InitializeBitboardsFromFEN(fenString);
+    FillLookupTables();
     logBitboards();
 }
 
@@ -115,6 +118,20 @@ Board::~Board() {
 
 }
 
+void Board::FillLookupTables()
+{
+    logger.log("Filling Lookup Tables...");
+    for(int i=0; i<BOARDSIZE*BOARDSIZE; i++) {
+        // white
+        PawnAttacks[0][i] = getPawnAttacksFromSquare(static_cast<Square>(i), Color::White);
+        
+        // black
+        PawnAttacks[1][i] = getPawnAttacksFromSquare(static_cast<Square>(i), Color::Black);
+    }
+
+    logger.log("PawnAttacks white d4", PawnAttacks[0][d4]);
+    logger.log("PawnAttacks black d4", PawnAttacks[1][d4]);
+}
 
 Bitboard Board::getRankMask(size_t rank)
 {
@@ -144,7 +161,7 @@ Bitboard Board::getFileMask(size_t file)
     return fileMask;
 }
 
-Bitboard Board::getRankMaskFromSquare(size_t square)
+Bitboard Board::getRankMaskFromSquare(Square square)
 {
     // get rankMask with topleft=0 and bottomright = BOARDSIZE*BOARDSIZE - 1
     size_t rank = square / BOARDSIZE;
@@ -152,7 +169,7 @@ Bitboard Board::getRankMaskFromSquare(size_t square)
     return rankMask;
 }
 
-Bitboard Board::getFileMaskFromSquare(size_t square)
+Bitboard Board::getFileMaskFromSquare(Square square)
 {
     // get fileMask with topleft = 0 and bottomright = BOARDSIZE*BOARDSIZE - 1
     size_t file = square % BOARDSIZE;
@@ -163,16 +180,20 @@ Bitboard Board::getFileMaskFromSquare(size_t square)
     return fileMask;
 }
 
-
-Move *Board::getPossibleMoves()
+std::vector<Move> Board::getPossibleMoves()
 {
 //    Bitboard PawnAttacks = getPawnAttacks();
 //    logger.log("PawnAttacks", PawnAttacks);
+    std::vector<Move> moves, testmoves;
+    testmoves.emplace_back(a2, a4, wPawn, NoType);
+    testmoves.emplace_back(b2, b4, wPawn, NoType);
+    testmoves.emplace_back(c2, c4, wPawn, NoType);
 
-    getPawnAttacks();
-    getPawnPushes();
-
-    return nullptr;
+    for (const auto& move : testmoves)
+    {
+        moves.push_back(move);
+    }
+    return moves;
 }
 
 void Board::doMove(Move &move)
@@ -379,8 +400,8 @@ Bitboard Board::getPawnAttacks()
         pawnAttacksEast = (playerPawns << Offsets::SouthEast) & notAFile;
     }
 
-    logger.log("pawnAttacksWest", pawnAttacksWest);
-    logger.log("pawnAttacksEast", pawnAttacksEast);
+    // logger.log("pawnAttacksWest", pawnAttacksWest);
+    // logger.log("pawnAttacksEast", pawnAttacksEast);
 
     return (pawnAttacksWest | pawnAttacksEast);
 }
@@ -401,8 +422,8 @@ Bitboard Board::getPawnPushes()
         pawnPushesDouble = (playerPawns << Offsets::South * 2) & rank5;
     }
 
-    logger.log("pawnPushesSingle", pawnPushesSingle);
-    logger.log("pawnPushesDouble", pawnPushesDouble);
+    // logger.log("pawnPushesSingle", pawnPushesSingle);
+    // logger.log("pawnPushesDouble", pawnPushesDouble);
 
     return (pawnPushesSingle | pawnPushesDouble);
 }
@@ -417,4 +438,27 @@ void Board::logBitboards()
     logger.log("rooks", rooks);
     logger.log("queens", queens);
     logger.log("kings", kings);
+}
+
+Bitboard Board::getPawnAttacksFromSquare(Square square, Color color)
+{
+    Bitboard playerPawn, pawnAttacksWest, pawnAttacksEast;
+    playerPawn.set(square);
+    
+    if (color == Color::White) {
+        pawnAttacksWest = (playerPawn >> -Offsets::NorthWest) & notHFile;
+        pawnAttacksEast = (playerPawn >> -Offsets::NorthEast) & notAFile;
+    }
+    // NOTE bitshifting with negative values is undefined behaviour in C++
+    else {
+        pawnAttacksWest = (playerPawn << Offsets::SouthWest) & notHFile;
+        pawnAttacksEast = (playerPawn << Offsets::SouthEast) & notAFile;
+    }
+    Bitboard pawnAttacks = (pawnAttacksEast | pawnAttacksWest);
+    char logstring[100];
+    const char* side = (color == 1) ? "white" : "black";
+    sprintf(logstring, "getPawnAttacksFromSquare - %d - %s", square, side);
+
+    logger.log(logstring, pawnAttacks);
+    return pawnAttacks;
 }
