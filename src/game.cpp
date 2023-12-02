@@ -29,12 +29,13 @@ void Game::start()
 void Game::test()
 {
     std::vector<Move> moves = _board.getPossibleMoves();
+
     for (const auto& move : moves)
         logger.log(move);
 
+    _board.doMove(moves[0]);
     _board.switchTurn();
-
-    moves = _board.getPossibleMoves();
+    
 }
 
 bool Game::isOver () const

@@ -10,7 +10,7 @@
 
 #define BOARDSIZE 8
 
-enum Square {
+enum Square : int {
     a8=0, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a6, b6, c6, d6, e6, f6, g6, h6,
@@ -67,8 +67,6 @@ class Board {
 
         Bitboard getPawnAttacksFromSquare(Square square, Color color);
 
-
-
         ChessLogger& logger;
 
         bool wKC, wQC, bKC, bQC;
@@ -77,10 +75,24 @@ class Board {
         Color turn;
 
         // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
-//        std::vector<Piece*> pieces;
+        // std::vector<Piece*> pieces;
         
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
-        
+        const std::unordered_map<PieceType, Bitboard*> m_pieceTypeBitboards = {
+            {PieceType::NoType, nullptr},
+            {PieceType::wPawn, &pawns},
+            {PieceType::bPawn, &pawns},
+            {PieceType::Knight, &knights},
+            {PieceType::Bishop, &bishops},
+            {PieceType::Rook, &rooks},
+            {PieceType::Queen, &queens},
+            {PieceType::King, &kings},
+        };
+        const std::unordered_map<Color, Bitboard*> m_ColorBitboards = {
+            {Color::White, &white},
+            {Color::Black, &black},
+        };
+
         // Global bitboards
         Bitboard occupied, empty;
         Bitboard notAFile, notBFile, notGFile, notHFile;

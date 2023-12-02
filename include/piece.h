@@ -38,6 +38,10 @@ enum Color : int {
     Black = -1,
 };
 
+constexpr Color invertColor (Color color) {
+    return (color == Color::White) ? Color::Black : Color::White;
+}
+
 //struct Piece
 //{
 //    public:

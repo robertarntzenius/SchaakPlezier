@@ -182,11 +182,9 @@ Bitboard Board::getFileMaskFromSquare(Square square)
 
 std::vector<Move> Board::getPossibleMoves()
 {
-
     std::vector<Move> moves, testmoves;
-    testmoves.emplace_back(a2, a4, wPawn, NoType);
-    testmoves.emplace_back(b2, b4, wPawn, NoType);
-    testmoves.emplace_back(c2, c4, wPawn, NoType);
+    testmoves.emplace_back(a2, e8, wPawn, King);
+
 
     for (const auto& move : testmoves)
     {
@@ -199,7 +197,6 @@ void Board::doMove(Move &move)
 {
     // This function doesnt check the legality of a move, that should be done in move generation
     // This function only changes the bitboards depending on the Move it receives
-    Color player = (white.test(move.from)) ? Color::White : Color::Black;
 
     // Before changing any of the player bitboards, see if the move is a capture
     // if the move is a capture, change necessary opponent bitboards first
@@ -208,178 +205,27 @@ void Board::doMove(Move &move)
     // TODO change occupied & empty and other bitboards I mightve missed.
     // These arent being used now, so not very important at the moment
 
-    switch (move.capture) 
+    Bitboard *player = m_ColorBitboards.at(turn),
+             *opponent = m_ColorBitboards.at(invertColor(turn)),
+             *playerPtype = m_pieceTypeBitboards.at(move.pType),
+             *opponentPtype = m_pieceTypeBitboards.at(move.capture);
+    
+    if (opponentPtype != nullptr)
     {
-        case NoType:
-            break;
-        case wPawn:
-            black.reset(move.to);
-            pawns.reset(move.to);
-            break;
-        case bPawn:
-            white.reset(move.to);
-            pawns.reset(move.to);
-            break;
-        case Knight:
-            if (player == Color::White )
-            {
-                knights.reset(move.to);
-                black.reset(move.to);
-            }
-            else 
-            {
-                knights.reset(move.to);
-                white.reset(move.to);
-            }
-            break;
-        case Bishop:
-            if (player == Color::White )
-            {
-                bishops.reset(move.to);
-                black.reset(move.to);
-            }
-            else 
-            {
-                bishops.reset(move.to);
-                white.reset(move.to);
-            }
-            break;
-        case Rook:
-            if (player == Color::White )
-            {
-                rooks.reset(move.to);
-                black.reset(move.to);
-            }
-            else 
-            {
-                rooks.reset(move.to);
-                white.reset(move.to);
-            }
-            break;
-        case Queen:
-            if (player == Color::White )
-            {
-                queens.reset(move.to);
-                black.reset(move.to);
-            }
-            else 
-            {
-                queens.reset(move.to);
-                white.reset(move.to);
-            }
-            break;
-        case King:
-            std::cerr << "Capturing a king should not be possible." << std::endl; 
-            break;
-        default:
-            std::cerr << "Invalid move.capture: " << move.capture << std::endl;
+        opponent->reset(move.to);
+        opponentPtype->reset(move.to);
     }
 
-    // After performing the capture related changes to opponent bitboards
-    // Make the move for the player and changes player bitboards
-    // move.pType is the pType of the player piece
-    switch (move.pType) 
-    {
-        case wPawn:
-            pawns.reset(move.from);
-            white.reset(move.from);
-            pawns.set(move.to);
-            white.set(move.to);
-            break;
-        case bPawn:
-            pawns.reset(move.from);
-            black.reset(move.from);
-            pawns.set(move.to);
-            black.set(move.to);
-            break;
-        case Knight:
-            if (player == Color::White )
-            {
-                knights.reset(move.from);
-                white.reset(move.from);
-                knights.set(move.to);
-                white.set(move.to);
-            }
-            else 
-            {
-                knights.reset(move.from);
-                black.reset(move.from);
-                knights.set(move.to);
-                black.set(move.to);
-            }
-            break;
-        case Bishop:
-            if (player == Color::White )
-            {
-                bishops.reset(move.from);
-                white.reset(move.from);
-                bishops.set(move.to);
-                white.set(move.to);
-            }
-            else 
-            {
-                bishops.reset(move.from);
-                black.reset(move.from);
-                bishops.set(move.to);
-                black.set(move.to);
-            }
-            break;
-        case Rook:
-            if (player == Color::White )
-            {
-                rooks.reset(move.from);
-                white.reset(move.from);
-                rooks.set(move.to);
-                white.set(move.to);
-            }
-            else 
-            {
-                rooks.reset(move.from);
-                black.reset(move.from);
-                rooks.set(move.to);
-                black.set(move.to);
-            }
-            break;
-        case Queen:
-            if (player == Color::White )
-            {
-                queens.reset(move.from);
-                white.reset(move.from);
-                queens.set(move.to);
-                white.set(move.to);
-            }
-            else 
-            {
-                queens.reset(move.from);
-                black.reset(move.from);
-                queens.set(move.to);
-                black.set(move.to);
-            }
-            break;
-        case King:
-            if (player == Color::White )
-            {
-                kings.reset(move.from);
-                white.reset(move.from);
-                kings.set(move.to);
-                white.set(move.to);
-            }
-            else 
-            {
-                kings.reset(move.from);
-                black.reset(move.from);
-                kings.set(move.to);
-                black.set(move.to);
-            }
-            break;
-        default:
-            std::cerr << "Invalid move.pieceType: " << move.pType << std::endl;
-    }
+    player->reset(move.from);
+    player->set(move.to);
+    playerPtype->reset(move.from);
+    playerPtype->set(move.to);
+    logBitboards();
 }
 
 Color Board::switchTurn()
 {
-    turn = (turn == Color::White)? Color::Black : Color::White;
+    turn = invertColor(turn); 
     return turn;
 }
 
