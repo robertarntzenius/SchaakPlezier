@@ -52,20 +52,23 @@ class Board {
         void doMove(Move &move);
 
         Color switchTurn();
+
+        void logBitboards() const;
     private:
         void InitializeBitboardsFromFEN(const std::string& fenString);
         void FillLookupTables();
-
-        Bitboard getPawnPushes();
-        Bitboard getPawnAttacks();
 
         Bitboard getRankMask(size_t rank);
         Bitboard getFileMask(size_t file);
         Bitboard getRankMaskFromSquare(Square square);
         Bitboard getFileMaskFromSquare(Square square);
-        void logBitboards();
 
+        // Gets attacked squares by all pieces
+        Bitboard getPawnAttacks();
+
+        // Gets available spaces for single piece
         Bitboard getPawnAttacksFromSquare(Square square, Color color);
+        Bitboard getPawnPushesFromSquare(Square square, Color color);
 
         ChessLogger& logger;
 

@@ -15,6 +15,8 @@ add_executable(SchaakPlezier
         src/bitboard.cpp
         src/game.cpp
         src/log.cpp
-        src/main.cpp)
+        src/main.cpp
+        src/maskgeneration.cpp
+        src/movegeneration.cpp)
 
 target_include_directories(SchaakPlezier PUBLIC include)
