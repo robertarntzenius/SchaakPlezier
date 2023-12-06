@@ -104,7 +104,7 @@ constexpr Square intToSquare (int i)
 struct Move {
     Piece piece;
     Square target;
-    PieceType capture;
+    PieceType capture; // TODO FIXME change to piece
 
     Move(Square from, Square target, PieceType pType, PieceType capture)
             : piece(pType, from),

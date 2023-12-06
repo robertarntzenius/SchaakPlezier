@@ -84,6 +84,8 @@ void Board::doMove(Move &move)
     
     if (opponentPtype != nullptr)
     {
+        // TODO move pieces in pieceVectors
+
         opponent->reset(move.target);
         opponentPtype->reset(move.target);
     }
