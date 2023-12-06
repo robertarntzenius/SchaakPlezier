@@ -7,7 +7,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -O3)
 add_executable(SchaakPlezier
         include/board.h
         include/game.h
-        include/piece.h
+        include/definitions.h
         include/bitboard.h
         include/log.h
 
@@ -17,6 +17,6 @@ add_executable(SchaakPlezier
         src/log.cpp
         src/main.cpp
         src/maskgeneration.cpp
-        src/movegeneration.cpp)
+)
 
 target_include_directories(SchaakPlezier PUBLIC include)

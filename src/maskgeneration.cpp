@@ -1,24 +1,51 @@
 #include "board.h"
 
-Bitboard Board::getPawnAttacks()
+Bitboard Board::getPawnAttacks(Color color, Square square)
 {
-    Bitboard playerPawns, pawnAttacksWest, pawnAttacksEast;
+    Bitboard playerPawn;
+    playerPawn.set(square);
 
-    if (turn == Color::White) {
-        playerPawns = (pawns & white);
-        pawnAttacksWest = (playerPawns >> -Offsets::NorthWest) & notHFile;
-        pawnAttacksEast = (playerPawns >> -Offsets::NorthEast) & notAFile;
+    return getPawnAttacks(color, playerPawn);
+}
+
+Bitboard Board::getPawnAttacks(Color color, Bitboard pieceMask)
+{
+    Bitboard pawnAttacksWest, pawnAttacksEast;
+
+    if (color == Color::White) {
+        pieceMask = (pawns & white);
+        pawnAttacksWest = (pieceMask >> -Offsets::NorthWest) & notHFile;
+        pawnAttacksEast = (pieceMask >> -Offsets::NorthEast) & notAFile;
     }
-        // NOTE bitshifting with negative values is undefined behaviour in C++
+    // NOTE bitshifting with negative values is undefined behaviour in C++
     else {
-        playerPawns = (pawns & black);
-        pawnAttacksWest = (playerPawns << Offsets::SouthWest) & notHFile;
-        pawnAttacksEast = (playerPawns << Offsets::SouthEast) & notAFile;
+        pieceMask = (pawns & black);
+        pawnAttacksWest = (pieceMask << Offsets::SouthWest) & notHFile;
+        pawnAttacksEast = (pieceMask << Offsets::SouthEast) & notAFile;
     }
 
     return (pawnAttacksWest | pawnAttacksEast);
 }
 
+
+Bitboard Board::getPawnPushes(Color color, Square square)
+{
+    Bitboard playerPawn, singlePush, doublePush;
+
+    playerPawn.set(square);
+
+    if (color == Color::White) {
+        singlePush = (playerPawn >> -Offsets::North );
+        doublePush = (playerPawn >> -Offsets::North * 2) & rank4;
+    }
+    // NOTE bitshifting with negative values is undefined behaviour in C++
+    else {
+        singlePush = (playerPawn << Offsets::South );
+        doublePush = (playerPawn << Offsets::South * 2) & rank5;
+    }
+
+    return (singlePush | doublePush);
+}
 
 Bitboard Board::getRankMask(size_t rank)
 {
@@ -66,4 +93,3 @@ Bitboard Board::getFileMaskFromSquare(Square square)
     }
     return fileMask;
 }
-

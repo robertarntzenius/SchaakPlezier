@@ -1,51 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <unordered_map>
-
 #include "bitboard.h"
-#include "piece.h"
+#include "definitions.h"
 #include "log.h"
-
-#define BOARDSIZE 8
-
-enum Square : int {
-    a8=0, b8, c8, d8, e8, f8, g8, h8,
-    a7, b7, c7, d7, e7, f7, g7, h7,
-    a6, b6, c6, d6, e6, f6, g6, h6,
-    a5, b5, c5, d5, e5, f5, g5, h5,
-    a4, b4, c4, d4, e4, f4, g4, h4,
-    a3, b3, c3, d3, e3, f3, g3, h3,
-    a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1,
-};
-
-struct Move {
-    Square from;
-    Square to;
-    PieceType pType;
-    PieceType capture;
-
-    Move(Square from, Square to, PieceType pType, PieceType capture) 
-    : from(from), to(to), pType(pType), capture(capture) {}
-
-    friend std::ostream& operator<<(std::ostream& os, const Move& move) {
-        std::string fromSquare = static_cast<char>('a' + static_cast<int>(move.from) % 8) +
-                                std::to_string(8 - static_cast<int>(move.from) / 8);
-        std::string toSquare = static_cast<char>('a' + static_cast<int>(move.to) % 8) +
-                                std::to_string(8 - static_cast<int>(move.to) / 8);
-
-        std::string pTypeStr = pieceTypeStrings.at(move.pType);;
-        std::string captureStr = pieceTypeStrings.at(move.capture);;
-        os << "From: " << fromSquare << ", To: " << toSquare << ", Piece: " << pTypeStr << ", Capture: " << captureStr;
-        return os;
-    }
-};
 
 class Board {
     public:
-        Board(const std::string& FENString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        Board(const std::string& FENString = defaultStartingFEN);
         ~Board();
 
         std::vector<Move> getPossibleMoves();
@@ -55,7 +16,7 @@ class Board {
 
         void logBitboards() const;
     private:
-        void InitializeBitboardsFromFEN(const std::string& fenString);
+        void InitializeFromFEN(const std::string& fenString);
         void FillLookupTables();
 
         Bitboard getRankMask(size_t rank);
@@ -63,12 +24,13 @@ class Board {
         Bitboard getRankMaskFromSquare(Square square);
         Bitboard getFileMaskFromSquare(Square square);
 
-        // Gets attacked squares by all pieces
-        Bitboard getPawnAttacks();
+        Bitboard getPawnAttacks(Color color, Square square);
+        Bitboard getPawnAttacks(Color color, Bitboard pieceMask);
 
-        // Gets available spaces for single piece
-        Bitboard getPawnAttacksFromSquare(Square square, Color color);
-        Bitboard getPawnPushesFromSquare(Square square, Color color);
+        Bitboard getPawnPushes(Color color, Square square);
+
+        Bitboard getOccupiedMask () { return (black | white); }
+        Bitboard getEmptyMask () { return ~(getOccupiedMask()); }
 
         ChessLogger& logger;
 
@@ -77,9 +39,10 @@ class Board {
 
         Color turn;
 
-        // FIXME aparte piece structuur zo (moet gewoon 1 van elke type) 
-        // std::vector<Piece*> pieces;
-        
+        std::vector<Piece> wPieces;
+        std::vector<Piece> bPieces;
+
+        // Global bitboards
         Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
         const std::unordered_map<PieceType, Bitboard*> m_pieceTypeBitboards = {
             {PieceType::NoType, nullptr},
@@ -96,10 +59,8 @@ class Board {
             {Color::Black, &black},
         };
 
-        // Global bitboards
-        Bitboard occupied, empty;
-        Bitboard notAFile, notBFile, notGFile, notHFile;
-        Bitboard rank4, rank5;
+        const Bitboard notAFile, notBFile, notGFile, notHFile;
+        const Bitboard rank4, rank5;
 
         // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: PawnAttacks[white][square]
         std::vector<std::vector<Bitboard>> PawnAttacks;

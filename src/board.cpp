@@ -11,6 +11,8 @@ Board::Board(const std::string& fenString)
     : logger(ChessLogger::getInstance()),
     wKC(true), wQC(true), bKC(true), bQC(true), enPassant(-1), halfMoves(0), fullMoves(0),
     turn    (Color::White),
+    wPieces (),
+    bPieces (),
     white   ( Bitboard()),
     black   ( Bitboard()),
     pawns   ( Bitboard()),
@@ -19,8 +21,6 @@ Board::Board(const std::string& fenString)
     rooks   ( Bitboard()),
     queens  ( Bitboard()),
     kings   ( Bitboard()),
-    occupied( Bitboard(black & white)),
-    empty   ( Bitboard(~occupied)),
     notAFile( ~getFileMaskFromSquare(a1) ),
     notBFile( ~getFileMaskFromSquare(b1) ),
     notGFile( ~getFileMaskFromSquare(g1) ),
@@ -30,9 +30,18 @@ Board::Board(const std::string& fenString)
     PawnAttacks(2, std::vector<Bitboard>(64))
 {
     logger.log("New Board created!");
-    InitializeBitboardsFromFEN(fenString);
+    InitializeFromFEN(fenString);
     FillLookupTables();
     logBitboards();
+
+    for (Piece &p : wPieces)
+    {
+        logger.log("", p);
+    }
+    for (Piece &p : bPieces)
+    {
+        logger.log("", p);
+    }
 }
 
 
@@ -45,6 +54,7 @@ Board::~Board() {
 std::vector<Move> Board::getPossibleMoves()
 {
     std::vector<Move> moves, testmoves;
+
     testmoves.emplace_back(a2, e8, wPawn, King);
 
 
@@ -69,20 +79,29 @@ void Board::doMove(Move &move)
 
     Bitboard *player = m_ColorBitboards.at(turn),
              *opponent = m_ColorBitboards.at(invertColor(turn)),
-             *playerPtype = m_pieceTypeBitboards.at(move.pType),
+             *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
              *opponentPtype = m_pieceTypeBitboards.at(move.capture);
     
     if (opponentPtype != nullptr)
     {
-        opponent->reset(move.to);
-        opponentPtype->reset(move.to);
+        opponent->reset(move.target);
+        opponentPtype->reset(move.target);
     }
 
-    player->reset(move.from);
-    player->set(move.to);
-    playerPtype->reset(move.from);
-    playerPtype->set(move.to);
+    player->reset(move.piece.square);
+    player->set(move.target);
+    playerPtype->reset(move.piece.square);
+    playerPtype->set(move.target);
     logBitboards();
+
+    for (Piece &p : wPieces)
+    {
+        logger.log("", p);
+    }
+    for (Piece &p : bPieces)
+    {
+        logger.log("", p);
+    }
 }
 
 Color Board::switchTurn()
@@ -106,32 +125,47 @@ void Board::logBitboards() const
 
 /* private */
 
-void Board::InitializeBitboardsFromFEN(const std::string& fenString) {
+void Board::InitializeFromFEN(const std::string& fenString) {
     size_t FENIndex = 0;
     int square = 0;
     char ch;
 
+    std::vector<Piece> *pieceVector;
+
     while ( (FENIndex < fenString.length()) && (square < 64) ) {
         ch = fenString[FENIndex];
+
+        pieceVector = (isupper(ch))? &wPieces : &bPieces;
+
         if (isalpha(ch)) {
             switch(ch) {
                 case 'r': case 'R':
                     rooks.set(square);
+                    pieceVector->emplace_back(PieceType::Rook, intToSquare(square));
                     break;
                 case 'n': case 'N':
                     knights.set(square);
+                    pieceVector->emplace_back(PieceType::Knight, intToSquare(square));
                     break;
                 case 'b': case 'B':
                     bishops.set(square);
+                    pieceVector->emplace_back(PieceType::Bishop, intToSquare(square));
                     break;
                 case 'q': case 'Q':
                     queens.set(square);
+                    pieceVector->emplace_back(PieceType::Queen, intToSquare(square));
                     break;
                 case 'k': case 'K':
                     kings.set(square);
+                    pieceVector->emplace_back(PieceType::King, intToSquare(square));
                     break;
-                case 'p': case 'P':
+                case 'p':
                     pawns.set(square);
+                    pieceVector->emplace_back(PieceType::bPawn, intToSquare(square));
+                    break;
+                case 'P':
+                    pawns.set(square);
+                    pieceVector->emplace_back(PieceType::wPawn, intToSquare(square));
                     break;
                 default:
                     // TODO error handling
@@ -191,10 +225,10 @@ void Board::FillLookupTables()
     logger.log("Filling Lookup Tables...");
     for(int i=BOARDSIZE; i<BOARDSIZE*BOARDSIZE - BOARDSIZE; i++) {
         // white
-        PawnAttacks[0][i] = getPawnAttacksFromSquare(static_cast<Square>(i), Color::White);
+        PawnAttacks[0][i] = getPawnAttacks(Color::White, intToSquare(i));
 
         // black
-        PawnAttacks[1][i] = getPawnAttacksFromSquare(static_cast<Square>(i), Color::Black);
+        PawnAttacks[1][i] = getPawnAttacks(Color::Black, intToSquare(i));
     }
 
     logger.log("PawnAttacks white d4", PawnAttacks[0][d4]);

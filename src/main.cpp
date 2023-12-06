@@ -10,8 +10,8 @@ int main() {
 //        game->start();
         game->test();
 
-    } catch (std::exception &e) {
-        std::cerr << e.what() << std::endl;
+    } catch (std::string &e) {
+        std::cerr << e << std::endl;
     }
 
     delete game;

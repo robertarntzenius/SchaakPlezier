@@ -1,5 +1,26 @@
 #pragma once
 
+#include <iostream>
+#include <fstream>
+
+#include <vector>
+#include <string>
+#include <unordered_map>
+
+#define BOARDSIZE 8
+#define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+enum Square : int {
+    a8=0, b8, c8, d8, e8, f8, g8, h8,
+    a7, b7, c7, d7, e7, f7, g7, h7,
+    a6, b6, c6, d6, e6, f6, g6, h6,
+    a5, b5, c5, d5, e5, f5, g5, h5,
+    a4, b4, c4, d4, e4, f4, g4, h4,
+    a3, b3, c3, d3, e3, f3, g3, h3,
+    a2, b2, c2, d2, e2, f2, g2, h2,
+    a1, b1, c1, d1, e1, f1, g1, h1, noSquare
+};
+
 enum Offsets : int {
     North = -8,
     NorthEast = -7,
@@ -33,6 +54,18 @@ static const std::unordered_map<PieceType, std::string> pieceTypeStrings = {
     {PieceType::King, "King"},
 };
 
+static const std::unordered_map<Square, std::string> squareStrings = {
+        {a8, "a8"}, {b8, "b8"}, {c8, "c8"}, {d8, "d8"}, {e8, "e8"}, {f8, "f8"}, {g8, "g8"}, {h8, "h8"},
+        {a7, "a7"}, {b7, "b7"}, {c7, "c7"}, {d7, "d7"}, {e7, "e7"}, {f7, "f7"}, {g7, "g7"}, {h7, "h7"},
+        {a6, "a6"}, {b6, "b6"}, {c6, "c6"}, {d6, "d6"}, {e6, "e6"}, {f6, "f6"}, {g6, "g6"}, {h6, "h6"},
+        {a5, "a5"}, {b5, "b5"}, {c5, "c5"}, {d5, "d5"}, {e5, "e5"}, {f5, "f5"}, {g5, "g5"}, {h5, "h5"},
+        {a4, "a4"}, {b4, "b4"}, {c4, "c4"}, {d4, "d4"}, {e4, "e4"}, {f4, "f4"}, {g4, "g4"}, {h4, "h4"},
+        {a3, "a3"}, {b3, "b3"}, {c3, "c3"}, {d3, "d3"}, {e3, "e3"}, {f3, "f3"}, {g3, "g3"}, {h3, "h3"},
+        {a2, "a2"}, {b2, "b2"}, {c2, "c2"}, {d2, "d2"}, {e2, "e2"}, {f2, "f2"}, {g2, "g2"}, {h2, "h2"},
+        {a1, "a1"}, {b1, "b1"}, {c1, "c1"}, {d1, "d1"}, {e1, "e1"}, {f1, "f1"}, {g1, "g1"}, {h1, "h1"},
+        {noSquare, "noSquare"}
+};
+
 enum Color : int {
     White = 1,
     Black = -1,
@@ -42,14 +75,55 @@ constexpr Color invertColor (Color color) {
     return (color == Color::White) ? Color::Black : Color::White;
 }
 
-//struct Piece
-//{
-//    public:
-//        int offsets[8] = {0};
-//        int color = Color::White;
-//        PieceType type = PieceType::NoType;
-//        int numOffsets = 0;
-//};
+struct Piece
+{
+    PieceType type = PieceType::NoType;
+    Square square;
+
+    Piece(PieceType type, Square square)
+        : type(type),
+          square(square) {}
+
+    friend std::ostream& operator<<(std::ostream& os, const Piece& piece)
+    {
+        os  << '[' << pieceTypeStrings.at(piece.type)
+            << ':' << squareStrings.at(piece.square) << ']';
+        return os;
+    }
+};
+
+constexpr Square intToSquare (int i)
+{
+    if (a8 <= i && i <= h1)
+        return static_cast<Square>(i);
+    // TODO error handling
+    std::cerr << "Robert fucked up" << std::endl;
+    throw "intToSquare called with i = " + i;
+}
+
+struct Move {
+    Piece piece;
+    Square target;
+    PieceType capture;
+
+    Move(Square from, Square target, PieceType pType, PieceType capture)
+            : piece(pType, from),
+              target(target),
+              capture(capture) {}
+
+    friend std::ostream& operator<<(std::ostream& os, const Move& move) {
+        std::string fromSquare = static_cast<char>('a' + static_cast<int>(move.piece.square) % 8) +
+                                 std::to_string(8 - static_cast<int>(move.piece.square) / 8);
+        std::string toSquare = static_cast<char>('a' + static_cast<int>(move.target) % 8) +
+                               std::to_string(8 - static_cast<int>(move.target) / 8);
+
+        const std::string& pTypeStr = pieceTypeStrings.at(move.piece.type);;
+        const std::string& captureStr = pieceTypeStrings.at(move.capture);;
+        os << "From: " << fromSquare << ", To: " << toSquare << ", Piece: " << pTypeStr << ", Capture: " << captureStr;
+        return os;
+    }
+};
+
 //
 //class PieceFactory {
 //    public:

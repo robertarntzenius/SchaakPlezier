@@ -1,14 +1,14 @@
 #pragma once
 
+#include "definitions.h"
+#include "bitboard.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cstdio> // Include the header for sprintf
-#include <cstdarg> 
-
-
-#include "bitboard.h"
+#include <cstdarg>
 
 class ChessLogger { // TODO add error handling for when logfile cannot be opened
 public:
@@ -17,10 +17,17 @@ public:
     ChessLogger();
     ~ChessLogger();
 
-    void log(const char* msg, Bitboard bitboard) {
+    void log(const char* msg, const Bitboard& bitboard) {
         if (logFile.is_open()) {
             logFile << msg << std::endl;
             logFile << bitboard << std::endl;
+        }
+    }
+
+    void log(const char* msg, const Piece &piece) {
+        if (logFile.is_open()) {
+            logFile << msg << std::endl;
+            logFile << piece << std::endl;
         }
     }
     
