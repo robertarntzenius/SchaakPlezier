@@ -30,6 +30,8 @@ void Game::test()
 {
     std::vector<Move> moves = _board.getPossibleMoves();
 
+    _assert(squareStrings.at(a1) == "a1"); // this passes in Both
+    _assert(squareStrings.at(a1) == "a2"); // this fails in Debug, but passes in Release
 
     for (const auto& move : moves)
         logger.log(move);

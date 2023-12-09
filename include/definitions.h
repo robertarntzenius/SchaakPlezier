@@ -2,13 +2,21 @@
 
 #include <iostream>
 #include <fstream>
-
 #include <vector>
 #include <string>
 #include <unordered_map>
 
 #define BOARDSIZE 8
 #define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+#ifdef DEBUG 
+// _assert will be compiled in Debug
+#include <cassert>
+#define _assert(expr) assert(expr)
+#else
+// _assert will not be compiled in Release
+#define _assert(expr) ((void)0)
+#endif
 
 enum Square : int {
     a8=0, b8, c8, d8, e8, f8, g8, h8,

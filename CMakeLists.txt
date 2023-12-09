@@ -20,3 +20,17 @@ add_executable(SchaakPlezier
 )
 
 target_include_directories(SchaakPlezier PUBLIC include)
+
+if(NOT BUILD_TYPE)
+    message(STATUS "Build configuration defaulted to Release")
+    set(BUILD_TYPE "Release")
+elseif(BUILD_TYPE STREQUAL "Release")
+    message(STATUS "Build configuration: ${BUILD_TYPE}")
+    # Do nothing for now, maybe add optimization compiler flags later
+elseif(BUILD_TYPE STREQUAL "Debug") 
+    # Add this -DDEBUG which essentially has adds #define DEBUG to the files its target
+    message(STATUS "Build configuration: ${BUILD_TYPE}")
+    target_compile_definitions(SchaakPlezier PRIVATE -DDEBUG)
+else()
+    message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release or Debug)")
+endif()

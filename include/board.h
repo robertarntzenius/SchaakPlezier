@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bitboard.h"
 #include "definitions.h"
+#include "bitboard.h"
 #include "log.h"
 
 class Board {
