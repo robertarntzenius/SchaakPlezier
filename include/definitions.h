@@ -100,13 +100,10 @@ struct Piece
     }
 };
 
-constexpr Square intToSquare (int i)
+[[nodiscard]] constexpr Square intToSquare (int i)
 {
-    if (a8 <= i && i <= h1)
-        return static_cast<Square>(i);
-    // TODO error handling
-    std::cerr << "Robert fucked up" << std::endl;
-    throw "intToSquare called with i = " + i;
+    _assert((a8 <= i) && (i <= h1));
+    return static_cast<Square>(i);
 }
 
 struct Move {
