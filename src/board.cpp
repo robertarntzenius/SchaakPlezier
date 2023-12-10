@@ -231,7 +231,7 @@ void Board::InitializeFromFEN(const std::string& fenString) {
         fullMoves *= 10;
         fullMoves += fenString[FENIndex] - '0';
     }
-    // kings.set(e7);
+
     _assert(checkBoard());
     #ifdef DEBUG
         logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
@@ -257,7 +257,9 @@ void Board::FillLookupTables()
     #endif
 }
 
+
 bool Board::checkBoard() {
+    #ifdef DEBUG
     // First fill the counts map from wPieces and bPieces
     logger.logHeader("Called CheckBoard()");
     std::map<PieceType, size_t> counts;
@@ -304,5 +306,6 @@ bool Board::checkBoard() {
     }
     logger.logHeader("Successful CheckBoard()");
 
+    #endif
     return true;
 }
