@@ -20,3 +20,15 @@ ChessLogger::~ChessLogger() {
         logFile.close();
     }
 }
+
+void ChessLogger::logHeader(const std::string& text) {
+    int linesize = 100;
+
+    std::string spaces((linesize - text.length()) / 2, ' ');
+    std::string equals(linesize, '=');
+    std::string header = "\n" + equals +
+                         "\n" + spaces + text +
+                         "\n" + equals +
+                         "\n";
+    log(header);
+}

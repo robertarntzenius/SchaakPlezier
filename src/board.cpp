@@ -15,7 +15,8 @@ Board::Board(const std::string& fenString)
     bPieces (),
     white   ( Bitboard()),
     black   ( Bitboard()),
-    pawns   ( Bitboard()),
+    wpawns  ( Bitboard()),
+    bpawns  ( Bitboard()),
     knights ( Bitboard()),
     bishops ( Bitboard()),
     rooks   ( Bitboard()),
@@ -124,7 +125,8 @@ void Board::logBitboards() const
     #ifdef DEBUG
         logger.log("white", white);
         logger.log("black", black);
-        logger.log("pawns", pawns);
+        logger.log("wpawns", wpawns);
+        logger.log("bpawns", bpawns);
         logger.log("knights", knights);
         logger.log("bishops", bishops);
         logger.log("rooks", rooks);
@@ -171,11 +173,11 @@ void Board::InitializeFromFEN(const std::string& fenString) {
                     pieceVector->emplace_back(PieceType::King, intToSquare(square));
                     break;
                 case 'p':
-                    pawns.set(square);
+                    bpawns.set(square);
                     pieceVector->emplace_back(PieceType::bPawn, intToSquare(square));
                     break;
                 case 'P':
-                    pawns.set(square);
+                    wpawns.set(square);
                     pieceVector->emplace_back(PieceType::wPawn, intToSquare(square));
                     break;
                 default:
@@ -229,6 +231,8 @@ void Board::InitializeFromFEN(const std::string& fenString) {
         fullMoves *= 10;
         fullMoves += fenString[FENIndex] - '0';
     }
+    // kings.set(e7);
+    _assert(checkBoard());
     #ifdef DEBUG
         logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
     #endif
@@ -236,7 +240,6 @@ void Board::InitializeFromFEN(const std::string& fenString) {
 
 void Board::FillLookupTables()
 {
-    
     #ifdef DEBUG
         logger.log("Filling Lookup Tables...");
     #endif
@@ -254,3 +257,52 @@ void Board::FillLookupTables()
     #endif
 }
 
+bool Board::checkBoard() {
+    // First fill the counts map from wPieces and bPieces
+    logger.logHeader("Called CheckBoard()");
+    std::map<PieceType, size_t> counts;
+    std::vector<Piece>& allPieces = wPieces;
+    allPieces.insert(allPieces.end(), bPieces.begin(), bPieces.end());  // Union of wPieces and bPieces
+
+    for (const auto& piece : allPieces) {
+        Bitboard* bitboard = m_pieceTypeBitboards.at(piece.type);
+
+        std::string logstring = "[ASSERT] piece location: " + pieceTypeStrings.at(piece.type) + " at " + squareStrings.at(piece.square);
+        logger.log(logstring);
+        _assert(bitboard->test(piece.square));
+
+        if (counts.count(piece.type) == 0) {
+            counts[piece.type] = 1;
+        } else {
+            counts[piece.type]++;
+        }
+    }
+
+    // Check material counts
+    for (const auto& [pieceType, cnt] : counts) {
+        Bitboard* bitboard = m_pieceTypeBitboards.at(pieceType);
+        std::string logmsg = "[ASSERT] material count: " + pieceTypeStrings.at(pieceType) + " = " + std::to_string(cnt);
+        logger.log(logmsg);
+
+        bool expr = (bitboard->count() == cnt);
+        _assert(expr);
+    }
+
+    // Check if any bitboards have overlapping bits set
+    logger.log("[ASSERT] no overlap global: white, black");
+    _assert((white & black) == 0);
+    for (auto it1 = m_bitboardNames.begin(); it1 != m_bitboardNames.end(); ++it1) {
+        auto& [pName1, bitboard1] = *it1;
+
+        for (auto it2 = std::next(it1); it2 != m_bitboardNames.end(); ++it2) {
+            auto& [pName2, bitboard2] = *it2;
+
+            std::string logstring = "[ASSERT] no overlap: pType1: " + pName1 + ", pType2: " + pName2;
+            logger.log(logstring);
+            _assert((*bitboard1 & *bitboard2) == 0);
+        }
+    }
+    logger.logHeader("Successful CheckBoard()");
+
+    return true;
+}

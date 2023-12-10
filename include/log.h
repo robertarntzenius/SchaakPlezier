@@ -53,6 +53,8 @@ public:
         }
     }
 
+    void logHeader(const std::string& header);
+
 private:
     template <typename... Args>
     void formatAndLog(std::ostringstream& oss, const char* format, Args... args) {

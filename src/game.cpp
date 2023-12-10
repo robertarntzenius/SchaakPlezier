@@ -16,6 +16,7 @@ void Game::start()
 
 //    while (!this->isOver())
 //    {
+//          _assert(CheckBitboards())
 //        Move *possibleMoves = _board.getPossibleMoves();
 //
 //        // get active player to decide on one of the possible moves
@@ -31,14 +32,12 @@ void Game::start()
 
 void Game::test()
 {
-    std::vector<Move> moves = _board.getPossibleMoves();
+    // std::vector<Move> moves = _board.getPossibleMoves();
     
-    #ifdef DEBUG
-        for (const auto& move : moves)
-            logger.log(move);
-    #endif
+    // for (const auto& move : moves)
+    //     logger.log(move);
 
-    _board.doMove(moves[0]);
+    // _board.doMove(moves[0]);
     _board.switchTurn();
     
 }

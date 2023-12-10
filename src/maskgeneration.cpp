@@ -13,13 +13,11 @@ Bitboard Board::getPawnAttacks(Color color, Bitboard pieceMask)
     Bitboard pawnAttacksWest, pawnAttacksEast;
 
     if (color == Color::White) {
-        pieceMask = (pawns & white);
         pawnAttacksWest = (pieceMask >> -Offsets::NorthWest) & notHFile;
         pawnAttacksEast = (pieceMask >> -Offsets::NorthEast) & notAFile;
     }
     // NOTE bitshifting with negative values is undefined behaviour in C++
     else {
-        pieceMask = (pawns & black);
         pawnAttacksWest = (pieceMask << Offsets::SouthWest) & notHFile;
         pawnAttacksEast = (pieceMask << Offsets::SouthEast) & notAFile;
     }

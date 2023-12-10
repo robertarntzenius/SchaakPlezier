@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(SchaakPlezier)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -O3)
 
 add_executable(SchaakPlezier
@@ -27,6 +27,7 @@ if(NOT BUILD_TYPE)
 elseif(BUILD_TYPE STREQUAL "Release")
     message(STATUS "Build configuration: ${BUILD_TYPE}")
     # Do nothing for now, maybe add optimization compiler flags later
+    # target_compile_definitions(SchaakPlezier PRIVATE -O3)
 elseif(BUILD_TYPE STREQUAL "Debug") 
     # Add this -DDEBUG which essentially has adds #define DEBUG to the files its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")

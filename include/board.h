@@ -19,6 +19,8 @@ class Board {
         void InitializeFromFEN(const std::string& fenString);
         void FillLookupTables();
 
+        bool checkBoard();
+
         Bitboard getRankMask(size_t rank);
         Bitboard getFileMask(size_t file);
         Bitboard getRankMaskFromSquare(Square square);
@@ -43,17 +45,28 @@ class Board {
         std::vector<Piece> bPieces;
 
         // Global bitboards
-        Bitboard white, black, pawns, knights, bishops, rooks, queens, kings;
+        Bitboard white, black, wpawns, bpawns, knights, bishops, rooks, queens, kings;
         const std::unordered_map<PieceType, Bitboard*> m_pieceTypeBitboards = {
             {PieceType::NoType, nullptr},
-            {PieceType::wPawn, &pawns},
-            {PieceType::bPawn, &pawns},
+            {PieceType::wPawn, &wpawns},
+            {PieceType::bPawn, &bpawns},
             {PieceType::Knight, &knights},
             {PieceType::Bishop, &bishops},
             {PieceType::Rook, &rooks},
             {PieceType::Queen, &queens},
             {PieceType::King, &kings},
         };
+
+        const std::unordered_map<std::string, Bitboard*> m_bitboardNames = {
+            {"wpawns", &wpawns},
+            {"bpawns", &bpawns},
+            {"knights", &knights},
+            {"bishops", &bishops},
+            {"rooks", &rooks},
+            {"queens", &queens},
+            {"kings", &kings}
+        };
+
         const std::unordered_map<Color, Bitboard*> m_ColorBitboards = {
             {Color::White, &white},
             {Color::Black, &black},
