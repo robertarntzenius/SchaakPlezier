@@ -16,7 +16,7 @@ public:
     ChessLogger(const std::string& logFileName);
     ChessLogger();
     ~ChessLogger();
-
+    
     void log(const char* msg, const Bitboard& bitboard) {
         if (logFile.is_open()) {
             logFile << msg << std::endl;

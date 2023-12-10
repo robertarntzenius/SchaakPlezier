@@ -29,26 +29,30 @@ Board::Board(const std::string& fenString)
     rank5(getRankMaskFromSquare(a5)),
     PawnAttacks(2, std::vector<Bitboard>(64))
 {
-    logger.log("New Board created!");
+    #ifdef DEBUG
+        logger.log("New Board created!");
+    #endif
+
     InitializeFromFEN(fenString);
     FillLookupTables();
-    logBitboards();
 
-    for (Piece &p : wPieces)
-    {
-        logger.log("", p);
-    }
-    for (Piece &p : bPieces)
-    {
-        logger.log("", p);
-    }
+    #ifdef DEBUG
+        logBitboards();
+        for (Piece &p : wPieces)
+        {
+            logger.log("", p);
+        }
+        for (Piece &p : bPieces)
+        {
+            logger.log("", p);
+        }
+    #endif
 }
 
 
 Board::~Board() {
 
 }
-
 
 
 std::vector<Move> Board::getPossibleMoves()
@@ -94,16 +98,19 @@ void Board::doMove(Move &move)
     player->set(move.target);
     playerPtype->reset(move.piece.square);
     playerPtype->set(move.target);
-    logBitboards();
+    
+    #ifdef DEBUG
+        logBitboards();
 
-    for (Piece &p : wPieces)
-    {
-        logger.log("", p);
-    }
-    for (Piece &p : bPieces)
-    {
-        logger.log("", p);
-    }
+        for (Piece &p : wPieces)
+        {
+            logger.log("", p);
+        }
+        for (Piece &p : bPieces)
+        {
+            logger.log("", p);
+        }
+    #endif
 }
 
 Color Board::switchTurn()
@@ -114,14 +121,16 @@ Color Board::switchTurn()
 
 void Board::logBitboards() const
 {
-    logger.log("white", white);
-    logger.log("black", black);
-    logger.log("pawns", pawns);
-    logger.log("knights", knights);
-    logger.log("bishops", bishops);
-    logger.log("rooks", rooks);
-    logger.log("queens", queens);
-    logger.log("kings", kings);
+    #ifdef DEBUG
+        logger.log("white", white);
+        logger.log("black", black);
+        logger.log("pawns", pawns);
+        logger.log("knights", knights);
+        logger.log("bishops", bishops);
+        logger.log("rooks", rooks);
+        logger.log("queens", queens);
+        logger.log("kings", kings);
+    #endif
 }
 
 
@@ -198,8 +207,9 @@ void Board::InitializeFromFEN(const std::string& fenString) {
 
     // FIXME read en passent correctly
     enPassant = (fenString[++FENIndex] == '-') ? -1 : (fenString[FENIndex] - '0');
-
-    logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
+    #ifdef DEBUG
+        logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
+    #endif
 
     FENIndex++;
     while ( (FENIndex < fenString.length()) && (fenString[++FENIndex] != ' ') ) {
@@ -219,12 +229,17 @@ void Board::InitializeFromFEN(const std::string& fenString) {
         fullMoves *= 10;
         fullMoves += fenString[FENIndex] - '0';
     }
-    logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
+    #ifdef DEBUG
+        logger.log("%d %d %d %d %d %d %d %d", turn, halfMoves, fullMoves, enPassant, wKC, wQC, bKC, bQC);
+    #endif
 }
 
 void Board::FillLookupTables()
 {
-    logger.log("Filling Lookup Tables...");
+    
+    #ifdef DEBUG
+        logger.log("Filling Lookup Tables...");
+    #endif
     for(int i=BOARDSIZE; i<BOARDSIZE*BOARDSIZE - BOARDSIZE; i++) {
         // white
         PawnAttacks[0][i] = getPawnAttacks(Color::White, intToSquare(i));
@@ -232,8 +247,10 @@ void Board::FillLookupTables()
         // black
         PawnAttacks[1][i] = getPawnAttacks(Color::Black, intToSquare(i));
     }
-
-    logger.log("PawnAttacks white d4", PawnAttacks[0][d4]);
-    logger.log("PawnAttacks black d4", PawnAttacks[1][d4]);
+    
+    #ifdef DEBUG
+        logger.log("PawnAttacks white d4", PawnAttacks[0][d4]);
+        logger.log("PawnAttacks black d4", PawnAttacks[1][d4]);
+    #endif
 }
 
