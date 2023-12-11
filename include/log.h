@@ -10,6 +10,7 @@
 #include <cstdio> // Include the header for sprintf
 #include <cstdarg>
 
+
 class ChessLogger { // TODO add error handling for when logfile cannot be opened
 public:
     static ChessLogger& getInstance(const std::string& logFileName = "Schaakplezier.log");
@@ -50,6 +51,12 @@ public:
             std::ostringstream oss;
             formatAndLog(oss, format, args...);
             logFile << oss.str() << std::endl;
+        }
+    }
+
+    void log(std::ostringstream& os) {
+        if (logFile.is_open()) {
+            logFile << os.str() << std::endl << std::endl;
         }
     }
 

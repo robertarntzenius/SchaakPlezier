@@ -15,6 +15,7 @@ class Board {
         Color switchTurn();
 
         void logBitboards() const;
+        void logBoard() const;
     private:
         void InitializeFromFEN(const std::string& fenString);
         void FillLookupTables();
@@ -100,6 +101,7 @@ class Board {
         // RookAttacks[sq]   = rankMask[sq]     | fileMask[sq];
         // BishopAttacks[sq] = DiagonalMask[sq] | AntiDiagonalMask[sq];
         // QueenAttacks[sq]  = RookAttacks[sq] | BishopAttacks[sq];
+
 
         // TODO XRayAttacks (to handle pinned pieces)
         // TODO blockers (to find legalmoves from psuedolegal moves for SLIDING PIECES)

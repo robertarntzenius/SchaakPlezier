@@ -36,7 +36,7 @@ Board::Board(const std::string& fenString)
 
     InitializeFromFEN(fenString);
     FillLookupTables();
-
+    logBoard();
     #ifdef DEBUG
         logBitboards();
         for (Piece &p : wPieces)
@@ -308,4 +308,40 @@ bool Board::checkBoard() {
 
     #endif
     return true;
+}
+
+const char* getPieceChar(PieceType pType, Color color) {
+    switch (pType) {
+        case PieceType::wPawn: return "P";
+        case PieceType::bPawn: return "p";
+        case PieceType::Rook: return (color == Color::White) ? "R" : "r";
+        case PieceType::Knight: return (color == Color::White) ? "N" : "n";
+        case PieceType::Bishop: return (color == Color::White) ? "B" : "b";
+        case PieceType::Queen: return (color == Color::White) ? "Q" : "q";
+        case PieceType::King: return (color == Color::White) ? "K" : "k";
+        default: return "?";
+    }
+}
+
+void Board::logBoard() const 
+{
+    std::ostringstream os;
+    char board[BOARDSIZE*BOARDSIZE];
+
+    for (int i = 0; i < BOARDSIZE*BOARDSIZE; i++)
+        board[i] = *".";
+    
+    for (const auto& piece : wPieces) {
+        board[piece.square] = *getPieceChar(piece.type, Color::White);
+    }
+    for (const auto& piece : bPieces) {
+        board[piece.square] = *getPieceChar(piece.type, Color::Black);
+    }
+
+    for (int i = 0; i < BOARDSIZE*BOARDSIZE; i++) {
+        if ((i > 0) && (i % BOARDSIZE == 0))
+            os  << std::endl;
+        os  << " " << board[i];
+    }
+    logger.log(os);
 }

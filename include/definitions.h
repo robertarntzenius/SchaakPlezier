@@ -130,6 +130,8 @@ struct Move {
     }
 };
 
+const char* getPieceChar(PieceType pType, Color color);
+
 //
 //class PieceFactory {
 //    public:
