@@ -8,9 +8,10 @@ class Board {
     public:
         Board(const std::string& FENString = defaultStartingFEN);
         ~Board();
-
+        void addPiece(Square square, PieceType pType, Color color);
         std::vector<Move> getPossibleMoves();
-        void doMove(Move &move);
+        int makeMove(Move &move);
+        void setEnPassant(Square square);
 
         Color switchTurn();
 
@@ -20,8 +21,10 @@ class Board {
         void InitializeFromFEN(const std::string& fenString);
         void FillLookupTables();
 
-        bool checkBoard();
-
+        bool checkBoard(bool quiet = true) const;
+        bool inCheck() const;
+        
+        PieceType findPieceType(Square toSquare);
         Bitboard getRankMask(size_t rank);
         Bitboard getFileMask(size_t file);
         Bitboard getRankMaskFromSquare(Square square);
@@ -35,10 +38,14 @@ class Board {
         Bitboard getOccupiedMask () { return (black | white); }
         Bitboard getEmptyMask () { return ~(getOccupiedMask()); }
 
+        std::vector<Move> generatePawnMoves();
+
+
         ChessLogger& logger;
 
         bool wKC, wQC, bKC, bQC;
-        int enPassant, halfMoves, fullMoves;
+        Square enPassant;
+        int halfMoves, fullMoves;
 
         Color turn;
 
@@ -74,10 +81,11 @@ class Board {
         };
 
         const Bitboard notAFile, notBFile, notGFile, notHFile;
-        const Bitboard rank4, rank5;
+        const Bitboard rank2, rank4, rank5, rank7;
 
         // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: PawnAttacks[white][square]
         std::vector<std::vector<Bitboard>> PawnAttacks;
+        std::vector<std::vector<Bitboard>> PawnPushes;
 
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup

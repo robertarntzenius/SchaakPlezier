@@ -32,14 +32,29 @@ void Game::start()
 
 void Game::test()
 {
-    // std::vector<Move> moves = _board.getPossibleMoves();
-    
-    // for (const auto& move : moves)
-    //     logger.log(move);
+    _board.addPiece(e5, wPawn, White);
+    _board.addPiece(d5, bPawn, Black);
+    _board.setEnPassant(d6);
 
-    // _board.doMove(moves[0]);
+    std::vector<Move> wmoves = _board.getPossibleMoves();
+
+    logger.logHeader("wmoves in game.test()");
+    _board.logBoard();
+
+    for (const auto& move : wmoves)
+        logger.log(move);
     _board.switchTurn();
-    
+
+    _board.addPiece(a4, wPawn, White);
+    _board.addPiece(b4, bPawn, Black);
+    _board.setEnPassant(a3);
+    std::vector<Move> bmoves = _board.getPossibleMoves();
+
+    logger.logHeader("bmoves in game.test()");
+    _board.logBoard();
+
+    for (const auto& move : bmoves)
+        logger.log(move);
 }
 
 bool Game::isOver () const
@@ -47,21 +62,3 @@ bool Game::isOver () const
     // TODO implement
     return false;
 }
-
-
-
-//int *Game::getPossibleMoves()
-//{
-//    logger.log("Starting move generation for player %d", _board.getTurn());
-//    return _board.getPossibleMoves();
-//}
-//
-//Color Game::switchTurn()
-//{
-//    return _board.switchTurn();
-//}
-//
-//Color Game::getTurn()
-//{
-//    return _board.getTurn();
-//}

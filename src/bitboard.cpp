@@ -18,3 +18,14 @@ Bitboard::Bitboard(std::bitset<BOARDSIZE * BOARDSIZE> bits)
 Bitboard::~Bitboard()
 {
 }
+
+const std::vector<Square> Bitboard::getIndices() const
+{
+    std::vector<Square> indices;
+    for (int square = 0; square < BOARDSIZE*BOARDSIZE; square++) {
+        if (test(square)) {
+            indices.push_back(intToSquare(square));
+        }
+    }
+    return indices;
+}

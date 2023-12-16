@@ -12,8 +12,14 @@
 
 #ifdef DEBUG 
 // _assert will be compiled in Debug
-#include <cassert>
-#define _assert(expr) assert(expr)
+#define _assert(expr) \
+    if (!(expr)) { \
+        std::string logstream = "-- [ASSERTION FAILED] at " + \
+            std::string(__FILE__) + ":" + std::to_string(__LINE__); \
+        std::cerr << logstream << std::endl; \
+        std::cerr << "See ../../build/Debug/Schaakplezier.log for more information" << std::endl; \
+        exit(-1); \
+    }
 #else
 // _assert will not be compiled in Release
 #define _assert(expr) ((void)0)
@@ -42,14 +48,14 @@ enum Offsets : int {
 };
 
 enum PieceType {
-    NoType = 0,
-    wPawn,
+    wPawn = 0,
     bPawn,
     Knight,
     Bishop,
     Rook,
     Queen,
     King,
+    NoType
 };
 
 static const std::unordered_map<PieceType, std::string> pieceTypeStrings = {
@@ -74,6 +80,8 @@ static const std::unordered_map<Square, std::string> squareStrings = {
         {a1, "a1"}, {b1, "b1"}, {c1, "c1"}, {d1, "d1"}, {e1, "e1"}, {f1, "f1"}, {g1, "g1"}, {h1, "h1"},
         {noSquare, "noSquare"}
 };
+
+Square squareFromString(const std::string& algebraic);
 
 enum Color : int {
     White = 1,
@@ -101,11 +109,16 @@ struct Piece
     }
 };
 
-[[nodiscard]] constexpr Square intToSquare (int i)
-{
-    _assert((a8 <= i) && (i <= h1));
-    return static_cast<Square>(i);
+[[nodiscard]] constexpr Square intToSquare(int i) {
+    return (a8 <= i && i <= h1) ? static_cast<Square>(i) : throw std::out_of_range("Invalid chessboard square");
 }
+
+
+// [[nodiscard]] constexpr Square intToSquare (int i)
+// {
+//     _assert((a8 <= i) && (i <= h1));
+//     return static_cast<Square>(i);
+// }
 
 struct Move {
     Piece piece;

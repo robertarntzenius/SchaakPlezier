@@ -1,4 +1,5 @@
 #pragma once
+#include "definitions.h"
 
 #include <iostream>
 #include <bitset>
@@ -11,6 +12,8 @@ class Bitboard : public std::bitset<BOARDSIZE * BOARDSIZE> {
         Bitboard(unsigned long bits);
         Bitboard(std::bitset<BOARDSIZE*BOARDSIZE>);
         ~Bitboard();
+        const std::vector<Square> getIndices() const;
+
 
         // Custom operator<< for Bitboard
         friend std::ostream& operator<<(std::ostream& os, const Bitboard& bitboard) {
