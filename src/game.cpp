@@ -1,8 +1,8 @@
 #include "game.h"
 #include "log.h"
 
-Game::Game() 
-    : logger(ChessLogger::getInstance()), _board()
+Game::Game(const std::string& FENString) 
+    : logger(ChessLogger::getInstance()), _board(Board(FENString))
 {
     
     #ifdef DEBUG
@@ -32,10 +32,6 @@ void Game::start()
 
 void Game::test()
 {
-    _board.addPiece(e5, wPawn, White);
-    _board.addPiece(d5, bPawn, Black);
-    _board.setEnPassant(d6);
-
     std::vector<Move> wmoves = _board.getPossibleMoves();
 
     logger.logHeader("wmoves in game.test()");
@@ -45,9 +41,6 @@ void Game::test()
         logger.log(move);
     _board.switchTurn();
 
-    _board.addPiece(a4, wPawn, White);
-    _board.addPiece(b4, bPawn, Black);
-    _board.setEnPassant(a3);
     std::vector<Move> bmoves = _board.getPossibleMoves();
 
     logger.logHeader("bmoves in game.test()");
@@ -56,6 +49,7 @@ void Game::test()
     for (const auto& move : bmoves)
         logger.log(move);
 }
+
 
 bool Game::isOver () const
 {

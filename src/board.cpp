@@ -9,7 +9,7 @@
 
 Board::Board(const std::string& fenString)
     : logger(ChessLogger::getInstance()),
-    wKC(true), wQC(true), bKC(true), bQC(true), enPassant(noSquare), halfMoves(0), fullMoves(0),
+    wKC(false), wQC(false), bKC(false), bQC(false), enPassant(noSquare), halfMoves(0), fullMoves(0),
     turn    (Color::White),
     wPieces (),
     bPieces (),
@@ -103,6 +103,7 @@ std::vector<Move> Board::generatePawnMoves() {
 
     // Generate Capture Moves
     for (Square fromSquare : playerPawns->getIndices()) {
+        // doing the comparison here skips the for loop for many pawns
         Bitboard validAttacks = (PawnAttacks[color][fromSquare] & *opponent);
         for (Square toSquare : validAttacks.getIndices()) {
             #ifdef DEBUG
@@ -114,6 +115,7 @@ std::vector<Move> Board::generatePawnMoves() {
         }
 
         // enPassant
+        // cant use validAttacks because the enPassant square is empty by definition
         std::vector<Square> attackedSquares = PawnAttacks[color][fromSquare].getIndices();
         if (std::find(attackedSquares.begin(), attackedSquares.end(), enPassant) != attackedSquares.end()) {
             #ifdef DEBUG
@@ -307,10 +309,17 @@ void Board::InitializeFromFEN(const std::string& fenString) {
 
     turn = (fenString[++FENIndex] == 'w') ? Color::White : Color::Black;
     FENIndex += 2;
-    wKC = (fenString[FENIndex++] != '-');
-    wQC = (fenString[FENIndex++] != '-');
-    bKC = (fenString[FENIndex++] != '-');
-    bQC = (fenString[FENIndex++] != '-');
+    while (fenString[FENIndex] != ' ')
+    {
+        switch(fenString[FENIndex])
+        {
+            case 'K': wKC = true; break;
+            case 'Q': wKC = true; break;
+            case 'k': bKC = true; break;
+            case 'q': bKC = true; break;
+        }
+        FENIndex++;
+    }
 
     enPassant = (fenString[++FENIndex] == '-') ? noSquare : squareFromString(fenString.substr(FENIndex, 2));
     FENIndex += (enPassant == noSquare) ? 0 : 2;

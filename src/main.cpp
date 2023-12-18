@@ -4,7 +4,7 @@
 
 
 int main() {
-    Game* game = new Game();
+    Game* game = new Game(testFEN2);
 
     try {
 //        game->start();
