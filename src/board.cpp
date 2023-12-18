@@ -98,8 +98,6 @@ std::vector<Move> Board::generatePawnMoves() {
     PieceType opponentPawnType = (turn == Color::White) ? bPawn : wPawn;
     const Bitboard *playerPawns = (turn == Color::White) ? &wpawns : &bpawns;
     const Bitboard *opponent = (turn == Color::White) ? &black : &white;
-    const Bitboard *fromRank = (turn == Color::White) ? &rank2 : &rank7;
-    const Bitboard *toRank = (turn == Color::White) ? &rank4 : &rank5;
     const Bitboard empty = Bitboard(black | white).flip();
 
 
