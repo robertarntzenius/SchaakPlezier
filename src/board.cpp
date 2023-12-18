@@ -100,58 +100,62 @@ std::vector<Move> Board::generatePawnMoves() {
     const Bitboard *opponent = (turn == Color::White) ? &black : &white;
     const Bitboard *fromRank = (turn == Color::White) ? &rank2 : &rank7;
     const Bitboard *toRank = (turn == Color::White) ? &rank4 : &rank5;
+    const Bitboard empty = Bitboard(black | white).flip();
 
 
     // Generate Capture Moves
     for (Square fromSquare : playerPawns->getIndices()) {
-        for (Square toSquare : PawnAttacks[color][fromSquare].getIndices()) {
-            if (opponent->test(toSquare)) {
-                #ifdef DEBUG
-                Move move(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
-                logger.log("CAPTURE");
-                logger.log(move);
-                #endif
-                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
-            }
-            else if (toSquare == enPassant) {
-                #ifdef DEBUG
-                Move move(fromSquare, toSquare, playerPawnType, opponentPawnType);
-                logger.log("ENPASSANT");
-                logger.log(move);
-                #endif
-                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, opponentPawnType);
-                // TODO: make sure to handle this move correctly when actually making it
-            }
+        Bitboard validAttacks = (PawnAttacks[color][fromSquare] & *opponent);
+        for (Square toSquare : validAttacks.getIndices()) {
+            #ifdef DEBUG
+            Move move(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
+            logger.log("CAPTURE");
+            logger.log(move);
+            #endif
+            pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
+        }
+
+        // enPassant
+        std::vector<Square> attackedSquares = PawnAttacks[color][fromSquare].getIndices();
+        if (std::find(attackedSquares.begin(), attackedSquares.end(), enPassant) != attackedSquares.end()) {
+            #ifdef DEBUG
+            Move move(fromSquare, enPassant, playerPawnType, opponentPawnType);
+            logger.log("ENPASSANT");
+            logger.log(move);
+            #endif
+            pawnMoves.emplace_back(fromSquare, enPassant, playerPawnType, opponentPawnType);
+            // TODO: make sure to handle this move correctly when actually making it
         }
     }
 
     // Generate Push moves
-    for (Square fromSquare : playerPawns->getIndices()) {
-        for (Square toSquare : PawnPushes[color][fromSquare].getIndices()) {
+    for (Square fromSquare : playerPawns->getIndices()) { // for every pawn
+        for (Square toSquare : PawnPushes[color][fromSquare].getIndices()) { // for every attacked square of that pawn
             
             // Double pushes
-            if ((fromRank->test(fromSquare))
-             && (toRank->test(toSquare) )
-             && !(getOccupiedMask().test(toSquare))
-             && !(getOccupiedMask().test(intToSquare((toSquare+fromSquare)/2)))) {
+            if ( (abs(fromSquare - toSquare) == 2*BOARDSIZE)
+                    && (empty.test(intToSquare((toSquare+fromSquare)/2))) // if one square in front is empty
+                    && (empty.test(toSquare)) )
+            { 
                 #ifdef DEBUG
                 Move move(fromSquare, toSquare, playerPawnType, NoType);
                 logger.log("DOUBLE PUSH");
                 logger.log(move);
                 #endif
                 pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
+                // TODO set enpassant square or at least pass it along with the move?
             }
 
             // Single pushes
-            else if ( abs(fromSquare - toSquare) == BOARDSIZE) {
-                if ( !(getOccupiedMask().test(toSquare))) {
-                    #ifdef DEBUG
-                    Move move(fromSquare, toSquare, playerPawnType, NoType);
-                    logger.log("SINGLE PUSH");
-                    logger.log(move);
-                    #endif
-                    pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
-                }
+            else if ( (abs(fromSquare - toSquare) == BOARDSIZE)
+                && empty.test(toSquare))
+            {
+                #ifdef DEBUG
+                Move move(fromSquare, toSquare, playerPawnType, NoType);
+                logger.log("SINGLE PUSH");
+                logger.log(move);
+                #endif
+                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);   
             }
         }
     }

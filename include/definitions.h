@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <map>
+#include <algorithm>
 
 #define BOARDSIZE 8
 #define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -113,12 +114,6 @@ struct Piece
     return (a8 <= i && i <= h1) ? static_cast<Square>(i) : throw std::out_of_range("Invalid chessboard square");
 }
 
-
-// [[nodiscard]] constexpr Square intToSquare (int i)
-// {
-//     _assert((a8 <= i) && (i <= h1));
-//     return static_cast<Square>(i);
-// }
 
 struct Move {
     Piece piece;
