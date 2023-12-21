@@ -183,8 +183,8 @@ bool Board::makeMove(Move &move)
             std::remove(opponentPieces->begin(), opponentPieces->end(), move.capturedPiece)
             , opponentPieces->end());
 
-            opponent->reset(move.target);
-            opponentPtype->reset(move.target);
+            opponent->reset(move.capturedPiece.square);
+            opponentPtype->reset(move.capturedPiece.square);
     }
 
     for (auto& piece : *playerPieces) 
