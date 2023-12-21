@@ -8,9 +8,8 @@ class Board {
     public:
         Board(const std::string& FENString = defaultStartingFEN);
         ~Board();
-        void addPiece(Square square, PieceType pType, Color color);
         std::vector<Move> getPossibleMoves();
-        int makeMove(Move &move);
+        bool makeMove(Move &move);
         void setEnPassant(Square square);
 
         Color switchTurn();

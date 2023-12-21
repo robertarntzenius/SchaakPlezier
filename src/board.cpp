@@ -58,19 +58,6 @@ Board::~Board() {
 
 }
 
-void Board::addPiece(Square square, PieceType pType, Color color)
-{
-    m_pieceTypeBitboards.at(pType)->set(square);
-
-    if (color == Color::White){
-        wPieces.emplace_back(pType, square);
-        white.set(square);
-    }
-    else {
-        bPieces.emplace_back(pType, square);
-        black.set(square);
-    }
-}
 
 std::vector<Move> Board::getPossibleMoves()
 {
@@ -142,7 +129,8 @@ std::vector<Move> Board::generatePawnMoves() {
                 logger.log("DOUBLE PUSH");
                 logger.log(move);
                 #endif
-                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
+                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType, (intToSquare((toSquare+fromSquare)/2)));
+
                 // TODO set enpassant square or at least pass it along with the move?
             }
 
@@ -155,7 +143,7 @@ std::vector<Move> Board::generatePawnMoves() {
                 logger.log("SINGLE PUSH");
                 logger.log(move);
                 #endif
-                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);   
+                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
             }
         }
     }
@@ -163,7 +151,7 @@ std::vector<Move> Board::generatePawnMoves() {
 }
 
 
-int Board::makeMove(Move &move)
+bool Board::makeMove(Move &move)
 {
     // This function checks the legality of a move at the end by checking
     // if the king is in check in the resulting position return -1
@@ -182,14 +170,32 @@ int Board::makeMove(Move &move)
              *opponent = m_ColorBitboards.at(invertColor(turn)),
              *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
              *opponentPtype = m_pieceTypeBitboards.at(move.capture);
-    
+    std::vector<Piece> *playerPieces = (turn == White) ? &wPieces : &bPieces;
+    std::vector<Piece> *opponentPieces = (turn == White) ? &bPieces : &wPieces;
+
+    Square previousEnPassant = enPassant;
+    setEnPassant(move.enPassant);
+
+
     if (opponentPtype != nullptr)
     {
-        // TODO move pieces in pieceVectors
+        opponentPieces->erase(
+            std::remove(opponentPieces->begin(), opponentPieces->end(), Piece(move.capture, move.target))
+            , opponentPieces->end());
 
-        opponent->reset(move.target);
-        opponentPtype->reset(move.target);
+            opponent->reset(move.target);
+            opponentPtype->reset(move.target);
     }
+
+    for (auto& piece : *playerPieces) 
+    {
+        if (piece.square == move.piece.square && piece.type == move.piece.type) {
+            piece.square = move.target;  // Update the square to the destination square
+            break;  // Break out of the loop once the piece is found and updated
+        }
+    }
+
+    // TODO implement castling
 
     player->reset(move.piece.square);
     player->set(move.target);
@@ -199,18 +205,22 @@ int Board::makeMove(Move &move)
     #ifdef DEBUG
         logBitboards();
 
-        for (Piece &p : wPieces)
+        for (Piece &piece : wPieces)
         {
-            logger.log("", p);
+            logger.log(piece);
         }
-        for (Piece &p : bPieces)
+        for (Piece &piece : bPieces)
         {
-            logger.log("", p);
+            logger.log(piece);
         }
     #endif
-    if (inCheck()) // TODO implement
-        return -1;
-    return 0;
+
+    if (inCheck()) { // TODO implement
+        setEnPassant(previousEnPassant);
+        return false;
+    }
+    
+    return true;
 }
 
 void Board::setEnPassant(Square square)

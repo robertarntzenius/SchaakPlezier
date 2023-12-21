@@ -32,22 +32,35 @@ void Game::start()
 
 void Game::test()
 {
-    std::vector<Move> wmoves = _board.getPossibleMoves();
+    for (int i = 0; i < 20; i++) {
 
-    logger.logHeader("wmoves in game.test()");
+        std::vector<Move> moves = _board.getPossibleMoves();
+
+        logger.logHeader("moves in game.test()");
+        logger.log(i);
+        _board.logBoard();
+
+        for (Move move : moves)
+        {
+            logger.log(move);
+            bool moveIsLegal = _board.makeMove(move);
+            if (moveIsLegal) {
+                break;
+            }
+            else {
+                // TODO implement
+                // _board.unMakeMove(move);
+            }
+        }
+        
+        // TODO implement
+        // if(_board.inCheck()) {
+        //     logger.log("Black has won!");
+        // }
+        _board.switchTurn();
+    }
+    logger.logHeader("Final position");
     _board.logBoard();
-
-    for (const auto& move : wmoves)
-        logger.log(move);
-    _board.switchTurn();
-
-    std::vector<Move> bmoves = _board.getPossibleMoves();
-
-    logger.logHeader("bmoves in game.test()");
-    _board.logBoard();
-
-    for (const auto& move : bmoves)
-        logger.log(move);
 }
 
 

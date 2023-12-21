@@ -22,7 +22,7 @@ ChessLogger::~ChessLogger() {
 }
 
 void ChessLogger::logHeader(const std::string& text) {
-    int linesize = 100;
+    int linesize = 50;
 
     std::string spaces((linesize - text.length()) / 2, ' ');
     std::string equals(linesize, '=');

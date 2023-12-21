@@ -111,6 +111,10 @@ struct Piece
             << ':' << squareStrings.at(piece.square) << ']';
         return os;
     }
+    
+    bool operator==(const Piece& other) const {
+        return type == other.type && square == other.square;
+    }
 };
 
 [[nodiscard]] constexpr Square intToSquare(int i) {
@@ -122,11 +126,14 @@ struct Move {
     Piece piece;
     Square target;
     PieceType capture; // TODO FIXME change to piece
+    Square enPassant;
 
-    Move(Square from, Square target, PieceType pType, PieceType capture)
+    Move(Square from, Square target, PieceType pType, PieceType capture, Square enPassant = noSquare)
             : piece(pType, from),
               target(target),
-              capture(capture) {}
+              capture(capture),
+              enPassant(enPassant) {}
+
 
     friend std::ostream& operator<<(std::ostream& os, const Move& move) {
         std::string fromSquare = static_cast<char>('a' + static_cast<int>(move.piece.square) % 8) +
