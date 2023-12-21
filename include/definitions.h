@@ -11,7 +11,7 @@
 #define BOARDSIZE 8
 #define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define testFEN1 "r3k2r/p1pp1pb1/bn2Qnp1/2qPN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQkq - 3 2"
-#define testFEN2 "2kr3r/p1ppqpb1/bn2Qnp1/3PN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQ - 3 2"
+#define testFEN2 "2kr3r/p1ppqpb1/bn2Qnp1/3PN3/1p2P3/8/PPPBBPPP/R3K2R b KQ - 3 2"
 #define testFEN3 "rnb2k1r/pp1Pbppp/2p5/q7/2B5/8/PPPQNnPP/RNB1K2R w KQ - 3 9"
 
 #ifdef DEBUG 
@@ -52,14 +52,14 @@ enum Offsets : int {
 };
 
 enum PieceType {
-    wPawn = 0,
+    NoType = 0,
+    wPawn,
     bPawn,
     Knight,
     Bishop,
     Rook,
     Queen,
-    King,
-    NoType
+    King
 };
 
 static const std::unordered_map<PieceType, std::string> pieceTypeStrings = {
@@ -98,10 +98,10 @@ constexpr Color invertColor (Color color) {
 
 struct Piece
 {
-    PieceType type = PieceType::NoType;
+    PieceType type;
     Square square;
 
-    Piece(PieceType type, Square square)
+    Piece(PieceType type = PieceType::NoType, Square square = noSquare)
         : type(type),
           square(square) {}
 
@@ -113,7 +113,7 @@ struct Piece
     }
     
     bool operator==(const Piece& other) const {
-        return type == other.type && square == other.square;
+        return (type == other.type) && (square == other.square);
     }
 };
 
@@ -125,13 +125,13 @@ struct Piece
 struct Move {
     Piece piece;
     Square target;
-    PieceType capture; // TODO FIXME change to piece
+    Piece capturedPiece;
     Square enPassant;
 
-    Move(Square from, Square target, PieceType pType, PieceType capture, Square enPassant = noSquare)
+    Move(Square from, Square target, PieceType pType, Piece capturedPiece, Square enPassant = noSquare)
             : piece(pType, from),
               target(target),
-              capture(capture),
+              capturedPiece(capturedPiece),
               enPassant(enPassant) {}
 
 
@@ -142,7 +142,7 @@ struct Move {
                                std::to_string(8 - static_cast<int>(move.target) / 8);
 
         const std::string& pTypeStr = pieceTypeStrings.at(move.piece.type);;
-        const std::string& captureStr = pieceTypeStrings.at(move.capture);;
+        const std::string& captureStr = pieceTypeStrings.at(move.capturedPiece.type);;
         os << "From: " << fromSquare << ", To: " << toSquare << ", Piece: " << pTypeStr << ", Capture: " << captureStr;
         return os;
     }

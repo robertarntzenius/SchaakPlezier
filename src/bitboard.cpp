@@ -22,6 +22,7 @@ Bitboard::~Bitboard()
 const std::vector<Square> Bitboard::getIndices() const
 {
     std::vector<Square> indices;
+    if (count() == 0) {return indices;}
     for (int square = 0; square < BOARDSIZE*BOARDSIZE; square++) {
         if (test(square)) {
             indices.push_back(intToSquare(square));

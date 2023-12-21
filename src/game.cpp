@@ -38,7 +38,6 @@ void Game::test()
 
         logger.logHeader("moves in game.test()");
         logger.log(i);
-        _board.logBoard();
 
         for (Move move : moves)
         {
@@ -55,12 +54,11 @@ void Game::test()
         
         // TODO implement
         // if(_board.inCheck()) {
-        //     logger.log("Black has won!");
+        //     logger.log("turn has won!");
         // }
         _board.switchTurn();
     }
-    logger.logHeader("Final position");
-    _board.logBoard();
+
 }
 
 

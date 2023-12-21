@@ -41,15 +41,15 @@ Board::Board(const std::string& fenString)
     FillLookupTables();
     logBoard();
     #ifdef DEBUG
-        logBitboards();
-        for (Piece &p : wPieces)
-        {
-            logger.log("", p);
-        }
-        for (Piece &p : bPieces)
-        {
-            logger.log("", p);
-        }
+        // logBitboards();
+        // for (Piece &p : wPieces)
+        // {
+        //     logger.log("", p);
+        // }
+        // for (Piece &p : bPieces)
+        // {
+        //     logger.log("", p);
+        // }
     #endif
 }
 
@@ -94,23 +94,23 @@ std::vector<Move> Board::generatePawnMoves() {
         Bitboard validAttacks = (PawnAttacks[color][fromSquare] & *opponent);
         for (Square toSquare : validAttacks.getIndices()) {
             #ifdef DEBUG
-            Move move(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
+            Move move(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
             logger.log("CAPTURE");
             logger.log(move);
             #endif
-            pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPieceType(toSquare));
+            pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
         }
 
         // enPassant
         // cant use validAttacks because the enPassant square is empty by definition
-        std::vector<Square> attackedSquares = PawnAttacks[color][fromSquare].getIndices();
-        if (std::find(attackedSquares.begin(), attackedSquares.end(), enPassant) != attackedSquares.end()) {
+        if ((enPassant != noSquare) && (PawnAttacks[color][fromSquare].test(enPassant))) {
             #ifdef DEBUG
             Move move(fromSquare, enPassant, playerPawnType, opponentPawnType);
             logger.log("ENPASSANT");
             logger.log(move);
             #endif
-            pawnMoves.emplace_back(fromSquare, enPassant, playerPawnType, opponentPawnType);
+            Square capturedPieceSquare = (turn == White) ? intToSquare(enPassant + BOARDSIZE) : intToSquare(enPassant - BOARDSIZE);
+            pawnMoves.emplace_back(fromSquare, enPassant, playerPawnType, findPiece(capturedPieceSquare));
             // TODO: make sure to handle this move correctly when actually making it
         }
     }
@@ -169,7 +169,7 @@ bool Board::makeMove(Move &move)
     Bitboard *player = m_ColorBitboards.at(turn),
              *opponent = m_ColorBitboards.at(invertColor(turn)),
              *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
-             *opponentPtype = m_pieceTypeBitboards.at(move.capture);
+             *opponentPtype = m_pieceTypeBitboards.at(move.capturedPiece.type);
     std::vector<Piece> *playerPieces = (turn == White) ? &wPieces : &bPieces;
     std::vector<Piece> *opponentPieces = (turn == White) ? &bPieces : &wPieces;
 
@@ -180,7 +180,7 @@ bool Board::makeMove(Move &move)
     if (opponentPtype != nullptr)
     {
         opponentPieces->erase(
-            std::remove(opponentPieces->begin(), opponentPieces->end(), Piece(move.capture, move.target))
+            std::remove(opponentPieces->begin(), opponentPieces->end(), move.capturedPiece)
             , opponentPieces->end());
 
             opponent->reset(move.target);
@@ -189,7 +189,7 @@ bool Board::makeMove(Move &move)
 
     for (auto& piece : *playerPieces) 
     {
-        if (piece.square == move.piece.square && piece.type == move.piece.type) {
+        if (piece == move.piece ) {
             piece.square = move.target;  // Update the square to the destination square
             break;  // Break out of the loop once the piece is found and updated
         }
@@ -203,7 +203,7 @@ bool Board::makeMove(Move &move)
     playerPtype->set(move.target);
     
     #ifdef DEBUG
-        logBitboards();
+        // logBitboards();
 
         for (Piece &piece : wPieces)
         {
@@ -214,6 +214,8 @@ bool Board::makeMove(Move &move)
             logger.log(piece);
         }
     #endif
+
+    _assert(checkBoard());
 
     if (inCheck()) { // TODO implement
         setEnPassant(previousEnPassant);
@@ -386,7 +388,7 @@ void Board::FillLookupTables()
     #endif
 }
 
-bool Board::checkBoard(bool quiet) const {
+bool Board::checkBoard(bool quiet/* = true */) const {
     #ifdef DEBUG
     // First fill the counts map from wPieces and bPieces
     std::map<PieceType, size_t> counts;
@@ -444,17 +446,16 @@ bool Board::inCheck() const
 }
 
 
-PieceType Board::findPieceType(Square toSquare)
+Piece Board::findPiece(Square toSquare)
 {
-    _assert(checkBoard());
-    PieceType target = PieceType::NoType;
+    // _assert(checkBoard());
     std::vector<Piece> *pieces = (turn == Color::White) ? &bPieces : &wPieces;
-    for (const auto& piece : *pieces) {
+    for (auto& piece : *pieces) {
         if (piece.square == toSquare) {
-            target = piece.type;
+            return piece;
         }
     }
-    return target;
+    return Piece();
 }
 
 const char* getPieceChar(PieceType pType, Color color) {

@@ -22,8 +22,9 @@ class Board {
 
         bool checkBoard(bool quiet = true) const;
         bool inCheck() const;
-        
-        PieceType findPieceType(Square toSquare);
+
+        Piece findPiece(Square toSquare);
+
         Bitboard getRankMask(size_t rank);
         Bitboard getFileMask(size_t file);
         Bitboard getRankMaskFromSquare(Square square);
