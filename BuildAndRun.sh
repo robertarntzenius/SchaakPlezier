@@ -20,6 +20,6 @@ fi
 
 mkdir -p "$build_dir"
 cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type"
-cd "$build_dir"
+cd "$build_dir" || exit
 make && ./SchaakPlezier
-cd "$source_dir"
+cd "$source_dir" || exit

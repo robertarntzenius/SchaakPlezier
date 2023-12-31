@@ -11,11 +11,11 @@ public :
     doMove()
         getPossibleMoves()
         wait input
-        board.movePiece(input, turn)
+        board.movePiece(input, activePlayer)
 
     newGame(FENstr)
         board = FENstr
-        turn = white
+        activePlayer = white
     
     isCheckmate()
 
@@ -24,15 +24,15 @@ public :
 
 private:
     Board board 
-    turn
+    activePlayer
 
 
 Board
 public:
     getters/setters
-    getPossibleMoves(turn)
+    getPossibleMoves(activePlayer)
 
-    movePiece(from, to, type, turn)
+    movePiece(from, to, type, activePlayer)
     
 
 private:
@@ -62,6 +62,6 @@ Queen : public piece
 Rook : public piece
 Bishop : public piece
 Knight : public piece
-Pawn : public piece { promoteTo(PieceType) }
+Pawn : public piece { promoteTo(Piecetype) }
 
 
