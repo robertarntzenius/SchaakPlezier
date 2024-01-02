@@ -54,6 +54,14 @@ struct Move {
     const Square from;
     const Square target;
 
+    const enum {
+        Basic,
+        Capture,
+        DoublePawn,
+        Castle,
+        Promotion
+    } type;
+
 //    constexpr Move(Square from, Square target)
 //        : from(from),
 //          target(target)

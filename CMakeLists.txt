@@ -3,7 +3,9 @@ project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -O3)
+# Als we heel serieus willen doen:
+# add_compile_options(-Wshadow -Wconversion)
+add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
 # Set the Clang compiler
 #set(CMAKE_C_COMPILER clang)

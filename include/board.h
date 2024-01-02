@@ -12,20 +12,28 @@ class Board {
 
         explicit Board(const std::string& FENString = defaultStartingFEN);
 
-//        /**
-//         * @brief Computes and inserts all possible moves from current board state
-//         *        in the moves vector by reference
-//         *
-//         * @param moves
-//         */
-//        void getPossibleMoves(std::vector<Move *> &moves) const;
-//
-//        /**
-//         * @brief Performs move from current board state
-//         *
-//         * @param move
-//         */
-//        void doMove(const Move *move);
+        /**
+         * @brief Computes and inserts all possible moves from current board state
+         *        in the moves vector by reference
+         *
+         * @param moves
+         */
+        void getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+
+        /**
+         * @brief Performs move from current board state
+         *
+         * @param move
+         */
+        void doMove(const Move *move);
+
+        /**
+         * @brief returns whether specific player is in check from the current board state
+         *
+         * @param player
+         * @return bool
+         */
+        [[nodiscard]] bool inCheck(Color player) const;
 
         /**
          * @brief Logs current board state to logger in ASCII chessboard
@@ -37,20 +45,12 @@ class Board {
          */
         void logBitboards() const;
     private:
-        // TODO probably should have its own file
-
         void InitializeFromFEN(const std::string& fenString);
 
-//        constexpr Color switchTurn();
-//
-//        // TODO move to its own file
-//
-//        constexpr void generatePawnMoves(std::vector<Move *> &moves);
-//
-//        constexpr bool inCheck() const;
+        // TODO move implementations of movegeneration to its own file
+        void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
 
-
-//        bool checkBoardConsistency(bool quiet = true) const;
+        void checkBoardConsistency() const;
 
         ChessLogger& logger;
 
@@ -67,9 +67,6 @@ class Board {
         Square enPassantSquare;
 
         int halfMoveClock, fullMoveNumber;
-
-        // NOTE: Maybe occupied and empty
-        // Bitboard occupied, empty;
 
         // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: whitePawnAttacks[square] of blackPawnPushes[square]
         static constexpr std::array<Bitboard, BOARD_SIZE> whitePawnPushLookUp = MaskGeneration::computePawnPushLookUp(White);

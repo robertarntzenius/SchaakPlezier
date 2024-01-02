@@ -22,6 +22,7 @@ class Bitboard {
         {
         }
 
+        constexpr bool operator==(const Bitboard &other) const = default;
         constexpr Bitboard &operator=(const Bitboard &other) = default;
 
         [[nodiscard]] constexpr Bitboard operator&(const Bitboard &other) const {
@@ -65,8 +66,12 @@ class Bitboard {
             return *this;
         }
 
-        [[nodiscard]] constexpr int count() const {
-            int count = 0;
+        [[nodiscard]] constexpr bool empty() const {
+            return bits == 0;
+        }
+
+        [[nodiscard]] constexpr size_t count() const {
+            size_t count = 0;
             ulong copy = bits;
             while (copy) {
                 ++count;

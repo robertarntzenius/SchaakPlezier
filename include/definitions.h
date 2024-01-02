@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include <unordered_map>
+#include <memory>
 #include <string>
 
 #define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
