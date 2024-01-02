@@ -61,46 +61,20 @@ struct Move {
         Castle,
         Promotion
     } type;
-
-//    constexpr Move(Square from, Square target)
-//        : from(from),
-//          target(target)
-//    {}
 };
 
 struct CaptureMove : public Move {
     const Square captureSquare;
-
-//    constexpr CaptureMove(Square from, Square target, Square captureSquare)
-//        : Move(from, target),
-//          captureSquare(captureSquare)
-//    {}
 };
 
 struct DoublePawnMove : public Move {
     const Square enPassantSquare;
-
-//    constexpr DoublePawnMove(Square from, Square target, Square enPassantSquare)
-//        : Move(from, target),
-//          enPassantSquare(enPassantSquare)
-//    {}
 };
 
 struct CastleMove : public Move {
     const Move castleRookMove;
-
-//    constexpr CastleMove(Square from, Square target, Square rookFrom, Square rookTarget)
-//        : Move(from, target),
-//          castleRookMove(from, target)
-//    {}
 };
 
 struct PromotionMove : public Move {
     const Piecetype promotionType;
-
-
-//    constexpr PromotionMove(Square from, Square target, Piecetype promotionType)
-//        : Move(from, target),
-//          promotionType(promotionType)
-//    {}
 };

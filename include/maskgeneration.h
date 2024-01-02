@@ -15,7 +15,7 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computeRankMask(int rank) {
-        return Bitboard(0xFF << rank * BOARD_DIMENSIONS);
+        return Bitboard(0xFFUL << rank * BOARD_DIMENSIONS);
     }
 
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnPushLookUp(Color color) {
@@ -25,7 +25,7 @@ namespace MaskGeneration {
         DirectionalOffset directionalOffset = NoOffset;
         Bitboard enPassantRank;
 
-        switch (0) {
+        switch (color) {
             case White:
                 directionalOffset = North;
                 enPassantRank = computeRankMask(3);
@@ -35,7 +35,7 @@ namespace MaskGeneration {
                 enPassantRank = computeRankMask(4);
                 break;
             default:
-                throw std::invalid_argument("Invalid color: " + std::to_string(0));
+                throw std::invalid_argument("Invalid color: " + std::to_string(color));
         }
 
         // NOTE: technically doesn't have to compute anything for ranks 1 and 8

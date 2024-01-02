@@ -40,22 +40,25 @@
     return static_cast<Square>(i);
 }
 
+/**
+ * Directional offsets based on L-shifts
+ */
 enum DirectionalOffset : int {
     NoOffset = 0,
 
     // Vertical directions
-    North = -8,
-    South = 8,
+    North = 8,
+    South = -8,
 
     // Horizontal directions
-    West = -1,
-    East = 1,
+    West = 1,
+    East = -1,
 
     // Diagonal directions
-    NorthEast = -7,
-    NorthWest = -9,
-    SouthEast = 9,
-    SouthWest = 7
+    NorthEast = 7,
+    NorthWest = 9,
+    SouthEast = -9,
+    SouthWest = -7
 };
 
 
