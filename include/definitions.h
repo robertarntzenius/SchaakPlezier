@@ -29,8 +29,8 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 //#endif
 
 
-[[nodiscard]] static constexpr Color invertColor (Color color) {
-    return static_cast<Color>(color + 1 % NrColors);
+[[nodiscard]] static constexpr Color invertColor (const Color &color) {
+    return static_cast<Color>((color + 1) % NrColors);
 }
 
 [[nodiscard]] static constexpr Square intToSquare(int i) {

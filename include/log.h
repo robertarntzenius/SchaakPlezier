@@ -44,9 +44,9 @@ public:
     }
 
     template <typename T>
-    void log(const T& message) {
+    void log(const T& msg) {
         if (logFile.is_open()) {
-            logFile << message << std::endl;
+            logFile << msg << std::endl;
         }
     }
 

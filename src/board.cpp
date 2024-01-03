@@ -122,14 +122,16 @@ void Board::doMove(const Move *move) {
 
 void Board::logBitboards() const
 {
-//    #ifdef DEBUG
-//        for (const auto &entry : colorBitboardMap) {
-//            logger.log(colorStringMap.at(entry.first).c_str(), entry.second);
-//        }
-//        for (const auto &entry : piecetypeBitboardMap) {
-//            logger.log(piecetypeStringMap.at(entry.first).c_str(), entry.second);
-//        }
-//    #endif
+    #ifdef DEBUG
+        for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
+            const Color color = static_cast<Color>(colorInt);
+            logger.log(colorStringMap.at(color).c_str(), colorBitboards[color]);
+        }
+        for (int piecetypeInt = 0; piecetypeInt < NrPiecetypes; ++piecetypeInt) {
+            const Piecetype type = static_cast<Piecetype>(piecetypeInt);
+            logger.log(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
+        }
+    #endif
 }
 
 
