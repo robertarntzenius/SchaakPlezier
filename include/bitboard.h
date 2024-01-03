@@ -1,34 +1,101 @@
 #pragma once
-#include "definitions.h"
 
-#include <iostream>
-#include <bitset>
+#include "types.h"
 
-#define BOARDSIZE 8
+#include <cstdlib>
+#include <vector>
 
-class Bitboard : public std::bitset<BOARDSIZE * BOARDSIZE> {
+// NOTE: making this functionally constexpr was a hassle, but apparently it needs
+//       to be fully defined in the header
+
+class Bitboard {
     public:
-        Bitboard();
-        Bitboard(unsigned long bits);
-        Bitboard(std::bitset<BOARDSIZE*BOARDSIZE>);
-        ~Bitboard();
-        const std::vector<Square> getIndices() const;
-
-
-        // Custom operator<< for Bitboard
-        friend std::ostream& operator<<(std::ostream& os, const Bitboard& bitboard) {
-            for (int rank = 0; rank < BOARDSIZE; rank++) {
-                for (int file = 0; file < BOARDSIZE; file++) {
-                    int square = rank * BOARDSIZE + file;
-                    if (bitboard.test(square)) {
-                        os << "1 ";
-                    } else {
-                        os << "0 ";
-                    }
-                }
-                os << std::endl;
-            }
-            return os;
+        constexpr Bitboard()
+                : bits(0x0)
+        {
         }
+
+        ~Bitboard() = default;
+
+        constexpr explicit Bitboard(ulong bits)
+                : bits(bits)
+        {
+        }
+
+        constexpr bool operator==(const Bitboard &other) const = default;
+        constexpr Bitboard &operator=(const Bitboard &other) = default;
+
+        [[nodiscard]] constexpr Bitboard operator&(const Bitboard &other) const {
+            return Bitboard(bits & other.bits);
+        }
+
+        [[nodiscard]] constexpr Bitboard operator|(const Bitboard &other) const {
+            return Bitboard(bits | other.bits);
+        }
+
+        [[nodiscard]] constexpr Bitboard operator~() const {
+            return Bitboard(~bits);
+        }
+
+        // NOTE: New and improved: now accepts negative shifts :)
+        [[nodiscard]] constexpr Bitboard operator<<(int offset) const{
+            if (offset >= 0) {
+                return Bitboard(bits << offset);
+            }
+
+            return Bitboard(bits >> -offset);
+        }
+
+        constexpr Bitboard &set(int bitNr, bool value = true) {
+            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+
+            if (value) {
+                bits = bits | mask;
+            } else {
+                bits = bits & ~mask;
+            }
+            return *this;
+        }
+
+        constexpr Bitboard &set() {
+            bits = 0xFFFFFFFFFFFFFFFF;
+            return *this;
+        }
+        constexpr Bitboard &reset() {
+            bits = 0;
+            return *this;
+        }
+
+        [[nodiscard]] constexpr bool empty() const {
+            return bits == 0;
+        }
+
+        [[nodiscard]] constexpr size_t count() const {
+            size_t count = 0;
+            ulong copy = bits;
+            while (copy) {
+                ++count;
+                copy &= copy - 1; // Clear the lowest set bit
+            }
+            return count;
+        }
+
+        [[nodiscard]] constexpr bool test(int bitNr) const {
+            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+            return bits & mask;
+        }
+
+        [[nodiscard]] std::vector<Square> getIndices() const {
+            std::vector<Square> indices;
+            ulong copy = bits;
+            while (copy) {
+                int square = __builtin_ctzll(copy); // Count trailing zeros using a built-in function
+                indices.push_back(static_cast<Square>(square));
+                copy &= copy - 1; // Clear the lowest set bit
+            }
+            return indices;
+        }
+
     private:
+        ulong bits;
 };

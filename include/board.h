@@ -1,91 +1,78 @@
 #pragma once
 
 #include "definitions.h"
-#include "bitboard.h"
+#include "maskgeneration.h"
 #include "log.h"
+
 
 class Board {
     public:
-        Board(const std::string& FENString = defaultStartingFEN);
-        ~Board();
-        std::vector<Move> getPossibleMoves();
-        bool makeMove(Move &move);
-        void setEnPassant(Square square);
+        Board() = delete;
+        ~Board() = default;
 
-        Color switchTurn();
+        explicit Board(const std::string& FENString = defaultStartingFEN);
 
-        void logBitboards() const;
+        /**
+         * @brief Computes and inserts all possible moves from current board state
+         *        in the moves vector by reference
+         *
+         * @param moves
+         */
+        void getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+
+        /**
+         * @brief Performs move from current board state
+         *
+         * @param move
+         */
+        void doMove(const Move *move);
+
+        /**
+         * @brief returns whether specific player is in check from the current board state
+         *
+         * @param player
+         * @return bool
+         */
+        [[nodiscard]] bool inCheck(Color player) const;
+
+        /**
+         * @brief Logs current board state to logger in ASCII chessboard
+         */
         void logBoard() const;
+
+        /**
+         * @brief Logs all Bitboard members to logger
+         */
+        void logBitboards() const;
     private:
         void InitializeFromFEN(const std::string& fenString);
-        void FillLookupTables();
 
-        bool checkBoard(bool quiet = true) const;
-        bool inCheck() const;
+        // TODO move implementations of movegeneration to its own file
+        void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
 
-        Piece findPiece(Square toSquare);
-
-        Bitboard getRankMask(size_t rank);
-        Bitboard getFileMask(size_t file);
-        Bitboard getRankMaskFromSquare(Square square);
-        Bitboard getFileMaskFromSquare(Square square);
-
-        Bitboard getPawnAttacks(Color color, Square square);
-        Bitboard getPawnAttacks(Color color, Bitboard pieceMask);
-
-        Bitboard getPawnPushes(Color color, Square square);
-
-        Bitboard getOccupiedMask () { return (black | white); }
-        Bitboard getEmptyMask () { return ~(getOccupiedMask()); }
-
-        std::vector<Move> generatePawnMoves();
-
+        void checkBoardConsistency() const;
 
         ChessLogger& logger;
 
+        std::unordered_map<Piecetype, Bitboard> piecetypeBitboardMap;
+        std::unordered_map<Color, Bitboard> colorBitboardMap;
+
+        std::unordered_map<Square, Piecetype> whitePieceMap;
+        std::unordered_map<Square, Piecetype> blackPieceMap;
+
+        Color activePlayer;
+
         bool wKC, wQC, bKC, bQC;
-        Square enPassant;
-        int halfMoves, fullMoves;
 
-        Color turn;
+        Square enPassantSquare;
 
-        std::vector<Piece> wPieces;
-        std::vector<Piece> bPieces;
+        int halfMoveClock, fullMoveNumber;
 
-        // Global bitboards
-        Bitboard white, black, wpawns, bpawns, knights, bishops, rooks, queens, kings;
-        const std::unordered_map<PieceType, Bitboard*> m_pieceTypeBitboards = {
-            {PieceType::NoType, nullptr},
-            {PieceType::wPawn, &wpawns},
-            {PieceType::bPawn, &bpawns},
-            {PieceType::Knight, &knights},
-            {PieceType::Bishop, &bishops},
-            {PieceType::Rook, &rooks},
-            {PieceType::Queen, &queens},
-            {PieceType::King, &kings},
-        };
-
-        const std::unordered_map<std::string, Bitboard*> m_bitboardNames = {
-            {"wpawns", &wpawns},
-            {"bpawns", &bpawns},
-            {"knights", &knights},
-            {"bishops", &bishops},
-            {"rooks", &rooks},
-            {"queens", &queens},
-            {"kings", &kings}
-        };
-
-        const std::unordered_map<Color, Bitboard*> m_ColorBitboards = {
-            {Color::White, &white},
-            {Color::Black, &black},
-        };
-
-        const Bitboard notAFile, notBFile, notGFile, notHFile;
-        const Bitboard rank2, rank4, rank5, rank7;
-
-        // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: PawnAttacks[white][square]
-        std::vector<std::vector<Bitboard>> PawnAttacks;
-        std::vector<std::vector<Bitboard>> PawnPushes;
+        // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: whitePawnAttacks[square] of blackPawnPushes[square]
+        static constexpr std::array<Bitboard, BOARD_SIZE> whitePawnPushLookUp = MaskGeneration::computePawnPushLookUp(White);
+        static constexpr std::array<Bitboard, BOARD_SIZE> blackPawnPushLookUp = MaskGeneration::computePawnPushLookUp(Black);
+        static constexpr std::array<Bitboard, BOARD_SIZE> whitePawnAttackLookUp = MaskGeneration::computePawnAttackLookUp(White);
+        static constexpr std::array<Bitboard, BOARD_SIZE> blackPawnAttackLookUp = MaskGeneration::computePawnAttackLookUp(Black);
 
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
