@@ -8,18 +8,18 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
 # Set the Clang compiler
-#set(CMAKE_C_COMPILER clang)
-#set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
 
 # Find Clang-Tidy
-#find_program(CLANG_TIDY_EXE NAMES "clang-tidy" "clang-tidy-10")
-#if(CLANG_TIDY_EXE)
-#    set(CMAKE_CXX_CLANG_TIDY
-#            "${CLANG_TIDY_EXE}"
-#            "-checks=bugprone-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,objc-*,performance-*,readability-*,-modernize-use-trailing-return-type")
-#else()
-#    message(WARNING "Clang-Tidy not found. Static analysis will not be applied.")
-#endif()
+find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
+if(CLANG_TIDY_EXE)
+   set(CMAKE_CXX_CLANG_TIDY
+           "${CLANG_TIDY_EXE}"
+           "-checks=bugprone-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,objc-*,performance-*,readability-*,-modernize-use-trailing-return-type")
+else()
+   message(WARNING "Clang-Tidy not found. Static analysis will not be applied.")
+endif()
 
 add_executable(SchaakPlezier
         src/board.cpp

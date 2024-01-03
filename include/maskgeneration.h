@@ -81,8 +81,8 @@ namespace MaskGeneration {
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnAttackLookUp(Color color) {
         std::array<Bitboard, BOARD_SIZE> pawnAttacks;
 
-        DirectionalOffset westOffset;
-        DirectionalOffset eastOffset;
+        DirectionalOffset westOffset = NoOffset;
+        DirectionalOffset eastOffset = NoOffset;
 
         switch (color) {
             case White:
@@ -112,8 +112,8 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computePawnAttacksFromBitboard(Bitboard bitboard, Color color) {
-        DirectionalOffset westOffset;
-        DirectionalOffset eastOffset;
+        DirectionalOffset westOffset = NoOffset;
+        DirectionalOffset eastOffset = NoOffset;
 
         switch (color) {
             case White:
