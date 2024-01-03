@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include <unordered_map>
+#include <array>
 #include <memory>
 #include <string>
 
