@@ -54,11 +54,10 @@ class Board {
 
         ChessLogger& logger;
 
-        std::unordered_map<Piecetype, Bitboard> piecetypeBitboardMap;
-        std::unordered_map<Color, Bitboard> colorBitboardMap;
+        std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
+        std::array<Bitboard, NrColors> colorBitboards;
 
-        std::unordered_map<Square, Piecetype> whitePieceMap;
-        std::unordered_map<Square, Piecetype> blackPieceMap;
+        std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
 
         Color activePlayer;
 
@@ -69,10 +68,14 @@ class Board {
         int halfMoveClock, fullMoveNumber;
 
         // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: whitePawnAttacks[square] of blackPawnPushes[square]
-        static constexpr std::array<Bitboard, BOARD_SIZE> whitePawnPushLookUp = MaskGeneration::computePawnPushLookUp(White);
-        static constexpr std::array<Bitboard, BOARD_SIZE> blackPawnPushLookUp = MaskGeneration::computePawnPushLookUp(Black);
-        static constexpr std::array<Bitboard, BOARD_SIZE> whitePawnAttackLookUp = MaskGeneration::computePawnAttackLookUp(White);
-        static constexpr std::array<Bitboard, BOARD_SIZE> blackPawnAttackLookUp = MaskGeneration::computePawnAttackLookUp(Black);
+        static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
+                MaskGeneration::computePawnPushLookUp(White),
+                MaskGeneration::computePawnPushLookUp(Black)
+        };
+        static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnAttackLookUp = {
+                MaskGeneration::computePawnAttackLookUp(White),
+                MaskGeneration::computePawnAttackLookUp(Black)
+        };
 
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup

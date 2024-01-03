@@ -4,19 +4,7 @@
 
 Board::Board(const char *FENString)
     : logger(ChessLogger::getInstance()),
-      piecetypeBitboardMap{
-              {Pawn,    {}},
-              {Knight,  {}},
-              {Bishop,  {}},
-              {Rook,    {}},
-              {Queen,   {}},
-              {King,    {}},
-      },
-      colorBitboardMap{
-              {White, {}},
-              {Black, {}},
-      },
-      activePlayer(Color::White),
+      activePlayer(White),
       wKC(false), wQC(false), bKC(false), bQC(false),
       enPassantSquare(NoSquare),
       halfMoveClock(0),
@@ -27,6 +15,17 @@ Board::Board(const char *FENString)
     #endif
 
     InitializeFromFEN(FENString);
+
+//    const Square someSquares[] = {a4, c5,d2};
+
+
+//    for (const auto &square : someSquares) {
+//        Bitboard whitePawnPushes = pawnPushLookUp[White][square];
+//
+//        const Move move = {}
+//        logger.log()
+//    }
+
 
     #ifdef DEBUG
         logBoard();
@@ -123,14 +122,14 @@ void Board::doMove(const Move *move) {
 
 void Board::logBitboards() const
 {
-    #ifdef DEBUG
-        for (const auto &entry : colorBitboardMap) {
-            logger.log(colorStringMap.at(entry.first).c_str(), entry.second);
-        }
-        for (const auto &entry : piecetypeBitboardMap) {
-            logger.log(piecetypeStringMap.at(entry.first).c_str(), entry.second);
-        }
-    #endif
+//    #ifdef DEBUG
+//        for (const auto &entry : colorBitboardMap) {
+//            logger.log(colorStringMap.at(entry.first).c_str(), entry.second);
+//        }
+//        for (const auto &entry : piecetypeBitboardMap) {
+//            logger.log(piecetypeStringMap.at(entry.first).c_str(), entry.second);
+//        }
+//    #endif
 }
 
 
@@ -147,7 +146,7 @@ void Board::InitializeFromFEN(const char *FENString)
     iss >> boardString >> activeColorChar >> castlingRightsString
         >> enPassantSquareString >> halfMoveClock >> fullMoveNumber;
 
-    int square = 0;
+    int squareInt = 0;
 
     for (const char &c : boardString) {
         switch (c) {
@@ -155,21 +154,22 @@ void Board::InitializeFromFEN(const char *FENString)
                 break;
             case '1': case '2': case '3': case '4':
             case '5': case '6': case '7': case '8':
-                square += c - '0';
+                squareInt += c - '0';
                 break;
             default:
+                const Square square = intToSquare(squareInt);
                 Piecetype type = charPiecetypeMap.at(c);
-                piecetypeBitboardMap.at(type).set(square);
+                piecetypeBitboards[type].set(square);
 
                 if (isupper(c) != 0) {
-                    colorBitboardMap.at(White).set(square);
-                    whitePieceMap[intToSquare(square)] = type;
+                    colorBitboards[White].set(square);
+                    pieceMaps[White][square] = type;
                 } else {
-                    colorBitboardMap.at(Black).set(square);
-                    blackPieceMap[intToSquare(square)] = type;
+                    colorBitboards[Black].set(square);
+                    pieceMaps[Black][square] = type;
                 }
 
-                square++;
+                squareInt++;
                 break;
         }
     }
@@ -196,106 +196,27 @@ void Board::InitializeFromFEN(const char *FENString)
 }
 
 
-
-void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
-#ifdef DEBUG
-    logger.logHeader("generatePawnMoves()");
-#endif
-    // TODO: reimplement
-
-//    Piecetype playerPawnType = (activePlayer == Color::White) ? wPawn : bPawn;
-//    Piecetype opponentPawnType = (activePlayer == Color::White) ? bPawn : wPawn;
-//    const Bitboard *playerPawns = (activePlayer == Color::White) ? &wpawns : &bpawns;
-//    const Bitboard *opponent = (activePlayer == Color::White) ? &black : &white;
-//    const Bitboard empty = Bitboard(black | white).flip();
-//
-//
-//    // Generate Capture Moves
-//    for (Square fromSquare : getIndices(*playerPawns)) {
-//        // doing the comparison here skips the for loop for many pawns
-//        Bitboard validAttacks = (PawnAttacks[color][fromSquare] & *opponent);
-//        for (Square toSquare : getIndices(validAttacks)) {
-//#ifdef DEBUG
-//            Move move(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
-//            logger.log("CAPTURE");
-//            logger.log(move);
-//#endif
-//            pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
-//        }
-//
-//        // enPassantSquare
-//        // cant use validAttacks because the enPassantSquare square is empty by definition
-//        if ((enPassantSquare != NoSquare) && (PawnAttacks[color][fromSquare].test(enPassantSquare))) {
-//#ifdef DEBUG
-//            Move move(fromSquare, enPassantSquare, playerPawnType, opponentPawnType);
-//            logger.log("ENPASSANT");
-//            logger.log(move);
-//#endif
-//            Square capturedPieceSquare = (activePlayer == White) ? intToSquare(enPassantSquare + BOARD_DIMENSIONS) : intToSquare(enPassantSquare - BOARD_DIMENSIONS);
-//            pawnMoves.emplace_back(fromSquare, enPassantSquare, playerPawnType, findPiece(capturedPieceSquare));
-//            // TODO: make sure to handle this move correctly when actually making it
-//        }
-//    }
-//
-//    // Generate Push moves
-//    for (Square fromSquare : getIndices(*playerPawns)) { // for every pawn
-//        for (Square toSquare : getIndices(PawnPushes[color][fromSquare])) { // for every attacked square of that pawn
-//
-//            // Double pushes
-//            if ( (abs(fromSquare - toSquare) == 2 * BOARD_DIMENSIONS)
-//                 && (empty.test(intToSquare((toSquare+fromSquare)/2))) // if one square in front is empty
-//                 && (empty.test(toSquare)) )
-//            {
-//#ifdef DEBUG
-//                Move move(fromSquare, toSquare, playerPawnType, NoType);
-//                logger.log("DOUBLE PUSH");
-//                logger.log(move);
-//#endif
-//                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType, (intToSquare((toSquare+fromSquare)/2)));
-//
-//                // TODO set enpassant square or at least pass it along with the move?
-//            }
-//
-//                // Single pushes
-//            else if ( (abs(fromSquare - toSquare) == BOARD_DIMENSIONS)
-//                      && empty.test(toSquare))
-//            {
-//#ifdef DEBUG
-//                Move move(fromSquare, toSquare, playerPawnType, NoType);
-//                logger.log("SINGLE PUSH");
-//                logger.log(move);
-//#endif
-//                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
-//            }
-//        }
-//    }
-//    return pawnMoves;
-}
-
-
 void Board::checkBoardConsistency() const
 {
-    _assert(whitePieceMap.size() == colorBitboardMap.at(White).count());
-    _assert(blackPieceMap.size() == colorBitboardMap.at(Black).count());
+    _assert(pieceMaps[White].size() == colorBitboards[White].count());
+    _assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
-    for (const auto &squarePiecetypePair : whitePieceMap) {
+    for (const auto &squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
-        _assert(colorBitboardMap.at(White).test(square));
-        _assert(piecetypeBitboardMap.at(type).test(square));
+        _assert(colorBitboards[White].test(square));
+        _assert(piecetypeBitboards[type].test(square));
     }
 
     Bitboard noOverlapBoard = Bitboard();
-    for (const auto &colorBitboardPair : colorBitboardMap) {
-        const Bitboard bitboard = colorBitboardPair.second;
+    for (const auto &bitboard : colorBitboards) {
         _assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
 
     noOverlapBoard.reset();
-    for (const auto &piecetypeBitboardPair : piecetypeBitboardMap) {
-        const Bitboard bitboard = piecetypeBitboardPair.second;
+    for (const auto &bitboard : piecetypeBitboards) {
         _assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
@@ -312,14 +233,14 @@ void Board::logBoard() const
     std::ostringstream os;
     std::string board(BOARD_SIZE, '.');
 
-    for (const auto& squarePiecetypePair : whitePieceMap) {
+    for (const auto& squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
         board[square] = whitePiecetypeCharMap.at(type);
     }
 
-    for (const auto& squarePiecetypePair : blackPieceMap) {
+    for (const auto& squarePiecetypePair : pieceMaps[Black]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 

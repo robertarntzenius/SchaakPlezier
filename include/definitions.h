@@ -13,7 +13,7 @@
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-#ifdef DEBUG 
+//#ifdef DEBUG
 // _assert will be compiled in Debug
 #define _assert(expr) \
     if (!(expr)) { \
@@ -23,10 +23,10 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
         std::cerr << "See ../../build/Debug/Schaakplezier.log for more information" << std::endl; \
         exit(-1); \
     }
-#else
+//#else
 // _assert will not be compiled in Release
-#define _assert(expr) ((void)0)
-#endif
+//#define _assert(expr) ((void)0)
+//#endif
 
 
 [[nodiscard]] static constexpr Color invertColor (Color color) {

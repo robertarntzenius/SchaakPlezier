@@ -8,7 +8,7 @@ constexpr const char *testFEN2 = "2kr3r/p1ppqpb1/bn2Qnp1/3PN3/1p2P3/8/PPPBBPPP/R
 constexpr const char *testFEN3 = "rnb2k1r/pp1Pbppp/2p5/q7/2B5/8/PPPQNnPP/RNB1K2R w KQ - 3 9";
 
 int main() {
-    Game game(testFEN3);
+    Game game(testFEN2);
 
     try {
 //        game->start();

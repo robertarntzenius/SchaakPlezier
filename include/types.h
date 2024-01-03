@@ -11,7 +11,7 @@ enum Color : int {
 };
 
 enum Square : int {
-    a8=0, b8, c8, d8, e8, f8, g8, h8,
+    a8 = 0, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a6, b6, c6, d6, e6, f6, g6, h6,
     a5, b5, c5, d5, e5, f5, g5, h5,
@@ -22,6 +22,16 @@ enum Square : int {
     NrSquares = 64, NoSquare
 };
 
+enum Piecetype : int {
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King,
+    NrPiecetypes = 6,
+    NoType
+};
 
 enum File : int {
     FileA = 0,
@@ -36,24 +46,14 @@ enum File : int {
 };
 
 enum Rank : int {
-    Rank1 = 7,
-    Rank2 = 6,
-    Rank3 = 5,
-    Rank4 = 4,
-    Rank5 = 3,
-    Rank6 = 2,
-    Rank7 = 1,
-    Rank8 = 0
-};
-
-enum Piecetype : int {
-    NoType = 0,
-    Pawn,
-    Knight,
-    Bishop,
-    Rook,
-    Queen,
-    King,
+    Rank1 = 0,
+    Rank2,
+    Rank3,
+    Rank4,
+    Rank5,
+    Rank6,
+    Rank7,
+    Rank8
 };
 
 struct Move {

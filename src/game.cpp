@@ -29,18 +29,31 @@ void Game::start()
 //    }
 }
 
-//void Game::test()
-//{
-//    for (int i = 0; i < 20; i++) {
-//
-//        std::vector<Move> moves = _board.getPossibleMoves();
-//
-//        logger.logHeader("moves in game.test()");
-//        logger.log(i);
-//
-//        for (Move move : moves)
-//        {
-//            logger.log(move);
+void Game::test()
+{
+    std::vector<std::unique_ptr<Move>> moves;
+    _board.getPossibleMoves(moves);
+
+    logger.logHeader("moves in game.test()");
+
+    for (const auto &move : moves)
+    {
+        switch (move->type) {
+            case Move::Basic:
+                logger.log("Basic Move: ");
+                logger.log(*move);
+                break;
+            case Move::DoublePawn:
+                logger.log("Double Pawn: ");
+                logger.log(*move);
+                break;
+            case Move::Capture:
+                logger.log("Capture: ");
+                logger.log(*move);
+                break;
+            default:
+                break;
+        }
 //            bool moveIsLegal = _board.makeMove(move);
 //            if (moveIsLegal) {
 //                break;
@@ -49,22 +62,17 @@ void Game::start()
 //                // TODO implement
 //                // _board.unMakeMove(move);
 //            }
-//        }
-//
-//        // TODO implement
-//        // if(_board.inCheck()) {
-//        //     logger.log("turn has won!");
-//        // }
+    }
+
+// TODO implement
+// if(_board.inCheck()) {
+//     logger.log("turn has won!");
+// }
 //        _board.switchTurn();
-//    }
-//
-//}
 
-
-void Game::test()
-{
 
 }
+
 
 bool Game::isOver () const
 {

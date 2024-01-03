@@ -8,13 +8,14 @@ namespace MaskGeneration {
         Bitboard fileMask;
 
         for (int i = 0; i < BOARD_DIMENSIONS; i++) {
-            fileMask.set(BOARD_DIMENSIONS * i + file);
+            const Square square = intToSquare(BOARD_DIMENSIONS * i + file);
+            fileMask.set(square);
         }
 
         return fileMask;
     }
 
-    [[nodiscard]] constexpr Bitboard computeRankMask(int rank) {
+    [[nodiscard]] constexpr Bitboard computeRankMask(Rank rank) {
         return Bitboard(0xFFUL << rank * BOARD_DIMENSIONS);
     }
 
@@ -40,7 +41,8 @@ namespace MaskGeneration {
 
         // NOTE: technically doesn't have to compute anything for ranks 1 and 8
         for (int square = 0; square < NrSquares; square++) {
-            Bitboard playerPawn(1UL << (BOARD_SIZE - square - 1));
+            Bitboard playerPawn;
+            playerPawn.set(intToSquare(square));
 
             singlePush = (playerPawn << directionalOffset);
             doublePush = (playerPawn << directionalOffset * 2) & doublePushRank;
@@ -61,11 +63,11 @@ namespace MaskGeneration {
         switch (color) {
             case White:
                 directionalOffset = North;
-                enPassantRank = computeRankMask(3);
+                enPassantRank = computeRankMask(Rank4);
                 break;
             case Black:
                 directionalOffset = South;
-                enPassantRank = computeRankMask(4);
+                enPassantRank = computeRankMask(Rank5);
                 break;
             default:
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
@@ -97,7 +99,8 @@ namespace MaskGeneration {
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
         }
 
-        for (int square = 0; square < NrSquares; ++square) {
+        for (int squareInt = 0; squareInt < NrSquares; ++squareInt) {
+            const Square square = intToSquare(squareInt);
             Bitboard playerPawn;
 
             playerPawn.set(square);

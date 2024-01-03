@@ -49,8 +49,8 @@ class Bitboard {
             return Bitboard(bits >> -offset);
         }
 
-        constexpr Bitboard &set(int bitNr, bool value = true) {
-            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+        constexpr Bitboard &set(Square square, bool value = true) {
+            ulong mask = 1UL << (BOARD_SIZE - square - 1);
 
             if (value) {
                 bits = bits | mask;
@@ -88,11 +88,16 @@ class Bitboard {
             return bits & mask;
         }
 
+        [[nodiscard]] constexpr bool test(Square bitNr) const {
+            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+            return bits & mask;
+        }
+
         [[nodiscard]] std::vector<Square> getIndices() const {
             std::vector<Square> indices;
             ulong copy = bits;
             while (copy) {
-                int square = __builtin_ctzll(copy); // Count trailing zeros using a built-in function
+                int square = BOARD_SIZE - __builtin_ctzll(copy) - 1; // Count trailing zeros using a built-in function
                 indices.push_back(static_cast<Square>(square));
                 copy &= copy - 1; // Clear the lowest set bit
             }
