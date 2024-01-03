@@ -23,16 +23,16 @@ namespace MaskGeneration {
         Bitboard singlePush, doublePush;
 
         DirectionalOffset directionalOffset = NoOffset;
-        Bitboard enPassantRank;
+        Bitboard doublePushRank;
 
         switch (color) {
             case White:
                 directionalOffset = North;
-                enPassantRank = computeRankMask(3);
+                doublePushRank = computeRankMask(Rank4);
                 break;
             case Black:
                 directionalOffset = South;
-                enPassantRank = computeRankMask(4);
+                doublePushRank = computeRankMask(Rank5);
                 break;
             default:
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
@@ -43,7 +43,7 @@ namespace MaskGeneration {
             Bitboard playerPawn(1UL << (BOARD_SIZE - square - 1));
 
             singlePush = (playerPawn << directionalOffset);
-            doublePush = (playerPawn << directionalOffset * 2) & enPassantRank;
+            doublePush = (playerPawn << directionalOffset * 2) & doublePushRank;
 
             pawnPushes[square] = (singlePush | doublePush);
         }

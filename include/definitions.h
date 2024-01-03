@@ -118,12 +118,12 @@ static const std::unordered_map<char, Piecetype> charPiecetypeMap = {
 };
 
 static const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
-        {Pawn, 'P'},
-        {Knight, 'N'},
-        {Bishop, 'B'},
-        {Rook, 'R'},
-        {Queen, 'Q'},
-        {King, 'K'}
+    {Pawn, 'P'},
+    {Knight, 'N'},
+    {Bishop, 'B'},
+    {Rook, 'R'},
+    {Queen, 'Q'},
+    {King, 'K'}
 };
 
 static const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {

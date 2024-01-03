@@ -38,8 +38,8 @@ Board::Board(const std::string& fenString)
 
 void Board::getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
     #ifdef DEBUG
-    logger.logHeader("getPossibleMoves()");
-    logBoard();
+        logger.logHeader("getPossibleMoves()");
+        logBoard();
     #endif
 
     // FIXME: should vector contain normal ptrs or a smart ptrs for safety?
@@ -191,8 +191,8 @@ void Board::InitializeFromFEN(const std::string &fenString)
 
     enPassantSquare = stringSquareMap.at(enPassantSquareString);
 
-    checkBoardConsistency();
     #ifdef DEBUG
+        checkBoardConsistency();
         logger.log("%d %d %d %d %d %d %d %d", activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
     #endif
 }

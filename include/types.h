@@ -22,22 +22,29 @@ enum Square : int {
     NrSquares = 64, NoSquare
 };
 
-// NOTE: maybe useful ?? IDK
 
-//enum File : int {
-//    A = 0, B, C, D, E, F, G, H, NrFiles = 8
-//};
+enum File : int {
+    FileA = 0,
+    FileB,
+    FileC,
+    FileD,
+    FileE,
+    FileF,
+    FileG,
+    FileH,
+    NrFiles = 8
+};
 
-//enum Rank : int {
-//    Rank1 = 7,
-//    Rank2 = 6,
-//    Rank3 = 5,
-//    Rank4 = 4,
-//    Rank5 = 3,
-//    Rank6 = 2,
-//    Rank7 = 1,
-//    Rank8 = 0
-//};
+enum Rank : int {
+    Rank1 = 7,
+    Rank2 = 6,
+    Rank3 = 5,
+    Rank4 = 4,
+    Rank5 = 3,
+    Rank6 = 2,
+    Rank7 = 1,
+    Rank8 = 0
+};
 
 enum Piecetype : int {
     NoType = 0,
