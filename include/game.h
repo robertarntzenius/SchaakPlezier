@@ -6,7 +6,7 @@
 
 class Game {
     public:
-        Game(const std::string& FENString = defaultStartingFEN);
+        Game(const char *FENString = defaultStartingFEN);
         ~Game() = default;
 
         void start();

@@ -2,7 +2,7 @@
 
 /* public */
 
-Board::Board(const std::string& fenString)
+Board::Board(const char *FENString)
     : logger(ChessLogger::getInstance()),
       piecetypeBitboardMap{
               {Pawn,    {}},
@@ -16,8 +16,6 @@ Board::Board(const std::string& fenString)
               {White, {}},
               {Black, {}},
       },
-      whitePieceMap{},
-      blackPieceMap{},
       activePlayer(Color::White),
       wKC(false), wQC(false), bKC(false), bQC(false),
       enPassantSquare(NoSquare),
@@ -28,7 +26,7 @@ Board::Board(const std::string& fenString)
         logger.log("New Board created!");
     #endif
 
-    InitializeFromFEN(fenString);
+    InitializeFromFEN(FENString);
 
     #ifdef DEBUG
         logBoard();
@@ -138,14 +136,14 @@ void Board::logBitboards() const
 
 /* private */
 
-void Board::InitializeFromFEN(const std::string &fenString)
+void Board::InitializeFromFEN(const char *FENString)
 {
     std::string boardString;
-    char activeColorChar;
+    char activeColorChar = 0;
     std::string castlingRightsString;
     std::string enPassantSquareString;
 
-    std::istringstream iss(fenString);
+    std::istringstream iss(FENString);
     iss >> boardString >> activeColorChar >> castlingRightsString
         >> enPassantSquareString >> halfMoveClock >> fullMoveNumber;
 
@@ -163,7 +161,7 @@ void Board::InitializeFromFEN(const std::string &fenString)
                 Piecetype type = charPiecetypeMap.at(c);
                 piecetypeBitboardMap.at(type).set(square);
 
-                if (isupper(c)) {
+                if (isupper(c) != 0) {
                     colorBitboardMap.at(White).set(square);
                     whitePieceMap[intToSquare(square)] = type;
                 } else {
@@ -312,16 +310,20 @@ bool Board::inCheck(Color player) const
 void Board::logBoard() const
 {
     std::ostringstream os;
-    char board[BOARD_SIZE];
-
-    for (char & i : board)
-        i = *".";
+    std::string board(BOARD_SIZE, '.');
 
     for (const auto& squarePiecetypePair : whitePieceMap) {
-        board[squarePiecetypePair.first] = whitePiecetypeCharMap.at(squarePiecetypePair.second);
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        board[square] = whitePiecetypeCharMap.at(type);
     }
-    for (const auto& piece : blackPieceMap) {
-        board[piece.first] = blackPiecetypeCharMap.at(piece.second);
+
+    for (const auto& squarePiecetypePair : blackPieceMap) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        board[square] = blackPiecetypeCharMap.at(type);
     }
 
     for (int rank = 0; rank < BOARD_DIMENSIONS; rank++) {

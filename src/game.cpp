@@ -1,7 +1,7 @@
 #include "game.h"
 #include "log.h"
 
-Game::Game(const std::string& FENString) 
+Game::Game(const char *FENString) 
     : logger(ChessLogger::getInstance()), _board(Board(FENString))
 {
     #ifdef DEBUG

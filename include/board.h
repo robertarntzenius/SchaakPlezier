@@ -10,7 +10,7 @@ class Board {
         Board() = delete;
         ~Board() = default;
 
-        explicit Board(const std::string& FENString = defaultStartingFEN);
+        explicit Board(const char *FENString = defaultStartingFEN);
 
         /**
          * @brief Computes and inserts all possible moves from current board state
@@ -45,7 +45,7 @@ class Board {
          */
         void logBitboards() const;
     private:
-        void InitializeFromFEN(const std::string& fenString);
+        void InitializeFromFEN(const char *FENString);
 
         // TODO move implementations of movegeneration to its own file
         void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;

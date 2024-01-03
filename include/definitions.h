@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#define defaultStartingFEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 #ifdef DEBUG 
 // _assert will be compiled in Debug
