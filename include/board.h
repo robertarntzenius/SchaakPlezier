@@ -7,10 +7,9 @@
 
 class Board {
     public:
-        Board() = delete;
         ~Board() = default;
 
-        explicit Board(const char *FENString = defaultStartingFEN);
+        Board(const char *FENString = defaultStartingFEN);
 
         /**
          * @brief Computes and inserts all possible moves from current board state

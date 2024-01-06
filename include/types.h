@@ -46,14 +46,15 @@ enum File : int {
 };
 
 enum Rank : int {
-    Rank1 = 0,
-    Rank2,
-    Rank3,
-    Rank4,
-    Rank5,
-    Rank6,
+    Rank8 = 0,
     Rank7,
-    Rank8
+    Rank6,
+    Rank5,
+    Rank4,
+    Rank3,
+    Rank2,
+    Rank1,
+    NrRanks = 8
 };
 
 struct Move {
@@ -66,8 +67,9 @@ struct Move {
         Capture,
         DoublePawn,
         Castle,
-        Promotion
     } type;
+
+    const bool isPromotion = false;
 };
 
 struct CaptureMove : public Move {
@@ -80,8 +82,4 @@ struct DoublePawnMove : public Move {
 
 struct CastleMove : public Move {
     const Move castleRookMove;
-};
-
-struct PromotionMove : public Move {
-    const Piecetype promotionType;
 };

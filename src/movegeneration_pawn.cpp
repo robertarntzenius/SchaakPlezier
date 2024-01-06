@@ -7,25 +7,29 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
 #endif
 
     const Bitboard occupied = (colorBitboards[White] | colorBitboards[Black]);
+    const Bitboard finalRank = (activePlayer == White) ? MaskGeneration::computeRankMask(Rank8) : MaskGeneration::computeRankMask(Rank1); // TODO fix robert
 
+    // for every piece
     for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
         const Square fromSquare = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
+        // for every pawn
         if (type != Pawn) {
             continue;
         }
 
+        // Pawn pushes
         const Bitboard pushes = pawnPushLookUp[activePlayer][fromSquare];
-
         std::vector<Square> toSquares = pushes.getIndices();
+
         for (const auto &toSquare : toSquares) {
             if (occupied.test(toSquare)) {
                 continue;
             }
             
+            // Double push (check in between)
             if (abs(toSquare - fromSquare) == 2 * BOARD_DIMENSIONS) {
-                // Double push (check in between)
                 const Square newEnPassantSquare = intToSquare((toSquare + fromSquare) / 2);
 
                 if (occupied.test(newEnPassantSquare)) {
@@ -34,10 +38,11 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
 
                 const DoublePawnMove move = {{fromSquare, toSquare, Move::DoublePawn}, newEnPassantSquare};
                 moveVector.emplace_back(std::make_unique<DoublePawnMove>(move));
+            } 
 
-            } else {
-                // Single push
-                const Move move = {fromSquare, toSquare, Move::Basic};
+            // Single push
+            else {
+                const Move move = {fromSquare, toSquare, Move::Basic, finalRank.test(toSquare)};
                 moveVector.emplace_back(std::make_unique<Move>(move));
             }
         }
@@ -46,13 +51,14 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
 
         toSquares = (attacks & colorBitboards[invertColor(activePlayer)]).getIndices();
         for (const auto &toSquare : toSquares) {
-            const CaptureMove move = {{fromSquare, toSquare, Move::Capture}, toSquare};
+            const CaptureMove move = {{fromSquare, toSquare, Move::Capture, finalRank.test(toSquare)}, toSquare};
             moveVector.emplace_back(std::make_unique<CaptureMove>(move));
         }
 
         if (attacks.test(enPassantSquare)) {
-            const Square captureSquare = intToSquare(fromSquare + (2 * (enPassantSquare - fromSquare)));
-            const CaptureMove move = {{fromSquare, captureSquare, Move::Capture}, enPassantSquare};
+            
+            const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
+            const CaptureMove move = {{fromSquare, enPassantSquare, Move::Capture}, captureSquare};
 
             moveVector.emplace_back(std::make_unique<CaptureMove>(move));
         }

@@ -22,4 +22,7 @@ mkdir -p "$build_dir"
 cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type"
 cd "$build_dir" || exit
 make && ./SchaakPlezier
+if [ "$build_type" == "Debug" ]; then
+    ctest
+fi
 cd "$source_dir" || exit

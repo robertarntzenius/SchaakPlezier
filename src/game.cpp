@@ -38,22 +38,9 @@ void Game::test()
 
     for (const auto &move : moves)
     {
-        switch (move->type) {
-            case Move::Basic:
-                logger.log("Basic Move: ");
-                logger.log(*move);
-                break;
-            case Move::DoublePawn:
-                logger.log("Double Pawn: ");
-                logger.log(*move);
-                break;
-            case Move::Capture:
-                logger.log("Capture: ");
-                logger.log(*move);
-                break;
-            default:
-                break;
-        }
+        logMove(move);
+    }
+
 //            bool moveIsLegal = _board.makeMove(move);
 //            if (moveIsLegal) {
 //                break;
@@ -62,7 +49,7 @@ void Game::test()
 //                // TODO implement
 //                // _board.unMakeMove(move);
 //            }
-    }
+    
 
 // TODO implement
 // if(_board.inCheck()) {
@@ -71,6 +58,27 @@ void Game::test()
 //        _board.switchTurn();
 
 
+}
+
+void Game::logMove(const std::unique_ptr<Move> &move) const {
+    switch (move->type) {
+        case Move::Basic:
+            logger.log("Basic Move: ");
+            logger.log(*move);
+            break;
+        case Move::DoublePawn:
+            logger.log("Double Pawn: ");
+            logger.log(*reinterpret_cast<DoublePawnMove*>(move.get()));
+            // Square enPassantSquare = doublePawnPushMove.enPassantSquare;
+            break;
+        case Move::Capture:
+            logger.log("Capture: ");
+            logger.log(*reinterpret_cast<CaptureMove*>(move.get()));
+            break;
+        case Move::Castle:
+        default:
+            break;
+    }
 }
 
 

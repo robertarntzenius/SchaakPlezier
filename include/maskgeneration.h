@@ -16,7 +16,7 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computeRankMask(Rank rank) {
-        return Bitboard(0xFFUL << rank * BOARD_DIMENSIONS);
+        return Bitboard(0xFFUL << (BOARD_DIMENSIONS - rank - 1) * BOARD_DIMENSIONS);
     }
 
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnPushLookUp(Color color) {

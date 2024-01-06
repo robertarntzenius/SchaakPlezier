@@ -13,7 +13,7 @@
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-//#ifdef DEBUG
+#ifdef DEBUG
 // _assert will be compiled in Debug
 #define _assert(expr) \
     if (!(expr)) { \
@@ -23,10 +23,10 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
         std::cerr << "See ../../build/Debug/Schaakplezier.log for more information" << std::endl; \
         exit(-1); \
     }
-//#else
+#else
 // _assert will not be compiled in Release
-//#define _assert(expr) ((void)0)
-//#endif
+#define _assert(expr) ((void)0)
+#endif
 
 
 [[nodiscard]] static constexpr Color invertColor (const Color &color) {
@@ -39,6 +39,18 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
     }
 
     return static_cast<Square>(i);
+}
+
+[[nodiscard]] static constexpr Rank squareToRank(Square square) {
+    return static_cast<Rank>(square / BOARD_DIMENSIONS);
+}
+
+[[nodiscard]] static constexpr File squareToFile(Square square) {
+    return static_cast<File>(square % BOARD_DIMENSIONS);
+}
+
+[[nodiscard]] static constexpr Square rankFileToSquare(Rank rank, File file) {
+    return static_cast<Square>(rank*BOARD_DIMENSIONS + file);
 }
 
 /**
@@ -146,6 +158,11 @@ static const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {King,   "king"},
 };
 
+static std::ostream& operator<<(std::ostream &os, const Square &square) {
+    os << squareStringMap.at(square);
+    return os;
+}
+
 static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
     for (int i = 0; i < BOARD_SIZE; i++) {
         os << ((bitboard.test(i))? '1' : '0');
@@ -154,13 +171,12 @@ static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
             os << '\n';
         }
     }
-
     return os;
 }
 
 static std::ostream& operator<<(std::ostream &os, const Move &move) {
-    os << "From: " << squareStringMap.at(move.from)
-       << ", To: " << squareStringMap.at(move.target);
+    os << "From: " << move.from
+       << ", To: " << move.target;
     return os;
 }
 

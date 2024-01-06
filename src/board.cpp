@@ -258,6 +258,6 @@ void Board::logBoard() const
         os  << std::endl;
     }
     os << "\n   a b c d e f g h\n";
-    os << "enPassantSquare: " << squareStringMap.at(enPassantSquare) << std::endl;
+    os << "enPassantSquare: " << enPassantSquare << std::endl;
     logger.log(os);
 }

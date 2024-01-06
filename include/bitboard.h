@@ -22,7 +22,7 @@ class Bitboard {
         {
         }
 
-        constexpr bool operator==(const Bitboard &other) const {
+        [[nodiscard]] constexpr bool operator==(const Bitboard &other) const {
             return bits == other.bits;
         }
 
