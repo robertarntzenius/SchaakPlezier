@@ -35,10 +35,9 @@ void Game::test()
     _board.getPossibleMoves(moves);
 
     logger.logHeader("moves in game.test()");
-
     for (const auto &move : moves)
     {
-        logMove(move);
+        logger.log(*move);
     }
 
 //            bool moveIsLegal = _board.makeMove(move);
@@ -58,30 +57,6 @@ void Game::test()
 //        _board.switchTurn();
 
 
-}
-
-void Game::logMove(const std::unique_ptr<Move> &move) const {
-    switch (move->type) {
-        case Move::Basic:
-            logger.log("Basic Move: ");
-            logger.log(*move);
-            break;
-        case Move::DoublePawn:
-            logger.log("Double Pawn: ");
-            logger.log(*move);
-            // Square enPassantSquare = doublePawnPushMove.enPassantSquare;
-            break;
-        case Move::Capture:
-            logger.log("Capture: ");
-            logger.log(*move);
-            break;
-        case Move::Promotion:
-        case Move::PromotionCapture:
-        case Move::EnPassantCapure:
-        case Move::Castling:
-        default:
-            break;
-    }
 }
 
 

@@ -29,6 +29,7 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 #endif
 
 
+// Conversions and Comparisons
 [[nodiscard]] static constexpr Color invertColor (Color color) {
     return static_cast<Color>((color + 1) % NrColors);
 }
@@ -82,7 +83,7 @@ enum DirectionalOffset : int {
     SouthWest = -7
 };
 
-
+// Stringmaps for logging
 static const std::unordered_map<Square, std::string> squareStringMap = {
     {a8, "a8"}, {b8, "b8"}, {c8, "c8"}, {d8, "d8"}, {e8, "e8"}, {f8, "f8"}, {g8, "g8"}, {h8, "h8"},
     {a7, "a7"}, {b7, "b7"}, {c7, "c7"}, {d7, "d7"}, {e7, "e7"}, {f7, "f7"}, {g7, "g7"}, {h7, "h7"},
@@ -107,16 +108,27 @@ static const std::unordered_map<std::string, Square> stringSquareMap = {
     {"a1", a1}, {"b1", b1}, {"c1", c1}, {"d1", d1}, {"e1", e1}, {"f1", f1}, {"g1", g1}, {"h1", h1},
 };
 
-//static const std::unordered_map<File, std::string> fileStringMap = {
-//        {A, "A"},
-//        {B, "B"},
-//        {C, "C"},
-//        {D, "D"},
-//        {E, "E"},
-//        {F, "F"},
-//        {G, "G"},
-//        {H, "H"}
-//};
+static const std::unordered_map<File, std::string> fileStringMap = {
+       {FileA, "A"},
+       {FileB, "B"},
+       {FileC, "C"},
+       {FileD, "D"},
+       {FileE, "E"},
+       {FileF, "F"},
+       {FileG, "G"},
+       {FileH, "H"}
+};
+
+static const std::unordered_map<Rank, std::string> rankStringMap = {
+       {Rank1, "1"},
+       {Rank2, "2"},
+       {Rank3, "3"},
+       {Rank4, "4"},
+       {Rank5, "5"},
+       {Rank6, "6"},
+       {Rank7, "7"},
+       {Rank8, "8"}
+};
 
 static const std::unordered_map<char, Color> charColorMap = {
     {'w', White},
@@ -166,14 +178,36 @@ static const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {King,   "king"},
 };
 
+
+// Operator overloads for logging
 static std::ostream& operator<<(std::ostream &os, const Square &square) {
     os << squareStringMap.at(square);
     return os;
 }
 
+static std::ostream& operator<<(std::ostream &os, const Color &color) {
+    os << colorStringMap.at(color);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Rank &rank) {
+    os << rankStringMap.at(rank);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const File &file) {
+    os << fileStringMap.at(file);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Piecetype &piecetype) {
+    os << piecetypeStringMap.at(piecetype);
+    return os;
+}
+
 static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
     for (int i = 0; i < BOARD_SIZE; i++) {
-        os << ((bitboard.test(i))? '1' : '0');
+        os << ((bitboard.test(i)) ? '1' : '0');
 
         if (i % BOARD_DIMENSIONS == BOARD_DIMENSIONS - 1) {
             os << '\n';
@@ -183,25 +217,40 @@ static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
 }
 
 static std::ostream& operator<<(std::ostream &os, const Move &move) {
-    os << "From: " << move.from
-       << ", To: " << move.target;
+    os << "[" << move.from << move.target << "]";
+
+    // Extra debug info
+    switch (move.type) {
+        case Move::Basic:
+            os << " | Basic | ";
+            break;
+        case Move::DoublePawn:
+            os << " | DoublePawn | "
+               << "newEnPassantSquare:" << move.extra;
+            break;
+        case Move::Capture:
+            os << " | Capture | "
+               << "capturePiece:" << move.capturePiece;
+            break;
+        case Move::Promotion:
+            os << " | Promotion | "
+               << "promotionType:" << move.promotionType;
+            break;
+        case Move::PromotionCapture:
+            os << " | PromotionCapture | "
+               << "promotionPiecetype:" << move.promotionType;
+            break;
+        case Move::EnPassantCapure:
+            os << " | EnPassantCapure | "
+               << "captureSquare:" << move.extra
+               << ", capturePiece:" << move.capturePiece;
+            break;
+        case Move::Castling:
+            os << " | Castling | ";
+            // os << ...;
+            break;
+        default:
+            break;
+    }
     return os;
 }
-
-//static std::ostream& operator<<(std::ostream &os, const CaptureMove &move) {
-//    os << static_cast<const Move&>(move)
-//       << ", Capture: " << move.captureSquare;
-//    return os;
-//}
-//
-//static std::ostream& operator<<(std::ostream& os, const DoublePawnMove& move) {
-//    os << static_cast<const Move&>(move)
-//       << ", En Passant Square: " << move.enPassantSquare;
-//    return os;
-//}
-//
-//static std::ostream& operator<<(std::ostream &os, const CastleMove &move) {
-//    os << static_cast<const Move&>(move)
-//       << ", Rook Move: [" << move.castleRookMove << "]";
-//    return os;
-//}

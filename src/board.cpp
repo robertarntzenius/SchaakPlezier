@@ -29,7 +29,7 @@ Board::Board(const char *FENString)
 
     #ifdef DEBUG
         logBoard();
-        logBitboards();
+        // logBitboards();
     #endif
 }
 
@@ -191,9 +191,11 @@ void Board::InitializeFromFEN(const char *FENString)
 
     enPassantSquare = stringSquareMap.at(enPassantSquareString);
 
+    checkBoardConsistency();
+    logger.log(activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
+
+    // logger.log("%d %d %d %d %d %d %d %d", activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
     #ifdef DEBUG
-        checkBoardConsistency();
-        logger.log("%d %d %d %d %d %d %d %d", activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
     #endif
 }
 

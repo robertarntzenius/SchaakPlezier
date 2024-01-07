@@ -46,6 +46,7 @@ elseif(BUILD_TYPE STREQUAL "Debug")
     # Add this -DDEBUG which essentially has adds #define DEBUG to the files its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
     target_compile_definitions(SchaakPlezier PRIVATE -DDEBUG)
+    target_compile_definitions(Board PRIVATE -DDEBUG)
     enable_testing()
     add_subdirectory(test)
 else()

@@ -51,6 +51,13 @@ public:
     }
 
     template <typename... Args>
+    void log(Args... args) {
+        if (logFile.is_open()) {
+            ((logFile << args << ' '), ...) << std::endl;
+        }
+    }
+
+    template <typename... Args>
     void log(const char* format, Args... args) {
         if (logFile.is_open()) {
             std::ostringstream oss;

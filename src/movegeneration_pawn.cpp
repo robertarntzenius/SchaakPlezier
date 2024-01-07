@@ -55,22 +55,27 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
             }
         }
 
+        // Pawn captures
         const Bitboard attacks = pawnAttackLookUp[activePlayer][fromSquare];
-
         toSquares = (attacks & colorBitboards[invertColor(activePlayer)]).getIndices();
         for (const auto &toSquare : toSquares) {
             const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(toSquare);
+
+            // Promotion capture
             if (finalRank.test(toSquare)) {
                 for (Piecetype promotionType : promotionPiecetypes) {
                     const Move move = createPromotionCapture(fromSquare,toSquare, capturePiecetype, promotionType);
                     moveVector.emplace_back(std::make_unique<Move>(move));
                 }
+
+            // Normal capture
             } else {
                 const Move move = createCapture(fromSquare, toSquare, Pawn, capturePiecetype);
                 moveVector.emplace_back(std::make_unique<Move>(move));
             }
         }
 
+        // Enpassant capture
         if (attacks.test(enPassantSquare)) {
             const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
             const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(captureSquare);
