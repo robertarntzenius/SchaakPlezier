@@ -68,14 +68,17 @@ void Game::logMove(const std::unique_ptr<Move> &move) const {
             break;
         case Move::DoublePawn:
             logger.log("Double Pawn: ");
-            logger.log(*reinterpret_cast<DoublePawnMove*>(move.get()));
+            logger.log(*move);
             // Square enPassantSquare = doublePawnPushMove.enPassantSquare;
             break;
         case Move::Capture:
             logger.log("Capture: ");
-            logger.log(*reinterpret_cast<CaptureMove*>(move.get()));
+            logger.log(*move);
             break;
-        case Move::Castle:
+        case Move::Promotion:
+        case Move::PromotionCapture:
+        case Move::EnPassantCapure:
+        case Move::Castling:
         default:
             break;
     }

@@ -1,5 +1,6 @@
 #include "board.h"
 
+using namespace MoveGeneration;
 
 void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
 #ifdef DEBUG
@@ -11,8 +12,8 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
 
     // for every piece
     for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
-        const Square fromSquare = squarePiecetypePair.first;
-        const Piecetype type = squarePiecetypePair.second;
+        const Square &fromSquare = squarePiecetypePair.first;
+        const Piecetype &type = squarePiecetypePair.second;
 
         // for every pawn
         if (type != Pawn) {
@@ -27,7 +28,7 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
             if (occupied.test(toSquare)) {
                 continue;
             }
-            
+
             // Double push (check in between)
             if (abs(toSquare - fromSquare) == 2 * BOARD_DIMENSIONS) {
                 const Square newEnPassantSquare = intToSquare((toSquare + fromSquare) / 2);
@@ -36,14 +37,21 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
                     continue;
                 }
 
-                const DoublePawnMove move = {{fromSquare, toSquare, Move::DoublePawn}, newEnPassantSquare};
-                moveVector.emplace_back(std::make_unique<DoublePawnMove>(move));
-            } 
+                const Move move = createDoublePawnMove(fromSquare, toSquare, newEnPassantSquare);
+                moveVector.emplace_back(std::make_unique<Move>(move));
+            }
 
             // Single push
             else {
-                const Move move = {fromSquare, toSquare, Move::Basic, finalRank.test(toSquare)};
-                moveVector.emplace_back(std::make_unique<Move>(move));
+                if (finalRank.test(toSquare)) {
+                    for (Piecetype promotionType : promotionPiecetypes) {
+                        const Move move = createPromotionMove(fromSquare, toSquare, promotionType);
+                        moveVector.emplace_back(std::make_unique<Move>(move));
+                    }
+                } else {
+                    const Move move = createMove(fromSquare, toSquare, Pawn);
+                    moveVector.emplace_back(std::make_unique<Move>(move));
+                }
             }
         }
 
@@ -51,16 +59,23 @@ void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) co
 
         toSquares = (attacks & colorBitboards[invertColor(activePlayer)]).getIndices();
         for (const auto &toSquare : toSquares) {
-            const CaptureMove move = {{fromSquare, toSquare, Move::Capture, finalRank.test(toSquare)}, toSquare};
-            moveVector.emplace_back(std::make_unique<CaptureMove>(move));
+            const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(toSquare);
+            if (finalRank.test(toSquare)) {
+                for (Piecetype promotionType : promotionPiecetypes) {
+                    const Move move = createPromotionCapture(fromSquare,toSquare, capturePiecetype, promotionType);
+                    moveVector.emplace_back(std::make_unique<Move>(move));
+                }
+            } else {
+                const Move move = createCapture(fromSquare, toSquare, Pawn, capturePiecetype);
+                moveVector.emplace_back(std::make_unique<Move>(move));
+            }
         }
 
         if (attacks.test(enPassantSquare)) {
-            
             const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
-            const CaptureMove move = {{fromSquare, enPassantSquare, Move::Capture}, captureSquare};
-
-            moveVector.emplace_back(std::make_unique<CaptureMove>(move));
+            const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(captureSquare);
+            const Move move = createEnPassantCapture(fromSquare, enPassantSquare, captureSquare, capturePiecetype);
+            moveVector.emplace_back(std::make_unique<Move>(move));
         }
     }
 }

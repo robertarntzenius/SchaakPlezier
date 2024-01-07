@@ -2,6 +2,7 @@
 
 #include "definitions.h"
 #include "maskgeneration.h"
+#include "movegeneration.h"
 #include "log.h"
 
 

@@ -29,7 +29,11 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 #endif
 
 
-[[nodiscard]] static constexpr Color invertColor (const Color &color) {
+[[nodiscard]] static constexpr Color invertColor (Color color) {
+    return static_cast<Color>((color + 1) % NrColors);
+}
+
+[[nodiscard]] static constexpr Color operator~(Color color) {
     return static_cast<Color>((color + 1) % NrColors);
 }
 
@@ -52,6 +56,10 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 [[nodiscard]] static constexpr Square rankFileToSquare(Rank rank, File file) {
     return static_cast<Square>(rank*BOARD_DIMENSIONS + file);
 }
+
+static constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
+    Knight, Bishop, Rook, Queen
+};
 
 /**
  * Directional offsets based on L-shifts
@@ -180,20 +188,20 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
     return os;
 }
 
-static std::ostream& operator<<(std::ostream &os, const CaptureMove &move) {
-    os << static_cast<const Move&>(move)
-       << ", Capture: " << move.captureSquare;
-    return os;
-}
-
-static std::ostream& operator<<(std::ostream& os, const DoublePawnMove& move) {
-    os << static_cast<const Move&>(move)
-       << ", En Passant Square: " << move.enPassantSquare;
-    return os;
-}
-
-static std::ostream& operator<<(std::ostream &os, const CastleMove &move) {
-    os << static_cast<const Move&>(move)
-       << ", Rook Move: [" << move.castleRookMove << "]";
-    return os;
-}
+//static std::ostream& operator<<(std::ostream &os, const CaptureMove &move) {
+//    os << static_cast<const Move&>(move)
+//       << ", Capture: " << move.captureSquare;
+//    return os;
+//}
+//
+//static std::ostream& operator<<(std::ostream& os, const DoublePawnMove& move) {
+//    os << static_cast<const Move&>(move)
+//       << ", En Passant Square: " << move.enPassantSquare;
+//    return os;
+//}
+//
+//static std::ostream& operator<<(std::ostream &os, const CastleMove &move) {
+//    os << static_cast<const Move&>(move)
+//       << ", Rook Move: [" << move.castleRookMove << "]";
+//    return os;
+//}

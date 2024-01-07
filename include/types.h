@@ -30,6 +30,7 @@ enum Piecetype : int {
     Queen,
     King,
     NrPiecetypes = 6,
+    NrPromotiontypes = 4,
     NoType
 };
 
@@ -58,28 +59,24 @@ enum Rank : int {
 };
 
 struct Move {
-    // Basic information needed for all moves
-    const Square from;
-    const Square target;
+    const Square from   = NoSquare;
+    const Square target = NoSquare;
+    const Square extra  = NoSquare;
+
+    const Piecetype playerPiece   = NoType;
+    const Piecetype capturePiece  = NoType;
+    const Piecetype promotionType = NoType;
 
     const enum {
         Basic,
         Capture,
+        Promotion,
+        PromotionCapture,
+        EnPassantCapure,
         DoublePawn,
-        Castle,
-    } type;
-
-    const bool isPromotion = false;
+        Castling
+    } type = Basic;
 };
 
-struct CaptureMove : public Move {
-    const Square captureSquare;
-};
 
-struct DoublePawnMove : public Move {
-    const Square enPassantSquare;
-};
 
-struct CastleMove : public Move {
-    const Move castleRookMove;
-};
