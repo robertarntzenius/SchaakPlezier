@@ -47,8 +47,9 @@ class Board {
     private:
         void InitializeFromFEN(const char *FENString);
 
-        // TODO move implementations of movegeneration to its own file
         void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+        void generatePawnPushes(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
+        void generatePawnCaptures(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
 
         void checkBoardConsistency() const;
 
