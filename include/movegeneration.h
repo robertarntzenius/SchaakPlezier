@@ -31,7 +31,7 @@ namespace MoveGeneration {
                                                                Square target,
                                                                Square capture,
                                                                Piecetype capturePiece) {
-        return {from, target, capture, Pawn, capturePiece, NoType, Move::EnPassantCapure};
+        return {from, target, capture, Pawn, capturePiece, NoType, Move::EnPassantCapture};
     }
 
     [[nodiscard]] static constexpr Move createDoublePawnMove(Square from,

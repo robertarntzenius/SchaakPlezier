@@ -72,7 +72,7 @@ struct Move {
         Capture,
         Promotion,
         PromotionCapture,
-        EnPassantCapure,
+        EnPassantCapture,
         DoublePawn,
         Castling
     } type = Basic;

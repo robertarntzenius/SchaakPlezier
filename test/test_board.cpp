@@ -14,7 +14,8 @@ void test_board_default_getPossibleMoves() {
 
     std::vector<std::unique_ptr<Move>> moves;
     board.getPossibleMoves(moves);
-    assert(moves.size() == 16);
+
+    assert(moves.size() == 20); // 16 pawnmoves, 4 knightmoves
 }
 
 void test_board_TestFENS_getPossibleMoves() {
@@ -24,7 +25,7 @@ void test_board_TestFENS_getPossibleMoves() {
 
         std::vector<std::unique_ptr<Move>> moves;
         board.getPossibleMoves(moves);
-        // assert(moves.size() == 16); // TODO refactor
+        // assert(moves.size() == 20); // TODO refactor
     }
 }
 

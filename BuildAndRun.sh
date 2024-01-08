@@ -23,6 +23,6 @@ cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type"
 cd "$build_dir" || exit
 make && ./SchaakPlezier
 if [ "$build_type" == "Debug" ]; then
-    ctest
+    ctest --rerun-failed --output-on-failure
 fi
 cd "$source_dir" || exit

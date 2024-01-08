@@ -223,14 +223,14 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
     // Extra debug info
     switch (move.type) {
         case Move::Basic:
-            os << " | Basic | ";
+            os << " | Basic | " << move.playerPiece;
             break;
         case Move::DoublePawn:
             os << " | DoublePawn | "
                << "newEnPassantSquare:" << move.extra;
             break;
         case Move::Capture:
-            os << " | Capture | "
+            os << " | Capture | " << move.playerPiece
                << "capturePiece:" << move.capturePiece;
             break;
         case Move::Promotion:
@@ -241,8 +241,8 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
             os << " | PromotionCapture | "
                << "promotionPiecetype:" << move.promotionType;
             break;
-        case Move::EnPassantCapure:
-            os << " | EnPassantCapure | "
+        case Move::EnPassantCapture:
+            os << " | EnPassantCapture | "
                << "captureSquare:" << move.extra
                << ", capturePiece:" << move.capturePiece;
             break;
