@@ -4,14 +4,13 @@
 
 namespace MaskGeneration {
 
-    [[nodiscard]] constexpr Bitboard computeFileMask(int file) {
+    [[nodiscard]] constexpr Bitboard computeFileMask(File file) {
         Bitboard fileMask;
 
         for (int i = 0; i < BOARD_DIMENSIONS; i++) {
             const Square square = intToSquare(BOARD_DIMENSIONS * i + file);
             fileMask.set(square);
         }
-
         return fileMask;
     }
 
@@ -104,9 +103,9 @@ namespace MaskGeneration {
             Bitboard playerPawn;
 
             playerPawn.set(square);
-
-            Bitboard pawnAttacksWest = (playerPawn << westOffset) & ~computeFileMask(7);
-            Bitboard pawnAttacksEast = (playerPawn << eastOffset) & ~computeFileMask(0);
+            
+            Bitboard pawnAttacksWest = (playerPawn << westOffset) & ~computeFileMask(FileH);
+            Bitboard pawnAttacksEast = (playerPawn << eastOffset) & ~computeFileMask(FileA);
 
             pawnAttacks[square] = (pawnAttacksWest | pawnAttacksEast);
         }
@@ -131,11 +130,58 @@ namespace MaskGeneration {
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
         }
 
-        Bitboard pawnAttacksWest = (bitboard << westOffset) & ~computeFileMask(7);
-        Bitboard pawnAttacksEast = (bitboard << eastOffset) & ~computeFileMask(0);
+        Bitboard pawnAttacksWest = (bitboard << westOffset) & ~computeFileMask(FileH);
+        Bitboard pawnAttacksEast = (bitboard << eastOffset) & ~computeFileMask(FileA);
 
         return (pawnAttacksWest | pawnAttacksEast);
     }
+
+
+    [[nodiscard]] constexpr Bitboard computeKnightAttacksFromSquare(Square square) {       
+        Bitboard playerKnight;
+        playerKnight.set(intToSquare(square));
+
+        std::array<Bitboard, NrDirections> directions = {
+            (playerKnight & ~computeFileMask(FileH)) << (NorthEast + North),
+            (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH)) ) << (NorthEast + East),
+            (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (SouthEast + East),
+            (playerKnight & ~computeFileMask(FileH) ) << (SouthEast + South),
+            (playerKnight & ~computeFileMask(FileA) ) << (NorthWest + North),
+            (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (NorthWest + West),
+            (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (SouthWest + West),
+            (playerKnight & ~computeFileMask(FileA) ) << (SouthWest + South)       
+        };
+        Bitboard knightAttacks;
+        for (const auto &direction : directions) {
+            knightAttacks = knightAttacks | direction;
+        }
+        
+        return knightAttacks;
+
+        // Bitboard noNoEa = Bitboard (playerKnight & ~computeFileMask(FileH)) << (NorthEast + North),
+        // Bitboard noEaEa = Bitboard (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH)) ) << (NorthEast + East),
+        // Bitboard soEaEa = Bitboard (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (SouthEast + East),
+        // Bitboard soSoEa = Bitboard (playerKnight & ~computeFileMask(FileH) ) << (SouthEast + South),
+        // Bitboard noNoWe = Bitboard (playerKnight & ~computeFileMask(FileA) ) << (NorthWest + North),
+        // Bitboard noWeWe = Bitboard (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (NorthWest + West),
+        // Bitboard soWeWe = Bitboard (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (SouthWest + West),
+        // Bitboard soSoWe = Bitboard (playerKnight & ~computeFileMask(FileA) ) << (SouthWest + South),
+
+    }
+    
+    [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computeKnightAttacksLookUp() {
+        std::array<Bitboard, BOARD_SIZE> knightAttacks;
+
+        // for every square
+        for (int squareInt = 0; squareInt < NrSquares; ++squareInt) {
+            const Square square = intToSquare(squareInt);
+            knightAttacks[squareInt] = computeKnightAttacksFromSquare(square);
+        }
+
+        return knightAttacks;
+    }
+
 }
+
 
 

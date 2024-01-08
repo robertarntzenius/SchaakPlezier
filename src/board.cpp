@@ -42,6 +42,12 @@ void Board::getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) con
     // FIXME: should vector contain normal ptrs or a smart ptrs for safety?
 
     generatePawnMoves(moveVector);
+    generateKnightMoves(moveVector);
+
+    for ( int squareInt=a8; squareInt < NrSquares; squareInt++) {
+        logger.log(intToSquare(squareInt));
+        logger.log(knightAttacksLookUp[squareInt]);
+    }
 }
 
 void Board::doMove(const Move *move) {

@@ -50,6 +50,10 @@ class Board {
         void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
         void generatePawnPushes(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
         void generatePawnCaptures(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
+        
+        void generateKnightMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+
+
 
         void checkBoardConsistency() const;
 
@@ -77,7 +81,9 @@ class Board {
                 MaskGeneration::computePawnAttackLookUp(White),
                 MaskGeneration::computePawnAttackLookUp(Black)
         };
-
+        static constexpr std::array<Bitboard, BOARD_SIZE> knightAttacksLookUp = {
+                MaskGeneration::computeKnightAttacksLookUp()
+        };
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
         // bv KingMoves[sq] = bitboard van de goede squareIndex

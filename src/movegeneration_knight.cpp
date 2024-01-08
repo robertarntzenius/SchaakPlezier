@@ -1,66 +1,43 @@
-// #include "board.h"
+#include "board.h"
 
+using namespace MoveGeneration;
 
-// void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
-// #ifdef DEBUG
-//     logger.logHeader("generatePawnMoves()");
-// #endif
+void Board::generateKnightMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
+    #ifdef DEBUG
+    logger.logHeader("generateKnightMoves()");
+    #endif
 
-//     const Bitboard occupied = (colorBitboards[White] | colorBitboards[Black]);
-//     const Bitboard finalRank = (activePlayer == White) ? MaskGeneration::computeRankMask(Rank8) : MaskGeneration::computeRankMask(Rank1); // TODO fix robert
+    const Bitboard player = (activePlayer == White) ? colorBitboards[White] : colorBitboards[Black];
+    const Bitboard opponent = (activePlayer == White) ? colorBitboards[Black] : colorBitboards[White];
+    const Bitboard empty = colorBitboards[Black] | colorBitboards[White];
+    
+    // for every piece
+    for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
+        const Square &fromSquare = squarePiecetypePair.first;
+        const Piecetype &type = squarePiecetypePair.second;
 
-//     // for every piece
-//     for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
-//         const Square fromSquare = squarePiecetypePair.first;
-//         const Piecetype type = squarePiecetypePair.second;
+        // for every knight
+        if (type != Knight) {
+            continue;
+        }
 
-//         // for every pawn
-//         if (type != Pawn) {
-//             continue;
-//         }
+        // Knight attacks
+        const Bitboard attacks = knightAttacksLookUp[fromSquare] & opponent;
+        std::vector<Square> toSquares = attacks.getIndices();
 
-//         // Pawn pushes
-//         const Bitboard pushes = pawnPushLookUp[activePlayer][fromSquare];
-//         std::vector<Square> toSquares = pushes.getIndices();
+        for (const auto &toSquare : toSquares) {
+            const Move move = createCapture(fromSquare, toSquare, Knight, pieceMaps[~activePlayer].at(toSquare));
+            moveVector.emplace_back(std::make_unique<Move>(move));
+        }
 
-//         for (const auto &toSquare : toSquares) {
-//             if (occupied.test(toSquare)) {
-//                 continue;
-//             }
-            
-//             // Double push (check in between)
-//             if (abs(toSquare - fromSquare) == 2 * BOARD_DIMENSIONS) {
-//                 const Square newEnPassantSquare = intToSquare((toSquare + fromSquare) / 2);
+        // Knight moves
+        const Bitboard moves = knightAttacksLookUp[fromSquare] & empty;
+        toSquares.clear();
+        toSquares = moves.getIndices();
 
-//                 if (occupied.test(newEnPassantSquare)) {
-//                     continue;
-//                 }
-
-//                 const DoublePawnMove move = {{fromSquare, toSquare, Move::DoublePawn}, newEnPassantSquare};
-//                 moveVector.emplace_back(std::make_unique<DoublePawnMove>(move));
-//             } 
-
-//             // Single push
-//             else {
-//                 const Move move = {fromSquare, toSquare, Move::Basic, finalRank.test(toSquare)};
-//                 moveVector.emplace_back(std::make_unique<Move>(move));
-//             }
-//         }
-
-//         const Bitboard attacks = pawnAttackLookUp[activePlayer][fromSquare];
-
-//         toSquares = (attacks & colorBitboards[invertColor(activePlayer)]).getIndices();
-//         for (const auto &toSquare : toSquares) {
-//             const CaptureMove move = {{fromSquare, toSquare, Move::Capture, finalRank.test(toSquare)}, toSquare};
-//             moveVector.emplace_back(std::make_unique<CaptureMove>(move));
-//         }
-
-//         if (attacks.test(enPassantSquare)) {
-            
-//             const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
-//             const CaptureMove move = {{fromSquare, enPassantSquare, Move::Capture}, captureSquare};
-
-//             moveVector.emplace_back(std::make_unique<CaptureMove>(move));
-//         }
-//     }
-// }
+        for (const auto &toSquare : toSquares) {
+            const Move move = createMove(fromSquare, toSquare, Knight);
+            moveVector.emplace_back(std::make_unique<Move>(move));
+        }
+    }
+}

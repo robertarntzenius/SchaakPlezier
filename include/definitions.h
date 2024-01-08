@@ -80,7 +80,8 @@ enum DirectionalOffset : int {
     NorthEast = 7,
     NorthWest = 9,
     SouthEast = -9,
-    SouthWest = -7
+    SouthWest = -7,
+    NrDirections = 8
 };
 
 // Stringmaps for logging
