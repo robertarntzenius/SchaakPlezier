@@ -57,28 +57,20 @@ constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
     Knight, Bishop, Rook, Queen
 };
 
-
-
 /**
  * Directional offsets based on L-shifts
  */
-enum DirectionalOffset : int {
-    NoOffset = 0,
+enum DirectionalOffset : int8_t {
+    OFFSET_NORTH =  8,
+    OFFSET_SOUTH = -8,
+    OFFSET_WEST  =  1,
+    OFFSET_EAST  = -1,
+    OFFSET_NORTHWEST = OFFSET_NORTH + OFFSET_WEST,
+    OFFSET_NORTHEAST = OFFSET_NORTH + OFFSET_EAST,
+    OFFSET_SOUTHWEST = OFFSET_SOUTH + OFFSET_WEST,
+    OFFSET_SOUTHEAST = OFFSET_SOUTH + OFFSET_EAST,
 
-    // Vertical directions
-    North = 8,
-    South = -8,
-
-    // Horizontal directions
-    West = 1,
-    East = -1,
-
-    // Diagonal directions
-    NorthEast = 7,
-    NorthWest = 9,
-    SouthEast = -9,
-    SouthWest = -7,
-    NrDirections = 8
+    NO_OFFSET = 0
 };
 
 // Stringmaps for logging

@@ -29,6 +29,7 @@ add_executable(SchaakPlezier
 add_library(Board SHARED
     src/movegeneration_pawn.cpp
     src/movegeneration_knight.cpp
+    src/movegeneration_rook.cpp
     src/board.cpp
 )
 

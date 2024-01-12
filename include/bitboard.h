@@ -69,6 +69,21 @@ class Bitboard {
             return *this;
         }
 
+        // resets lower bits including index itself
+        constexpr Bitboard &resetLowerBits(Square square) {
+            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            bits = bits & ~lowerBits;
+            set(square, false);
+            return *this;
+        }
+
+        // resets upper bits including index itself
+        constexpr Bitboard &resetUpperBits(Square square) {
+            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            bits = bits & lowerBits;
+            return *this;
+        }
+
         [[nodiscard]] constexpr bool empty() const {
             return bits == 0;
         }

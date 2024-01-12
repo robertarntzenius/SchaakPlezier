@@ -40,6 +40,16 @@ void Game::test()
         logger.log(move);
     }
 
+    Bitboard lonelyRook{};
+
+    Square rookSquare = f4;
+
+    lonelyRook.set(rookSquare);
+
+    logger.log(lonelyRook,
+               "\n", Bitboard().set().resetLowerBits(rookSquare),
+               "\n", Bitboard().set().resetUpperBits(rookSquare));
+
 //            bool moveIsLegal = _board.makeMove(move);
 //            if (moveIsLegal) {
 //                break;

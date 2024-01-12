@@ -60,6 +60,25 @@ enum Rank : uint8_t {
     NrRanks = 8
 };
 
+// NOTE: do not use for offset values, use the DirectionalOffset enum instead!
+enum Direction : uint8_t {
+    // Vertical directions
+    North,
+    South,
+
+    // Horizontal directions
+    West,
+    East,
+
+    // Diagonal directions
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+
+    NrDirections = 8
+};
+
 struct Move {
     // General move info (must be set)
     Piecetype playerPiece = NoType;

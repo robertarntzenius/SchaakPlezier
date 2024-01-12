@@ -8,10 +8,10 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
 
     // Knight attacks
-    const Bitboard attacks = knightAttacksLookUp[fromSquare] & colorBitboards[~activePlayer];
+    const Bitboard attacks = knightScopeLookUp[fromSquare] & colorBitboards[~activePlayer];
     std::vector<Square> toSquares = attacks.getIndices();
     // logger.log(fromSquare, "Capture Knightmoves" );
-    // logger.log(knightAttacksLookUp[fromSquare]);
+    // logger.log(knightScopeLookUp[fromSquare]);
     // logger.log(opponent);
     // logger.log(attacks);
 
@@ -23,12 +23,12 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
     }
 
     // Knight moves
-    const Bitboard moves = knightAttacksLookUp[fromSquare] & ~occupied;
+    const Bitboard moves = knightScopeLookUp[fromSquare] & ~occupied;
     toSquares.clear();
     toSquares = moves.getIndices();
 
     // logger.log(fromSquare, "Basic Knightmoves" );
-    // logger.log(knightAttacksLookUp[fromSquare]);
+    // logger.log(knightScopeLookUp[fromSquare]);
     // logger.log(empty);
     // logger.log(moves);
 

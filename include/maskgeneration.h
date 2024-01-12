@@ -22,16 +22,16 @@ namespace MaskGeneration {
         std::array<Bitboard, BOARD_SIZE> pawnPushes{};
         Bitboard singlePush, doublePush;
 
-        DirectionalOffset directionalOffset = NoOffset;
+        DirectionalOffset directionalOffset = NO_OFFSET;
         Bitboard doublePushRank;
 
         switch (color) {
             case White:
-                directionalOffset = North;
+                directionalOffset = OFFSET_NORTH;
                 doublePushRank = computeRankMask(Rank4);
                 break;
             case Black:
-                directionalOffset = South;
+                directionalOffset = OFFSET_SOUTH;
                 doublePushRank = computeRankMask(Rank5);
                 break;
             default:
@@ -52,47 +52,20 @@ namespace MaskGeneration {
         return pawnPushes;
     }
 
-//    [[nodiscard]] constexpr Bitboard computePawnPushesFromBitboard(Bitboard bitboard, Color color) {
-//        std::array<Bitboard, BOARD_SIZE> pawnPushes{};
-//        Bitboard singlePush, doublePush;
-//
-//        DirectionalOffset directionalOffset = NoOffset;
-//        Bitboard enPassantRank;
-//
-//        switch (color) {
-//            case White:
-//                directionalOffset = North;
-//                enPassantRank = computeRankMask(Rank4);
-//                break;
-//            case Black:
-//                directionalOffset = South;
-//                enPassantRank = computeRankMask(Rank5);
-//                break;
-//            default:
-//                throw std::invalid_argument("Invalid color: " + std::to_string(color));
-//        }
-//
-//        // NOTE: technically doesn't have to compute anything for ranks 1 and 8
-//        singlePush = (bitboard << directionalOffset);
-//        doublePush = (bitboard << directionalOffset * 2) & enPassantRank;
-//
-//        return (singlePush | doublePush);
-//    }
-
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnAttackLookUp(Color color) {
         std::array<Bitboard, BOARD_SIZE> pawnAttacks;
 
-        DirectionalOffset westOffset = NoOffset;
-        DirectionalOffset eastOffset = NoOffset;
+        DirectionalOffset westOffset = NO_OFFSET;
+        DirectionalOffset eastOffset = NO_OFFSET;
 
         switch (color) {
             case White:
-                westOffset = NorthWest;
-                eastOffset = NorthEast;
+                westOffset = OFFSET_NORTHWEST;
+                eastOffset = OFFSET_NORTHEAST;
                 break;
             case Black:
-                westOffset = SouthWest;
-                eastOffset = SouthEast;
+                westOffset = OFFSET_SOUTHWEST;
+                eastOffset = OFFSET_SOUTHEAST;
                 break;
             default:
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
@@ -103,7 +76,7 @@ namespace MaskGeneration {
             Bitboard playerPawn;
 
             playerPawn.set(square);
-            
+
             Bitboard pawnAttacksWest = (playerPawn << westOffset) & ~computeFileMask(FileH);
             Bitboard pawnAttacksEast = (playerPawn << eastOffset) & ~computeFileMask(FileA);
 
@@ -114,17 +87,17 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computePawnAttacksFromBitboard(Bitboard bitboard, Color color) {
-        DirectionalOffset westOffset = NoOffset;
-        DirectionalOffset eastOffset = NoOffset;
+        DirectionalOffset westOffset = NO_OFFSET;
+        DirectionalOffset eastOffset = NO_OFFSET;
 
         switch (color) {
             case White:
-                westOffset = NorthWest;
-                eastOffset = NorthEast;
+                westOffset = OFFSET_NORTHWEST;
+                eastOffset = OFFSET_NORTHEAST;
                 break;
             case Black:
-                westOffset = SouthWest;
-                eastOffset = SouthEast;
+                westOffset = OFFSET_SOUTHWEST;
+                eastOffset = OFFSET_SOUTHEAST;
                 break;
             default:
                 throw std::invalid_argument("Invalid color: " + std::to_string(color));
@@ -137,51 +110,54 @@ namespace MaskGeneration {
     }
 
 
-    [[nodiscard]] constexpr Bitboard computeKnightAttacksFromSquare(Square square) {       
+    [[nodiscard]] constexpr Bitboard computeKnightScopeFromSquare(Square square) {
         Bitboard playerKnight;
         playerKnight.set(intToSquare(square));
 
         std::array<Bitboard, NrDirections> directions = {
-            (playerKnight & ~computeFileMask(FileH)) << (NorthEast + North),
-            (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH)) ) << (NorthEast + East),
-            (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (SouthEast + East),
-            (playerKnight & ~computeFileMask(FileH) ) << (SouthEast + South),
-            (playerKnight & ~computeFileMask(FileA) ) << (NorthWest + North),
-            (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (NorthWest + West),
-            (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (SouthWest + West),
-            (playerKnight & ~computeFileMask(FileA) ) << (SouthWest + South)       
+                (playerKnight & ~computeFileMask(FileH)) << (OFFSET_NORTHEAST + OFFSET_NORTH),
+                (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_NORTHEAST + OFFSET_EAST),
+                (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_SOUTHEAST + OFFSET_EAST),
+                (playerKnight & ~computeFileMask(FileH)) << (OFFSET_SOUTHEAST + OFFSET_SOUTH),
+                (playerKnight & ~computeFileMask(FileA)) << (OFFSET_NORTHWEST + OFFSET_NORTH),
+                (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_NORTHWEST + OFFSET_WEST),
+                (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_SOUTHWEST + OFFSET_WEST),
+                (playerKnight & ~computeFileMask(FileA)) << (OFFSET_SOUTHWEST + OFFSET_SOUTH)
         };
         Bitboard knightAttacks;
-        for (const auto &direction : directions) {
+        for (const auto &direction: directions) {
             knightAttacks = knightAttacks | direction;
         }
-        
+
         return knightAttacks;
-
-        // Bitboard noNoEa = Bitboard (playerKnight & ~computeFileMask(FileH)) << (NorthEast + North),
-        // Bitboard noEaEa = Bitboard (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH)) ) << (NorthEast + East),
-        // Bitboard soEaEa = Bitboard (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (SouthEast + East),
-        // Bitboard soSoEa = Bitboard (playerKnight & ~computeFileMask(FileH) ) << (SouthEast + South),
-        // Bitboard noNoWe = Bitboard (playerKnight & ~computeFileMask(FileA) ) << (NorthWest + North),
-        // Bitboard noWeWe = Bitboard (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (NorthWest + West),
-        // Bitboard soWeWe = Bitboard (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (SouthWest + West),
-        // Bitboard soSoWe = Bitboard (playerKnight & ~computeFileMask(FileA) ) << (SouthWest + South),
-
     }
-    
-    [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computeKnightAttacksLookUp() {
-        std::array<Bitboard, BOARD_SIZE> knightAttacks;
+
+    [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computeKnightScopeLookUp() {
+        std::array<Bitboard, BOARD_SIZE> knightScope;
 
         // for every square
         for (int squareInt = 0; squareInt < NrSquares; ++squareInt) {
             const Square square = intToSquare(squareInt);
-            knightAttacks[squareInt] = computeKnightAttacksFromSquare(square);
+            knightScope[squareInt] = computeKnightScopeFromSquare(square);
         }
 
-        return knightAttacks;
+        return knightScope;
     }
 
+    [[nodiscard]] constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> computeDirectionalLookUp() {
+        std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> directionalScope;
+
+        // for every square
+        for (int squareInt = 0; squareInt < NrSquares; ++squareInt) {
+            const Square square = intToSquare(squareInt);
+            directionalScope[North][square] = computeFileMask(squareToFile(square)).resetLowerBits(square);
+            directionalScope[South][square] = computeFileMask(squareToFile(square)).resetUpperBits(square);
+            directionalScope[West][square] = computeRankMask(squareToRank(square)).resetLowerBits(square);
+            directionalScope[East][square] = computeRankMask(squareToRank(square)).resetUpperBits(square);
+        }
+
+        // TODO: diagonals
+
+        return directionalScope;
+    }
 }
-
-
-

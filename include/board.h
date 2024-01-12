@@ -51,6 +51,10 @@ class Board {
         void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
         
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+//        void generateBishopMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+//        void generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+//        void generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+//        void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 
 
 
@@ -71,11 +75,6 @@ class Board {
 
         int halfMoveClock, fullMoveNumber;
 
-        static constexpr std::array<Bitboard, NrColors> finalRank = {
-            MaskGeneration::computeRankMask(Rank8),
-            MaskGeneration::computeRankMask(Rank1)
-        };
-
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
                 MaskGeneration::computePawnPushLookUp(White),
                 MaskGeneration::computePawnPushLookUp(Black)
@@ -84,8 +83,16 @@ class Board {
                 MaskGeneration::computePawnAttackLookUp(White),
                 MaskGeneration::computePawnAttackLookUp(Black)
         };
-        static constexpr std::array<Bitboard, BOARD_SIZE> knightAttacksLookUp = {
-                MaskGeneration::computeKnightAttacksLookUp()
+        static constexpr std::array<Bitboard, BOARD_SIZE> knightScopeLookUp =
+                MaskGeneration::computeKnightScopeLookUp();
+
+        static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> directionalLookUp =
+                MaskGeneration::computeDirectionalLookUp();
+
+
+        static constexpr std::array<Bitboard, NrColors> finalRank = {
+                MaskGeneration::computeRankMask(Rank8),
+                MaskGeneration::computeRankMask(Rank1)
         };
         // Bitboard bPawnAttacks();
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup

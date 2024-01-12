@@ -59,7 +59,20 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
             case Knight:
                 generateKnightMoves(moveVector, fromSquare);
                 break;
+//            case Bishop:
+//                generateBishopMoves(moveVector, fromSquare);
+//                break;
+//            case Rook:
+//                generateRookMoves(moveVector, fromSquare);
+//                break;
+//            case Queen:
+//                generateQueenMoves(moveVector, fromSquare);
+//                break;
+//            case King:
+//                generateKingMoves(moveVector, fromSquare);
+//                break;
             default:
+                // Not implemented / throw
                 break;
         }
 
