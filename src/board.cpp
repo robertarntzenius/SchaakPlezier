@@ -4,6 +4,9 @@
 
 Board::Board(const char *FENString)
     : logger(ChessLogger::getInstance()),
+      piecetypeBitboards(),
+      colorBitboards(),
+      pieceMaps(),
       activePlayer(White),
       wKC(false), wQC(false), bKC(false), bQC(false),
       enPassantSquare(NoSquare),
@@ -33,16 +36,34 @@ Board::Board(const char *FENString)
     #endif
 }
 
-void Board::getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
+void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
     #ifdef DEBUG
         logger.logHeader("getPossibleMoves()");
         logBoard();
     #endif
 
-    // FIXME: should vector contain normal ptrs or a smart ptrs for safety?
+    // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
+    //       this removes the need for a lot of methods and loops over all pieces just to find ones of
+    //       a specific type.
 
-    generatePawnMoves(moveVector);
-    generateKnightMoves(moveVector);
+    // for every piece
+    for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
+        const Square &fromSquare = squarePiecetypePair.first;
+        const Piecetype &type = squarePiecetypePair.second;
+
+        switch (type) {
+            case Pawn:
+                generatePawnPushes(moveVector, fromSquare);
+                generatePawnCaptures(moveVector, fromSquare);
+                break;
+            case Knight:
+                generateKnightMoves(moveVector, fromSquare);
+                break;
+            default:
+                break;
+        }
+
+    }
 
     // for ( int squareInt=a8; squareInt < NrSquares; squareInt++) {
     //     logger.log(intToSquare(squareInt));

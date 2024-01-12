@@ -18,7 +18,7 @@ class Board {
          *
          * @param moves
          */
-        void getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+        void getPossibleMoves(std::vector<Move> &moveVector) const;
 
         /**
          * @brief Performs move from current board state
@@ -47,11 +47,10 @@ class Board {
     private:
         void InitializeFromFEN(const char *FENString);
 
-        void generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
-        void generatePawnPushes(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
-        void generatePawnCaptures(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const;
+        void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
         
-        void generateKnightMoves(std::vector<std::unique_ptr<Move>> &moveVector) const;
+        void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 
 
 
@@ -72,7 +71,11 @@ class Board {
 
         int halfMoveClock, fullMoveNumber;
 
-        // het idee is om de PawnAttacks te precomputen en dan een lookup te doen: whitePawnAttacks[square] of blackPawnPushes[square]
+        static constexpr std::array<Bitboard, NrColors> finalRank = {
+            MaskGeneration::computeRankMask(Rank8),
+            MaskGeneration::computeRankMask(Rank1)
+        };
+
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
                 MaskGeneration::computePawnPushLookUp(White),
                 MaskGeneration::computePawnPushLookUp(Black)

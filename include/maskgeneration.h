@@ -52,32 +52,32 @@ namespace MaskGeneration {
         return pawnPushes;
     }
 
-    [[nodiscard]] constexpr Bitboard computePawnPushesFromBitboard(Bitboard bitboard, Color color) {
-        std::array<Bitboard, BOARD_SIZE> pawnPushes{};
-        Bitboard singlePush, doublePush;
-
-        DirectionalOffset directionalOffset = NoOffset;
-        Bitboard enPassantRank;
-
-        switch (color) {
-            case White:
-                directionalOffset = North;
-                enPassantRank = computeRankMask(Rank4);
-                break;
-            case Black:
-                directionalOffset = South;
-                enPassantRank = computeRankMask(Rank5);
-                break;
-            default:
-                throw std::invalid_argument("Invalid color: " + std::to_string(color));
-        }
-
-        // NOTE: technically doesn't have to compute anything for ranks 1 and 8
-        singlePush = (bitboard << directionalOffset);
-        doublePush = (bitboard << directionalOffset * 2) & enPassantRank;
-
-        return (singlePush | doublePush);
-    }
+//    [[nodiscard]] constexpr Bitboard computePawnPushesFromBitboard(Bitboard bitboard, Color color) {
+//        std::array<Bitboard, BOARD_SIZE> pawnPushes{};
+//        Bitboard singlePush, doublePush;
+//
+//        DirectionalOffset directionalOffset = NoOffset;
+//        Bitboard enPassantRank;
+//
+//        switch (color) {
+//            case White:
+//                directionalOffset = North;
+//                enPassantRank = computeRankMask(Rank4);
+//                break;
+//            case Black:
+//                directionalOffset = South;
+//                enPassantRank = computeRankMask(Rank5);
+//                break;
+//            default:
+//                throw std::invalid_argument("Invalid color: " + std::to_string(color));
+//        }
+//
+//        // NOTE: technically doesn't have to compute anything for ranks 1 and 8
+//        singlePush = (bitboard << directionalOffset);
+//        doublePush = (bitboard << directionalOffset * 2) & enPassantRank;
+//
+//        return (singlePush | doublePush);
+//    }
 
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnAttackLookUp(Color color) {
         std::array<Bitboard, BOARD_SIZE> pawnAttacks;

@@ -12,7 +12,7 @@ constexpr const char *testFEN4 = "rnbqkbnr/p1p1pppp/1p6/3pP3/8/8/PPPP1PPP/RNBQKB
 void test_board_default_getPossibleMoves() {
     Board board = Board();
 
-    std::vector<std::unique_ptr<Move>> moves;
+    std::vector<Move> moves;
     board.getPossibleMoves(moves);
 
     assert(moves.size() == 20); // 16 pawnmoves, 4 knightmoves
@@ -23,7 +23,7 @@ void test_board_TestFENS_getPossibleMoves() {
     for (const auto &FENstring : testFENs) {
         Board board = Board(FENstring);
 
-        std::vector<std::unique_ptr<Move>> moves;
+        std::vector<Move> moves;
         board.getPossibleMoves(moves);
         // assert(moves.size() == 20); // TODO refactor
     }

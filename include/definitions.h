@@ -8,7 +8,6 @@
 
 #include <unordered_map>
 #include <array>
-#include <memory>
 #include <string>
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -30,15 +29,11 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 
 
 // Conversions and Comparisons
-[[nodiscard]] static constexpr Color invertColor (Color color) {
+[[nodiscard]] constexpr Color operator~(Color color) {
     return static_cast<Color>((color + 1) % NrColors);
 }
 
-[[nodiscard]] static constexpr Color operator~(Color color) {
-    return static_cast<Color>((color + 1) % NrColors);
-}
-
-[[nodiscard]] static constexpr Square intToSquare(int i) {
+[[nodiscard]] constexpr Square intToSquare(int i) {
     if (i < a8 || i > h1) {
         throw std::out_of_range("Invalid chessboard square");
     }
@@ -46,21 +41,23 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
     return static_cast<Square>(i);
 }
 
-[[nodiscard]] static constexpr Rank squareToRank(Square square) {
+[[nodiscard]] constexpr Rank squareToRank(Square square) {
     return static_cast<Rank>(square / BOARD_DIMENSIONS);
 }
 
-[[nodiscard]] static constexpr File squareToFile(Square square) {
+[[nodiscard]] constexpr File squareToFile(Square square) {
     return static_cast<File>(square % BOARD_DIMENSIONS);
 }
 
-[[nodiscard]] static constexpr Square rankFileToSquare(Rank rank, File file) {
+[[nodiscard]] constexpr Square rankFileToSquare(Rank rank, File file) {
     return static_cast<Square>(rank*BOARD_DIMENSIONS + file);
 }
 
-static constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
+constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
     Knight, Bishop, Rook, Queen
 };
+
+
 
 /**
  * Directional offsets based on L-shifts
@@ -85,7 +82,7 @@ enum DirectionalOffset : int {
 };
 
 // Stringmaps for logging
-static const std::unordered_map<Square, std::string> squareStringMap = {
+const std::unordered_map<Square, std::string> squareStringMap = {
     {a8, "a8"}, {b8, "b8"}, {c8, "c8"}, {d8, "d8"}, {e8, "e8"}, {f8, "f8"}, {g8, "g8"}, {h8, "h8"},
     {a7, "a7"}, {b7, "b7"}, {c7, "c7"}, {d7, "d7"}, {e7, "e7"}, {f7, "f7"}, {g7, "g7"}, {h7, "h7"},
     {a6, "a6"}, {b6, "b6"}, {c6, "c6"}, {d6, "d6"}, {e6, "e6"}, {f6, "f6"}, {g6, "g6"}, {h6, "h6"},
@@ -97,7 +94,7 @@ static const std::unordered_map<Square, std::string> squareStringMap = {
     {NoSquare, "NoSquare"}, {NrSquares, "NrSquares"},
 };
 
-static const std::unordered_map<std::string, Square> stringSquareMap = {
+const std::unordered_map<std::string, Square> stringSquareMap = {
     {"-", NoSquare},
     {"a8", a8}, {"b8", b8}, {"c8", c8}, {"d8", d8}, {"e8", e8}, {"f8", f8}, {"g8", g8}, {"h8", h8},
     {"a7", a7}, {"b7", b7}, {"c7", c7}, {"d7", d7}, {"e7", e7}, {"f7", f7}, {"g7", g7}, {"h7", h7},
@@ -109,7 +106,7 @@ static const std::unordered_map<std::string, Square> stringSquareMap = {
     {"a1", a1}, {"b1", b1}, {"c1", c1}, {"d1", d1}, {"e1", e1}, {"f1", f1}, {"g1", g1}, {"h1", h1},
 };
 
-static const std::unordered_map<File, std::string> fileStringMap = {
+const std::unordered_map<File, std::string> fileStringMap = {
        {FileA, "A"},
        {FileB, "B"},
        {FileC, "C"},
@@ -120,7 +117,7 @@ static const std::unordered_map<File, std::string> fileStringMap = {
        {FileH, "H"}
 };
 
-static const std::unordered_map<Rank, std::string> rankStringMap = {
+const std::unordered_map<Rank, std::string> rankStringMap = {
        {Rank1, "1"},
        {Rank2, "2"},
        {Rank3, "3"},
@@ -131,18 +128,18 @@ static const std::unordered_map<Rank, std::string> rankStringMap = {
        {Rank8, "8"}
 };
 
-static const std::unordered_map<char, Color> charColorMap = {
+const std::unordered_map<char, Color> charColorMap = {
     {'w', White},
     {'b', Black},
 };
 
-static const std::unordered_map<Color, std::string> colorStringMap = {
+const std::unordered_map<Color, std::string> colorStringMap = {
     {White, "white"},
     {Black, "black"},
     {NrColors, "NrColors"},
 };
 
-static const std::unordered_map<char, Piecetype> charPiecetypeMap = {
+const std::unordered_map<char, Piecetype> charPiecetypeMap = {
     {'p', Pawn},    {'P', Pawn},
     {'n', Knight},  {'N', Knight},
     {'b', Bishop},  {'B', Bishop},
@@ -151,7 +148,7 @@ static const std::unordered_map<char, Piecetype> charPiecetypeMap = {
     {'k', King},    {'K', King},
 };
 
-static const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
+const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
     {Pawn, 'P'},
     {Knight, 'N'},
     {Bishop, 'B'},
@@ -160,7 +157,7 @@ static const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
     {King, 'K'}
 };
 
-static const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
+const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
     {Pawn,   'p'},
     {Knight, 'n'},
     {Bishop, 'b'},
@@ -169,7 +166,7 @@ static const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
     {King,   'k'},
 };
 
-static const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
+const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {NoType, "NoType"},
     {Pawn,   "pawn"},
     {Knight, "knight"},
@@ -218,40 +215,28 @@ static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
 }
 
 static std::ostream& operator<<(std::ostream &os, const Move &move) {
-    os << "[" << move.from << move.target << "]";
+    os << "[" << move.playerPiece << " - " << move.fromSquare << move.targetSquare << "]";
 
-    // Extra debug info
-    switch (move.type) {
-        case Move::Basic:
-            os << " | Basic | " << move.playerPiece;
-            break;
-        case Move::DoublePawn:
-            os << " | DoublePawn | "
-               << "newEnPassantSquare:" << move.extra;
-            break;
-        case Move::Capture:
-            os << " | Capture | " << move.playerPiece
-               << "capturePiece:" << move.capturePiece;
-            break;
-        case Move::Promotion:
-            os << " | Promotion | "
-               << "promotionType:" << move.promotionType;
-            break;
-        case Move::PromotionCapture:
-            os << " | PromotionCapture | "
-               << "promotionPiecetype:" << move.promotionType;
-            break;
-        case Move::EnPassantCapture:
-            os << " | EnPassantCapture | "
-               << "captureSquare:" << move.extra
-               << ", capturePiece:" << move.capturePiece;
-            break;
-        case Move::Castling:
-            os << " | Castling | ";
-            // os << ...;
-            break;
-        default:
-            break;
+    if (move.newEnPassant != NoSquare) {
+        os << " | DoublePawn | "
+           << "newEnPassantSquare:" << move.newEnPassant;
     }
+
+    if (move.isCapture) {
+        os << " | Capture | " << move.playerPiece
+           << "capturePiece:" << move.capturePiece
+           << ", captureSquare:" << move.captureSquare;
+    }
+
+    if (move.isPromotion) {
+        os << " | Promotion | "
+           << "promotionType:" << move.promotionPiece;
+    }
+
+    if (move.isCastling) {
+        os << " | Castling | ";
+        // os << ...;
+    }
+
     return os;
 }

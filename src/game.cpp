@@ -31,13 +31,13 @@ void Game::start()
 
 void Game::test()
 {
-    std::vector<std::unique_ptr<Move>> moves;
+    std::vector<Move> moves;
     _board.getPossibleMoves(moves);
 
     logger.logHeader("moves in game.test()");
     for (const auto &move : moves)
     {
-        logger.log(*move);
+        logger.log(move);
     }
 
 //            bool moveIsLegal = _board.makeMove(move);

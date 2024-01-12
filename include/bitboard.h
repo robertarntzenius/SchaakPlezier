@@ -93,6 +93,9 @@ class Bitboard {
             return bits & mask;
         }
 
+        // NOTE: might be cool to write iterator (instead of getIndices) to loop over indices
+        //       without writing to a vector. This would work very similar to getIndices()
+
         [[nodiscard]] std::vector<Square> getIndices() const {
             std::vector<Square> indices;
             ulong copy = bits;

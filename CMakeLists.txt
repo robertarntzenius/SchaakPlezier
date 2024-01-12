@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
 # Set the Clang compiler
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+#set(CMAKE_C_COMPILER clang)
+#set(CMAKE_CXX_COMPILER clang++)
 
 # Find Clang-Tidy
 # find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
@@ -32,10 +32,12 @@ add_library(Board SHARED
     src/board.cpp
 )
 
+
 target_include_directories(SchaakPlezier PUBLIC include)
 target_include_directories(Board PUBLIC include)
 
 target_link_libraries(SchaakPlezier Board)
+
 
 if(NOT BUILD_TYPE)
     message(STATUS "Build configuration defaulted to Release")

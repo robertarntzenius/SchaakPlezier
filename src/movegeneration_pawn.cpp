@@ -1,82 +1,79 @@
 #include "board.h"
 
-using namespace MoveGeneration;
+//using namespace MoveGeneration;
 
-void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
-    #ifdef DEBUG
-    logger.logHeader("generatePawnMoves()");
-    #endif
-    // for every piece
-    for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
-        const Square &fromSquare = squarePiecetypePair.first;
-        const Piecetype &type = squarePiecetypePair.second;
-
-        // for every pawn
-        if (type != Pawn) {
-            continue;
-        }
-        generatePawnPushes(moveVector, fromSquare);
-        generatePawnCaptures(moveVector, fromSquare);
-    }
-}
-
-void Board::generatePawnPushes(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const {
+void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const {
     const Bitboard occupied = (colorBitboards[White] | colorBitboards[Black]);
-    const Bitboard finalRank = (activePlayer == White) ? MaskGeneration::computeRankMask(Rank8) : MaskGeneration::computeRankMask(Rank1);
     const Bitboard pushes = pawnPushLookUp[activePlayer][fromSquare];
-    std::vector<Square> toSquares = pushes.getIndices();
+
+    // Only check available squares
+    const std::vector<Square> toSquares = (pushes & ~occupied).getIndices();
 
     for (const auto &toSquare : toSquares) {
-        if (occupied.test(toSquare)) {
-            continue;
-        }
-
         // Double push (check in between)
         if (abs(toSquare - fromSquare) == 2 * BOARD_DIMENSIONS) {
             const Square newEnPassantSquare = intToSquare((toSquare + fromSquare) / 2);
 
             if (occupied.test(newEnPassantSquare)) {
-                continue;
+                return;
             }
 
-            const Move move = createDoublePawnMove(fromSquare, toSquare, newEnPassantSquare);
-            moveVector.emplace_back(std::make_unique<Move>(move));
+            const Move move =
+                    MoveBuilder(Pawn, fromSquare, toSquare)
+                    .setEnPassant(newEnPassantSquare)
+                    .build();
+            moveVector.push_back(move);
         }
 
         // Single push
         else {
-            if (finalRank.test(toSquare)) {
+            if (finalRank[activePlayer].test(toSquare)) {
                 for (Piecetype promotionType : promotionPiecetypes) {
-                    const Move move = createPromotionMove(fromSquare, toSquare, promotionType);
-                    moveVector.emplace_back(std::make_unique<Move>(move));
+                    const Move move =
+                            MoveBuilder(Pawn, fromSquare, toSquare)
+                            .setPromotion(promotionType)
+                            .build();
+
+                    moveVector.push_back(move);
                 }
             } else {
-                const Move move = createMove(fromSquare, toSquare, Pawn);
-                moveVector.emplace_back(std::make_unique<Move>(move));
+                const Move move =
+                        MoveBuilder(Pawn, fromSquare, toSquare)
+                                .build();
+
+                moveVector.push_back(move);
             }
         }
     }
 }
 
-void Board::generatePawnCaptures(std::vector<std::unique_ptr<Move>> &moveVector, const Square &fromSquare) const {
-    const Bitboard finalRank = (activePlayer == White) ? MaskGeneration::computeRankMask(Rank8) : MaskGeneration::computeRankMask(Rank1);
+void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const {
     const Bitboard attacks = pawnAttackLookUp[activePlayer][fromSquare];
-    std::vector<Square> toSquares = (attacks & colorBitboards[invertColor(activePlayer)]).getIndices();
+
+    std::vector<Square> toSquares = (attacks & colorBitboards[~activePlayer]).getIndices();
 
     for (const auto &toSquare : toSquares) {
         const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(toSquare);
 
         // Promotion capture
-        if (finalRank.test(toSquare)) {
+        if (finalRank[activePlayer].test(toSquare)) {
             for (Piecetype promotionType : promotionPiecetypes) {
-                const Move move = createPromotionCapture(fromSquare,toSquare, capturePiecetype, promotionType);
-                moveVector.emplace_back(std::make_unique<Move>(move));
+                const Move move =
+                        MoveBuilder(Pawn, fromSquare, toSquare)
+                        .setCapture(capturePiecetype, toSquare)
+                        .setPromotion(promotionType)
+                        .build();
+
+                moveVector.push_back(move);
             }
 
         // Normal capture
         } else {
-            const Move move = createCapture(fromSquare, toSquare, Pawn, capturePiecetype);
-            moveVector.emplace_back(std::make_unique<Move>(move));
+            const Move move =
+                    MoveBuilder(Pawn, fromSquare, toSquare)
+                            .setCapture(capturePiecetype, toSquare)
+                            .build();
+            moveVector.push_back(move);
         }
     }
 
@@ -84,7 +81,10 @@ void Board::generatePawnCaptures(std::vector<std::unique_ptr<Move>> &moveVector,
     if (attacks.test(enPassantSquare)) {
         const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
         const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(captureSquare);
-        const Move move = createEnPassantCapture(fromSquare, enPassantSquare, captureSquare, capturePiecetype);
-        moveVector.emplace_back(std::make_unique<Move>(move));
+        const Move move = MoveBuilder(Pawn, fromSquare, enPassantSquare)
+                                .setCapture(capturePiecetype, captureSquare)
+                                .build();
+
+        moveVector.push_back(move);
     }
 }
