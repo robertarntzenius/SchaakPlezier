@@ -9,13 +9,12 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
 
     // Knight attacks
     const Bitboard attacks = knightScopeLookUp[fromSquare] & colorBitboards[~activePlayer];
-    std::vector<Square> toSquares = attacks.getIndices();
     // logger.log(fromSquare, "Capture Knightmoves" );
     // logger.log(knightScopeLookUp[fromSquare]);
     // logger.log(opponent);
     // logger.log(attacks);
 
-    for (const auto &toSquare : toSquares) {
+    for (const auto &toSquare : attacks) {
         const Move move = MoveBuilder(Knight, fromSquare, toSquare)
                 .setCapture(pieceMaps[~activePlayer].at(toSquare), toSquare)
                 .build();
@@ -24,15 +23,12 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
 
     // Knight moves
     const Bitboard moves = knightScopeLookUp[fromSquare] & ~occupied;
-    toSquares.clear();
-    toSquares = moves.getIndices();
-
     // logger.log(fromSquare, "Basic Knightmoves" );
     // logger.log(knightScopeLookUp[fromSquare]);
     // logger.log(empty);
     // logger.log(moves);
 
-    for (const auto &toSquare : toSquares) {
+    for (const auto &toSquare : moves) {
         const Move move = MoveBuilder(Knight, fromSquare, toSquare).build();
         moveVector.push_back(move);
     }

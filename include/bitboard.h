@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include <iterator>
 #include <cstdlib>
 #include <vector>
 
@@ -108,20 +109,35 @@ class Bitboard {
             return bits & mask;
         }
 
-        // NOTE: might be cool to write iterator (instead of getIndices) to loop over indices
-        //       without writing to a vector. This would work very similar to getIndices()
+        class Iterator : public std::iterator<std::input_iterator_tag, Square> {
+            public:
+                explicit Iterator(ulong bits) : bitsCopy(bits) {}
 
-        [[nodiscard]] std::vector<Square> getIndices() const {
-            std::vector<Square> indices;
-            ulong copy = bits;
-            while (copy) {
-                int square = BOARD_SIZE - __builtin_ctzll(copy) - 1; // Count trailing zeros using a built-in function
-                indices.push_back(static_cast<Square>(square));
-                copy &= copy - 1; // Clear the lowest set bit
-            }
-            return indices;
+                [[nodiscard]] bool operator==(const Iterator& other) const { return bitsCopy == other.bitsCopy; }
+                [[nodiscard]] bool operator!=(const Iterator& other) const { return bitsCopy != other.bitsCopy; }
+
+                Iterator& operator++() {
+                    bitsCopy &= (bitsCopy - 1); return *this;
+                }
+
+                [[nodiscard]] Square operator*() const {
+                    return static_cast<Square>(BOARD_SIZE - __builtin_ctzll(bitsCopy) - 1);
+                }
+
+            private:
+                ulong bitsCopy;
+        };
+
+        [[nodiscard]] Iterator begin() const {
+            return Iterator(bits);
+        }
+
+        [[nodiscard]] static Iterator end() {
+            return Iterator(0);
         }
 
     private:
         ulong bits;
 };
+
+

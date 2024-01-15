@@ -7,9 +7,7 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
     const Bitboard pushes = pawnPushLookUp[activePlayer][fromSquare];
 
     // Only check available squares
-    const std::vector<Square> toSquares = (pushes & ~occupied).getIndices();
-
-    for (const auto &toSquare : toSquares) {
+    for (const auto &toSquare : (pushes & ~occupied)) {
         // Double push (check in between)
         if (abs(toSquare - fromSquare) == 2 * BOARD_DIMENSIONS) {
             const Square newEnPassantSquare = intToSquare((toSquare + fromSquare) / 2);
@@ -50,9 +48,7 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
 void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const {
     const Bitboard attacks = pawnAttackLookUp[activePlayer][fromSquare];
 
-    std::vector<Square> toSquares = (attacks & colorBitboards[~activePlayer]).getIndices();
-
-    for (const auto &toSquare : toSquares) {
+    for (const auto &toSquare : (attacks & colorBitboards[~activePlayer])) {
         const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(toSquare);
 
         // Promotion capture
