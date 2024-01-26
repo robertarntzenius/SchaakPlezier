@@ -16,30 +16,31 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                 return;
             }
 
-            const Move move =
-                    MoveBuilder(Pawn, fromSquare, toSquare)
-                    .setEnPassant(newEnPassantSquare)
-                    .build();
-            moveVector.push_back(move);
+            moveVector.emplace_back(
+                MoveBuilder(Pawn, fromSquare)
+                .setTarget(toSquare)
+                .setEnPassant(newEnPassantSquare)
+                .build()
+            );
         }
 
         // Single push
         else {
             if (finalRank[activePlayer].test(toSquare)) {
                 for (Piecetype promotionType : promotionPiecetypes) {
-                    const Move move =
-                            MoveBuilder(Pawn, fromSquare, toSquare)
-                            .setPromotion(promotionType)
-                            .build();
-
-                    moveVector.push_back(move);
+                    moveVector.emplace_back(
+                        MoveBuilder(Pawn, fromSquare)
+                        .setTarget(toSquare)
+                        .setPromotion(promotionType)
+                        .build()
+                    );
                 }
             } else {
-                const Move move =
-                        MoveBuilder(Pawn, fromSquare, toSquare)
-                                .build();
-
-                moveVector.push_back(move);
+                moveVector.emplace_back(
+                    MoveBuilder(Pawn, fromSquare)
+                    .setTarget(toSquare)
+                    .build()
+                );
             }
         }
     }
@@ -54,22 +55,24 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
         // Promotion capture
         if (finalRank[activePlayer].test(toSquare)) {
             for (Piecetype promotionType : promotionPiecetypes) {
-                const Move move =
-                        MoveBuilder(Pawn, fromSquare, toSquare)
-                        .setCapture(capturePiecetype, toSquare)
-                        .setPromotion(promotionType)
-                        .build();
+                moveVector.emplace_back(
+                    MoveBuilder(Pawn, fromSquare)
+                    .setTarget(toSquare)
+                    .setCapture(capturePiecetype, toSquare)
+                    .setPromotion(promotionType)
+                    .build()
+                );
 
-                moveVector.push_back(move);
             }
 
         // Normal capture
         } else {
-            const Move move =
-                    MoveBuilder(Pawn, fromSquare, toSquare)
-                            .setCapture(capturePiecetype, toSquare)
-                            .build();
-            moveVector.push_back(move);
+            moveVector.emplace_back(
+                MoveBuilder(Pawn, fromSquare)
+                .setTarget(toSquare)
+                .setCapture(capturePiecetype, toSquare)
+                .build()
+            );
         }
     }
 
@@ -77,10 +80,11 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
     if (attacks.test(enPassantSquare)) {
         const Square captureSquare = rankFileToSquare(squareToRank(fromSquare), squareToFile(enPassantSquare));
         const Piecetype capturePiecetype = pieceMaps[~activePlayer].at(captureSquare);
-        const Move move = MoveBuilder(Pawn, fromSquare, enPassantSquare)
-                                .setCapture(capturePiecetype, captureSquare)
-                                .build();
-
-        moveVector.push_back(move);
+        moveVector.emplace_back(
+            MoveBuilder(Pawn, fromSquare)
+            .setTarget(enPassantSquare)
+            .setCapture(capturePiecetype, captureSquare)
+            .build()
+        );
     }
 }

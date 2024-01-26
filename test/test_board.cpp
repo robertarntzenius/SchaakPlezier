@@ -19,13 +19,26 @@ void test_board_default_getPossibleMoves() {
 }
 
 void test_board_TestFENS_getPossibleMoves() {
-    const char *testFENs[] = {testFEN1, testFEN2, testFEN3, testFEN4};
-    for (const auto &FENstring : testFENs) {
+    std::pair<const char *, int> testFENs[] = {
+//            {testFEN1, 17},
+            {testFEN1, 28},
+//            {testFEN2, 18},
+            {testFEN2, 30},
+//            {testFEN3, 24},
+            {testFEN3, 26},
+//            {testFEN4, 21}
+            {testFEN4, 21}
+    };
+    for (const auto &testEntry : testFENs) {
+        const char *FENstring = testEntry.first;
+        const std::size_t correctNrMoves = testEntry.second;
         Board board = Board(FENstring);
 
         std::vector<Move> moves;
         board.getPossibleMoves(moves);
-        // assert(moves.size() == 20); // TODO refactor
+        std::cerr << "expected: " << correctNrMoves << "\n";
+        std::cerr << "actual: " << moves.size() << "\n";
+        assert(moves.size() == correctNrMoves);
     }
 }
 

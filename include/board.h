@@ -52,7 +52,7 @@ class Board {
         
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 //        void generateBishopMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-//        void generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 //        void generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 //        void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 

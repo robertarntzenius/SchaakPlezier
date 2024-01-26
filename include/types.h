@@ -12,7 +12,7 @@ enum Color : uint8_t {
     NrColors = 2
 };
 
-enum Square : uint8_t {
+enum Square : int8_t {
     a8 = 0, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a6, b6, c6, d6, e6, f6, g6, h6,
@@ -76,6 +76,10 @@ enum Direction : uint8_t {
     SouthEast,
     SouthWest,
 
+    FirstOrthagonal = North,
+    LastOrthogonal = East,
+    FirstDiagonal = NorthEast,
+    LastDiagonal = SouthWest,
     NrDirections = 8
 };
 

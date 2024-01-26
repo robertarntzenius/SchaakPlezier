@@ -62,9 +62,9 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
 //            case Bishop:
 //                generateBishopMoves(moveVector, fromSquare);
 //                break;
-//            case Rook:
-//                generateRookMoves(moveVector, fromSquare);
-//                break;
+            case Rook:
+                generateRookMoves(moveVector, fromSquare);
+                break;
 //            case Queen:
 //                generateQueenMoves(moveVector, fromSquare);
 //                break;

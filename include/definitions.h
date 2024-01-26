@@ -27,18 +27,17 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 #define _assert(expr) ((void)0)
 #endif
 
+[[nodiscard]] constexpr Square intToSquare(int i) {
+    if (i < a8 || i > h1) {
+        return NoSquare;
+    }
+
+    return static_cast<Square>(i);
+}
 
 // Conversions and Comparisons
 [[nodiscard]] constexpr Color operator~(Color color) {
     return static_cast<Color>((color + 1) % NrColors);
-}
-
-[[nodiscard]] constexpr Square intToSquare(int i) {
-    if (i < a8 || i > h1) {
-        throw std::out_of_range("Invalid chessboard square");
-    }
-
-    return static_cast<Square>(i);
 }
 
 [[nodiscard]] constexpr Rank squareToRank(Square square) {
