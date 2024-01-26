@@ -71,7 +71,7 @@ class Bitboard {
         // resets lower bits including index itself
         constexpr Bitboard &resetLowerBits(Square square) {
             if (square == NoSquare) {
-                return reset();
+                return *this;
             }
 
             ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
@@ -83,7 +83,7 @@ class Bitboard {
         // resets upper bits including index itself
         constexpr Bitboard &resetUpperBits(Square square) {
             if (square == NoSquare) {
-                return reset();
+                return *this;
             }
 
             ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
@@ -106,20 +106,18 @@ class Bitboard {
         }
 
         [[nodiscard]] constexpr Square getHighestSetBit() const {
-            int squareIndex = __builtin_clzll(bits);
-
-            if (squareIndex < a8 || squareIndex > h1) {
+            if (bits == 0) {
                 return NoSquare;
             }
+            int squareIndex = __builtin_clzll(bits);
             return static_cast<Square>(squareIndex);
         };
 
         [[nodiscard]] constexpr Square getLowestSetBit() const {
-            int squareIndex = BOARD_SIZE - __builtin_ctzll(bits) - 1;
-
-            if (squareIndex < a8 || squareIndex > h1) {
+            if (bits == 0) {
                 return NoSquare;
             }
+            int squareIndex = BOARD_SIZE - __builtin_ctzll(bits) - 1;
             return static_cast<Square>(squareIndex);
         };
 
@@ -128,12 +126,12 @@ class Bitboard {
             return bits & mask;
         }
 
-        [[nodiscard]] constexpr bool test(Square bitNr) const {
-            if (bitNr == NoSquare) {
+        [[nodiscard]] constexpr bool test(Square square) const {
+            if (square == NoSquare) {
                 return false;
             }
 
-            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+            ulong mask = 1UL << (BOARD_SIZE - square - 1);
             return bits & mask;
         }
 

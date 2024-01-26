@@ -167,6 +167,16 @@ const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {King,   "king"},
 };
 
+const std::unordered_map<Direction, std::string> directionStringMap = {
+       {North, "North"},
+       {South, "South"},
+       {East, "East"},
+       {West, "West"},
+       {NorthEast, "NorthEast"},
+       {NorthWest, "NorthWest"},
+       {SouthEast, "SouthEast"},
+       {SouthWest, "SouthWest"}
+};
 
 // Operator overloads for logging
 static std::ostream& operator<<(std::ostream &os, const Square &square) {
@@ -202,6 +212,11 @@ static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
             os << '\n';
         }
     }
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Direction &direction) {
+    os << directionStringMap.at(direction);
     return os;
 }
 

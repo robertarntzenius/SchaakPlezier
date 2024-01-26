@@ -76,7 +76,7 @@ enum Direction : uint8_t {
     SouthEast,
     SouthWest,
 
-    FirstOrthagonal = North,
+    FirstOrthogonal = North,
     LastOrthogonal = East,
     FirstDiagonal = NorthEast,
     LastDiagonal = SouthWest,

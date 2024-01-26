@@ -18,6 +18,39 @@ namespace MaskGeneration {
         return Bitboard(0xFFUL << (BOARD_DIMENSIONS - rank - 1) * BOARD_DIMENSIONS);
     }
 
+    [[nodiscard]] constexpr Bitboard computeDiagonalsMask(int square, DirectionalOffset offset) {
+        
+        Bitboard scope;
+
+        while (true) {
+            if ( ((square - offset) < a8) || ((square - offset) > h1) ) {
+                return scope;
+            }
+            
+            switch (offset)
+            {
+            case OFFSET_NORTHEAST:
+            case OFFSET_SOUTHEAST:
+                if (computeFileMask(FileH).test(square)) {
+                    return scope;
+                }
+                break;
+            case OFFSET_NORTHWEST:
+            case OFFSET_SOUTHWEST:
+                if (computeFileMask(FileA).test(square)) {
+                    return scope;
+                }
+                break;
+                break;
+            default:
+                throw std::invalid_argument("Only diagonal directions allowed");
+            }
+
+            square -= offset;
+            scope.set(intToSquare(square));
+        }
+    }
+
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computePawnPushLookUp(Color color) {
         std::array<Bitboard, BOARD_SIZE> pawnPushes{};
         Bitboard singlePush, doublePush;
@@ -109,7 +142,6 @@ namespace MaskGeneration {
         return (pawnAttacksWest | pawnAttacksEast);
     }
 
-
     [[nodiscard]] constexpr Bitboard computeKnightScopeFromSquare(Square square) {
         Bitboard playerKnight;
         playerKnight.set(intToSquare(square));
@@ -154,10 +186,12 @@ namespace MaskGeneration {
             directionalScope[South][square] = computeFileMask(squareToFile(square)).resetUpperBits(square);
             directionalScope[West][square] = computeRankMask(squareToRank(square)).resetLowerBits(square);
             directionalScope[East][square] = computeRankMask(squareToRank(square)).resetUpperBits(square);
+
+            directionalScope[NorthEast][square] = computeDiagonalsMask(squareInt, OFFSET_NORTHEAST);
+            directionalScope[NorthWest][square] = computeDiagonalsMask(squareInt, OFFSET_NORTHWEST);
+            directionalScope[SouthEast][square] = computeDiagonalsMask(squareInt, OFFSET_SOUTHEAST);
+            directionalScope[SouthWest][square] = computeDiagonalsMask(squareInt, OFFSET_SOUTHWEST);
         }
-
-        // TODO: diagonals
-
         return directionalScope;
     }
 }

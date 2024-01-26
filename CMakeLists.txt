@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
 # Set the Clang compiler
-#set(CMAKE_C_COMPILER clang)
-#set(CMAKE_CXX_COMPILER clang++)
+# set(CMAKE_C_COMPILER clang)
+# set(CMAKE_CXX_COMPILER clang++)
 
 # Find Clang-Tidy
 # find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
@@ -30,6 +30,7 @@ add_library(Board SHARED
     src/movegeneration_pawn.cpp
     src/movegeneration_knight.cpp
     src/movegeneration_rook.cpp
+    src/movegeneration_bishop.cpp
     src/board.cpp
 )
 

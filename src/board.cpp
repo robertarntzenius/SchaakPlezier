@@ -29,7 +29,6 @@ Board::Board(const char *FENString)
 //        logger.log()
 //    }
 
-
     #ifdef DEBUG
         logBoard();
         // logBitboards();
@@ -59,9 +58,9 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
             case Knight:
                 generateKnightMoves(moveVector, fromSquare);
                 break;
-//            case Bishop:
-//                generateBishopMoves(moveVector, fromSquare);
-//                break;
+           case Bishop:
+               generateBishopMoves(moveVector, fromSquare);
+               break;
             case Rook:
                 generateRookMoves(moveVector, fromSquare);
                 break;
