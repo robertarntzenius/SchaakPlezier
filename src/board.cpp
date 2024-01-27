@@ -18,21 +18,6 @@ Board::Board(const char *FENString)
     #endif
 
     InitializeFromFEN(FENString);
-
-//    const Square someSquares[] = {a4, c5,d2};
-
-
-//    for (const auto &square : someSquares) {
-//        Bitboard whitePawnPushes = pawnPushLookUp[White][square];
-//
-//        const Move move = {}
-//        logger.log()
-//    }
-
-    #ifdef DEBUG
-        logBoard();
-        // logBitboards();
-    #endif
 }
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
@@ -52,8 +37,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
 
         switch (type) {
             case Pawn:
-                generatePawnPushes(moveVector, fromSquare);
-                generatePawnCaptures(moveVector, fromSquare);
+                generatePawnMoves(moveVector, fromSquare);
                 break;
             case Knight:
                 generateKnightMoves(moveVector, fromSquare);
@@ -64,9 +48,9 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
             case Rook:
                 generateRookMoves(moveVector, fromSquare);
                 break;
-//            case Queen:
-//                generateQueenMoves(moveVector, fromSquare);
-//                break;
+           case Queen:
+               generateQueenMoves(moveVector, fromSquare);
+               break;
 //            case King:
 //                generateKingMoves(moveVector, fromSquare);
 //                break;
@@ -74,13 +58,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
                 // Not implemented / throw
                 break;
         }
-
     }
-
-    // for ( int squareInt=a8; squareInt < NrSquares; squareInt++) {
-    //     logger.log(intToSquare(squareInt));
-    //     logger.log(knightAttacksLookUp[squareInt]);
-    // }
 }
 
 void Board::doMove(const Move *move) {
@@ -163,11 +141,12 @@ void Board::logBitboards() const
 {
     #ifdef DEBUG
         for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
-            const Color color = static_cast<Color>(colorInt);
+            const auto color = static_cast<Color>(colorInt);
             logger.log(colorStringMap.at(color).c_str(), colorBitboards[color]);
         }
+
         for (int piecetypeInt = 0; piecetypeInt < NrPiecetypes; ++piecetypeInt) {
-            const Piecetype type = static_cast<Piecetype>(piecetypeInt);
+            const auto type = static_cast<Piecetype>(piecetypeInt);
             logger.log(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
         }
     #endif
@@ -232,10 +211,8 @@ void Board::InitializeFromFEN(const char *FENString)
 
     #ifdef DEBUG
         checkBoardConsistency();
-        logger.log(activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
     #endif
 }
-
 
 void Board::checkBoardConsistency() const
 {
@@ -269,8 +246,7 @@ bool Board::inCheck(Color player) const
     return false;
 }
 
-void Board::logBoard() const
-{
+void Board::logBoard() const {
     std::ostringstream os;
     std::string board(BOARD_SIZE, '.');
 
@@ -297,6 +273,10 @@ void Board::logBoard() const
         os  << std::endl;
     }
     os << "\n   a b c d e f g h\n";
+
+    os << "\nactivePlayer: " << activePlayer << std::endl;
     os << "enPassantSquare: " << enPassantSquare << std::endl;
+    os << "Castling rights (wKC, wQC, bKC, bQC): " << wKC << ' ' <<  wQC << ' ' <<  bKC << ' ' <<  bQC << std::endl;
+    os << "Move counters (halfMoveClock, fullMoveNumber): " << halfMoveClock << ' ' << fullMoveNumber << std::endl;
     logger.log(os);
 }

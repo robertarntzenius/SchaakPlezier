@@ -7,7 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <cstdio> // Include the header for snprintf
+#include <cstdio>
 #include <cstdarg>
 
 
@@ -73,12 +73,8 @@ public:
             throw std::invalid_argument("Header name too long: " + std::to_string(headerName.size()));
         }
 
-        std::string spaces((headerSize - headerName.length()) / 2, ' ');
-        std::string equals(headerSize, '=');
-        std::string header = "\n" + equals +
-                             "\n" + spaces + headerName +
-                             "\n" + equals +
-                             "\n";
+        std::string equals((headerSize - headerName.length() - 2) / 2, '=');
+        std::string header = "\n" + equals + ' ' + headerName + ' ' + equals;
         log(header.c_str());
     }
 

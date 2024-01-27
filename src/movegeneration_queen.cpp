@@ -1,46 +1,49 @@
 #include "board.h"
 
-void Board::generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const {
+void Board::generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const {
 #ifdef DEBUG
-    logger.logHeader("generateRookMoves()");
+    logger.logHeader("generateQueenMoves()");
 #endif
-
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
 
     Bitboard scope;
 
-    // Rook attacks
-    for (uint8_t direction = FirstOrthogonal; direction <= LastOrthogonal; direction++) {
+    // Queen attacks
+    for (uint8_t direction = FirstOrthogonal; direction <= LastDiagonal; direction++) {
         Bitboard directionalScope = directionalLookUp[direction][fromSquare];
         Square nearestPieceLocation = NoSquare;
 
         switch (direction) {
             case North:
             case West:
+            case NorthEast:
+            case NorthWest:
                 nearestPieceLocation = (directionalScope & occupied).getLowestSetBit();
                 scope = scope | directionalScope.resetUpperBits(nearestPieceLocation);
                 break;
             case South:
             case East:
+            case SouthEast:
+            case SouthWest:
                 nearestPieceLocation = (directionalScope & occupied).getHighestSetBit();
                 scope = scope | directionalScope.resetLowerBits(nearestPieceLocation);
                 break;
             default:
-                throw std::invalid_argument("Direction of rook should be orthagonal. Invalid direction received.");
+                throw std::invalid_argument("Direction of queen should be diagonal or orthogonal. Invalid direction received.");
         }
 
         if (colorBitboards[~activePlayer].test(nearestPieceLocation)) {
             const Piecetype capturePiece = pieceMaps[~activePlayer].at(nearestPieceLocation);
             // add capture move
             moveVector.emplace_back(
-                MoveBuilder(Rook, fromSquare)
-                    .setTarget(nearestPieceLocation)
-                    .setCapture(capturePiece, nearestPieceLocation)
-                    .build()
+                    MoveBuilder(Queen, fromSquare)
+                        .setTarget(nearestPieceLocation)
+                        .setCapture(capturePiece, nearestPieceLocation)
+                        .build()
             );
             #ifdef DEBUG
                 logger.log(
-                    MoveBuilder(Rook, fromSquare)
+                    MoveBuilder(Queen, fromSquare)
                         .setTarget(nearestPieceLocation)
                         .setCapture(capturePiece, nearestPieceLocation)
                         .build()
@@ -52,13 +55,13 @@ void Board::generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) 
     for (const auto& toSquare : scope) {
         // add normal moves
         moveVector.emplace_back(
-                MoveBuilder(Rook, fromSquare)
-                        .setTarget(toSquare)
-                        .build()
+                MoveBuilder(Queen, fromSquare)
+                    .setTarget(toSquare)
+                    .build()
         );
         #ifdef DEBUG
             logger.log(
-                MoveBuilder(Rook, fromSquare)
+                MoveBuilder(Queen, fromSquare)
                     .setTarget(toSquare)
                     .build()
                 );

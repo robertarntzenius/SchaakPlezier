@@ -16,7 +16,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-
 # if(CLANG_TIDY_EXE)
 #   set(CMAKE_CXX_CLANG_TIDY
 #           "${CLANG_TIDY_EXE}"
-#           "-checks=bugprone-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,objc-*,performance-*,readability-*,-modernize-use-trailing-return-type,-readability-identifier-length")
+#           "-checks=bugprone-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,objc-*,performance-*,readability-*,-modernize-use-trailing-return-type,-readability-identifier-length,-cppcoreguidelines-pro-bounds-constant-array-index")
 # else()
 #   message(WARNING "Clang-Tidy not found. Static analysis will not be applied.")
 # endif()
@@ -31,6 +31,7 @@ add_library(Board SHARED
     src/movegeneration_knight.cpp
     src/movegeneration_rook.cpp
     src/movegeneration_bishop.cpp
+    src/movegeneration_queen.cpp
     src/board.cpp
 )
 

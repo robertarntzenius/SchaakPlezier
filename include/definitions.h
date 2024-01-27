@@ -229,7 +229,7 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
     }
 
     if (move.isCapture) {
-        os << " | Capture | " << move.playerPiece
+        os << " | Capture | "
            << "capturePiece:" << move.capturePiece
            << ", captureSquare:" << move.captureSquare;
     }

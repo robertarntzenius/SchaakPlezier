@@ -47,16 +47,17 @@ class Board {
     private:
         void InitializeFromFEN(const char *FENString);
 
-        void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
-        void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
         
+        void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-       void generateBishopMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generateBishopMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-//        void generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 //        void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;
 
 
+        void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
 
         void checkBoardConsistency() const;
 
