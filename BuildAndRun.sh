@@ -58,8 +58,8 @@ cd "$build_dir" || exit
 
 make && ./SchaakPlezier
 
-# Test if Debug
-if [ "$build_type" == "Debug" ] || [ "$build_type" != "Verbose" ]; then
+# Test if Debug or Verbose
+if [ "$build_type" == "Debug" ] || [ "$build_type" == "Verbose" ]; then
     echo ""
     echo ""
     echo ""
