@@ -47,13 +47,20 @@ if(NOT BUILD_TYPE)
 elseif(BUILD_TYPE STREQUAL "Release")
     message(STATUS "Build configuration: ${BUILD_TYPE}")
     # Do nothing for now, maybe add optimization compiler flags later
-elseif(BUILD_TYPE STREQUAL "Debug") 
-    # Add this -DDEBUG which essentially has adds #define DEBUG to the files its target
+elseif(BUILD_TYPE STREQUAL "Debug")
+    # Add this -DDEBUG which essentially has adds #define DEBUG to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
     target_compile_definitions(SchaakPlezier PRIVATE -DDEBUG)
     target_compile_definitions(Board PRIVATE -DDEBUG)
     enable_testing()
     add_subdirectory(test)
+elseif(BUILD_TYPE STREQUAL "Verbose")
+    # Add this -DVERBOSE which essentially has adds #define VERBOSE to the files of its target
+    message(STATUS "Build configuration: ${BUILD_TYPE}")
+    target_compile_definitions(SchaakPlezier PRIVATE -DVERBOSE)
+    target_compile_definitions(Board PRIVATE -DVERBOSE)
+    enable_testing()
+    add_subdirectory(test)
 else()
-    message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release or Debug)")
+    message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release, Debug or Verbose)")
 endif()

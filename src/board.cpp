@@ -19,7 +19,9 @@ Board::Board(const char *FENString)
         // TODO implement
         logger.setLogLevel(LEVEL_VERBOSE);
     #endif
-    logger.essential("New Board created!");
+    logger.essential("New Board created! - essential message");
+    logger.debug("New Board created! - debug message");
+    logger.verbose("New Board created! - verbose message");
 
     InitializeFromFEN(FENString);
 }

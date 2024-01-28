@@ -4,7 +4,7 @@ build_type="Release"
 verbose=false
 
 # Parse all args here using getopts
-while getopts ":ivb:" opt; do
+while getopts ":hvb:" opt; do
   case $opt in
     i) # Show usage
       echo "Usage: ./BuildAndRun.sh [OPTIONS]"
@@ -12,6 +12,7 @@ while getopts ":ivb:" opt; do
       echo "Options:"
       echo "  -b <BUILDTYPE>   Set the build type to either 'Debug' or 'Release'. Default is 'Release'."
       echo "  -v               Display the log file content after running."
+      echo "  -h               Display this message."
       exit
       ;;
     v) # cat the logfile if you add -v to this script call
@@ -37,7 +38,7 @@ fi
 
 
 # Set the build type
-if [ "$build_type" != "Release" ] && [ "$build_type" != "Debug" ]; then
+if [ "$build_type" != "Release" ] && [ "$build_type" != "Debug" ] && [ "$build_type" != "Verbose" ]; then
     echo "Invalid build type, use Debug or Release. (Build type: $build_type)"
     exit 1
 fi
@@ -58,7 +59,7 @@ cd "$build_dir" || exit
 make && ./SchaakPlezier
 
 # Test if Debug
-if [ "$build_type" == "Debug" ]; then
+if [ "$build_type" == "Debug" ] || [ "$build_type" != "Verbose" ]; then
     echo ""
     echo ""
     echo ""
