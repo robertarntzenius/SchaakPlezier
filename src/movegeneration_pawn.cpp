@@ -2,9 +2,7 @@
 
 //using namespace MoveGeneration;
 void Board::generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const {
-#ifdef DEBUG
     logger.logHeader("generatePawnMoves", fromSquare);
-#endif
     generatePawnCaptures(moveVector, fromSquare);
     generatePawnPushes(moveVector, fromSquare);
 }

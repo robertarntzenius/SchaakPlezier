@@ -1,9 +1,7 @@
 #include "board.h"
 
 void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const {
-    #ifdef DEBUG
     logger.logHeader("generateKnightMoves", fromSquare);
-    #endif
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
     const Bitboard attacks = knightScopeLookUp[fromSquare] & colorBitboards[~activePlayer];

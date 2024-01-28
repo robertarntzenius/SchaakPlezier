@@ -4,7 +4,9 @@
 Game::Game(const char *FENString) 
     : logger(ChessLogger::getInstance()), _board(Board(FENString))
 {
-    logger.debug("New game created!");
+    logger.setLogLevel(LEVEL_ESSENTIAL);
+    logger.essential("New game created!");
+    logger.debug("test debug msg"); // Doesnt get logged!
 }
 
 void Game::start()
@@ -35,7 +37,7 @@ void Game::test()
     logger.logHeader("moves in game.test");
     for (const auto &move : moves)
     {
-        logger.log(move);
+        logger.essential(move);
     }
 
     Bitboard lonelyRook{};
@@ -44,7 +46,7 @@ void Game::test()
 
     lonelyRook.set(rookSquare);
 
-    logger.log(lonelyRook,
+    logger.essential(lonelyRook,
                "\n", Bitboard().set().resetLowerBits(rookSquare),
                "\n", Bitboard().set().resetUpperBits(rookSquare));
 

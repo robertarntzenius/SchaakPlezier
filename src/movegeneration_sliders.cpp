@@ -1,9 +1,7 @@
 #include "board.h"
 
 void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare, Piecetype pieceType) const {
-#ifdef DEBUG
     logger.logHeader("generateSliderMoves", fromSquare);
-#endif
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
     uint8_t firstDirection, lastDirection;
 

@@ -10,10 +10,15 @@
 #include <cstdio>
 #include <cstdarg>
 
+/* 
+LEVEL_VERBOSE: Extra debug info + more verbose, logged if level=verbose
+LEVEL_DEBUG: debug info, logged if level = verbose/debug
+LEVEL_ESSENTIAL: only required output to play chess, always logged
+*/
 enum LogLevel {
-    LEVEL_ALL = 2,
+    LEVEL_ESSENTIAL = 0,
     LEVEL_DEBUG = 1,
-    LEVEL_RELEASE = 0
+    LEVEL_VERBOSE = 2
 };
 
 // TODO make inline constexpr of log calls to optimize them away! 
@@ -33,33 +38,55 @@ public:
     void setLogLevel(LogLevel level) {
         logLevel = level;
     }
+
+    LogLevel getLogLevel() {
+        return logLevel;
+    }
     
     template <typename... Args>
     void debug(Args... args) {
         if (logLevel < LEVEL_DEBUG) return;
-        // log("DEBUG");
         log(args...);
     }
 
-    template <typename... Args>
-    void release(Args... args) {
-        if (logLevel < LEVEL_RELEASE) return;
-        // log("RELEASE");
-        log(args...);
+    template <typename T>
+    void debug(T arg) {
+        if (logLevel < LEVEL_DEBUG) return;
+        log(arg);
     }
 
     template <typename... Args>
-    void all(Args... args) {
-        // log("ALL");
+    void essential(Args... args) {
+        if (logLevel < LEVEL_ESSENTIAL) return;
         log(args...);
+    }
+
+    template <typename T>
+    void essential(T arg) {
+        if (logLevel < LEVEL_ESSENTIAL) return;
+        log(arg);
+    }
+
+    template <typename... Args>
+    void verbose(Args... args) {
+        if (logLevel < LEVEL_VERBOSE) return;
+        log(args...);
+    }
+
+    template <typename T>
+    void verbose(T arg) {
+        if (logLevel < LEVEL_VERBOSE) return;
+        log(arg);
     }
 
     void logHeader(std::string headerName) {
+        if (logLevel < LEVEL_DEBUG) return;
         logHeader(headerName, "");
     }
 
     template<typename T>
     void logHeader(std::string headerName, T arg) {
+        if (logLevel < LEVEL_DEBUG) return;
         const std::size_t headerSize = 50;
         std::stringstream ss;
 
@@ -74,7 +101,8 @@ public:
         std::string header = "\n" + equals + ' ' + headerName + ' ' + equals;
         log(header.c_str());
     }
-// private:
+
+private:
     void log(std::ostringstream& os) {
         if (logFile.is_open()) {
             logFile << os.str() << std::endl << std::endl;
@@ -116,8 +144,9 @@ public:
             logFile << oss.str() << std::endl;
         }
     }
+
 private:
-    explicit ChessLogger(const std::string& logFileName, LogLevel level = LEVEL_RELEASE)
+    explicit ChessLogger(const std::string& logFileName, LogLevel level = LEVEL_ESSENTIAL)
         : logFile(logFileName, std::ios::out | std::ios::trunc), logLevel(level)
     {
         if (!logFile.is_open()) {
@@ -132,6 +161,6 @@ private:
         oss << buffer;
     }
 
-std::ofstream logFile;
-LogLevel logLevel;
+    std::ofstream logFile;
+    LogLevel logLevel;
 };

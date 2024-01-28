@@ -11,7 +11,6 @@ class Game {
 
         void start();
         void test();
-        void logMove(const Move &move) const;
 
     private:
         bool isOver() const;

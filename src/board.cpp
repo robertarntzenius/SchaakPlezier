@@ -14,21 +14,19 @@ Board::Board(const char *FENString)
       fullMoveNumber(0)
 {
     #if defined(DEBUG)
-        logger.log("New Board created!");
         logger.setLogLevel(LEVEL_DEBUG);
-    #elif defined(ALL)
+    #elif defined(VERBOSE)
         // TODO implement
-        logger.setLogLevel(LEVEL_ALL);
+        logger.setLogLevel(LEVEL_VERBOSE);
     #endif
+    logger.essential("New Board created!");
 
     InitializeFromFEN(FENString);
 }
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
-    #ifdef DEBUG
-        logger.logHeader("getPossibleMoves");
-        logBoard();
-    #endif
+    logger.logHeader("getPossibleMoves");
+    logBoard();
 
     // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
     //       this removes the need for a lot of methods and loops over all pieces just to find ones of
@@ -147,17 +145,15 @@ bool Board::inCheck(Color player) const
 }
 
 void Board::logBitboards() const {
-    #ifdef DEBUG
-        for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
-            const auto color = static_cast<Color>(colorInt);
-            logger.log(colorStringMap.at(color).c_str(), colorBitboards[color]);
-        }
+    for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
+        const auto color = static_cast<Color>(colorInt);
+        logger.verbose(colorStringMap.at(color).c_str(), colorBitboards[color]);
+    }
 
-        for (int piecetypeInt = 0; piecetypeInt < NrPiecetypes; ++piecetypeInt) {
-            const auto type = static_cast<Piecetype>(piecetypeInt);
-            logger.log(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
-        }
-    #endif
+    for (int piecetypeInt = 0; piecetypeInt < NrPiecetypes; ++piecetypeInt) {
+        const auto type = static_cast<Piecetype>(piecetypeInt);
+        logger.verbose(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
+    }
 }
 
 /* private */
@@ -349,5 +345,5 @@ void Board::logBoard() const {
     os << "enPassantSquare: " << enPassantSquare << std::endl;
     os << "wKC: " << wKC << ", wQC: " << wQC << ", bKC: " << bKC << ", bQC: " <<  bQC << std::endl;
     os << "halfMoveClock: " << halfMoveClock << ", fullMoveNumber: " << fullMoveNumber;
-    logger.log(os);
+    logger.essential(os.str());
 }

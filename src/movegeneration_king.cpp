@@ -1,9 +1,7 @@
 #include "board.h"
 
 void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const {
-    #ifdef DEBUG
     logger.logHeader("generateKingMoves", fromSquare);
-    #endif
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
     const Bitboard attacks = kingScopeLookUp[fromSquare] & colorBitboards[~activePlayer];
@@ -58,16 +56,16 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
     const Bitboard opponentAttacks = getAttackedMask(~activePlayer);
-    logger.debug("opponentAttacks", opponentAttacks);
+    logger.verbose("opponentAttacks", opponentAttacks);
 
     switch (side) {
     case wKingside:
         if ((opponentAttacks.test(e1) || opponentAttacks.test(f1) || opponentAttacks.test(g1))) {
-            logger.debug("Attacked");
+            logger.verbose("Attacked");
             return;
         };
         if (!(wKingSideEmptySquares & occupied).empty()) {
-            logger.debug("Not Empty");
+            logger.verbose("Not Empty");
             return;
         };
         moveVector.emplace_back(
@@ -80,11 +78,11 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
         break;
     case wQueenside:
         if ((opponentAttacks.test(c1) || opponentAttacks.test(d1) || opponentAttacks.test(e1))) {
-            logger.debug("Attacked");
+            logger.verbose("Attacked");
             return;
         };
         if (!(wQueenSideEmptySquares & occupied).empty()) {
-            logger.debug("Not Empty");
+            logger.verbose("Not Empty");
             return;
         };
         moveVector.emplace_back(
@@ -97,11 +95,11 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
         break;
     case bKingside:
         if ((opponentAttacks.test(e8) ||opponentAttacks.test(f8) || opponentAttacks.test(g8))) {
-            logger.debug("Attacked");
+            logger.verbose("Attacked");
             return;
         };
         if (!(bKingSideEmptySquares & occupied).empty()) {
-            logger.debug("Not Empty");
+            logger.verbose("Not Empty");
             return;
         };
         moveVector.emplace_back(
@@ -114,11 +112,11 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
         break;
     case bQueenside:
         if ((opponentAttacks.test(c8) || opponentAttacks.test(d8) || opponentAttacks.test(e8))) {
-            logger.debug("Attacked");
+            logger.verbose("Attacked");
             return;
         };
         if (!(bQueenSideEmptySquares & occupied).empty()) {
-            logger.debug("Not Empty");
+            logger.verbose("Not Empty");
             return;
         };
         moveVector.emplace_back(
