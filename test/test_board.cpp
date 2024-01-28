@@ -18,10 +18,10 @@ void test_board_default_getPossibleMoves() {
 
 void test_board_TestFENS_getPossibleMoves() {
     std::pair<const char *, int> testFENs[] = {
-            {testFEN1, 48},
-            {testFEN2, 42},
-            {testFEN3, 45},
-            {testFEN4, 30}
+            {testFEN1, 51},
+            {testFEN2, 44},
+            {testFEN3, 49},
+            {testFEN4, 31}
     };
     for (const auto &testEntry : testFENs) {
         const char *FENstring = testEntry.first;

@@ -33,7 +33,7 @@ enum Piecetype : uint8_t {
     King,
     NrPiecetypes = 6,
     NrPromotiontypes = 4,
-    NoType
+    NoType = 7
 };
 
 enum File : uint8_t {
@@ -81,6 +81,13 @@ enum Direction : uint8_t {
     FirstDiagonal = NorthEast,
     LastDiagonal = SouthWest,
     NrDirections = 8
+};
+
+enum CastlingSide : uint8_t {
+    wKingside,
+    wQueenside,
+    bKingside,
+    bQueenside
 };
 
 struct Move {

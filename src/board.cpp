@@ -13,8 +13,12 @@ Board::Board(const char *FENString)
       halfMoveClock(0),
       fullMoveNumber(0)
 {
-    #ifdef DEBUG
+    #if defined(DEBUG)
         logger.log("New Board created!");
+        logger.setLogLevel(LEVEL_DEBUG);
+    #elif defined(ALL)
+        // TODO implement
+        logger.setLogLevel(LEVEL_ALL);
     #endif
 
     InitializeFromFEN(FENString);
@@ -22,7 +26,7 @@ Board::Board(const char *FENString)
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
     #ifdef DEBUG
-        logger.logHeader("getPossibleMoves()");
+        logger.logHeader("getPossibleMoves");
         logBoard();
     #endif
 
@@ -43,17 +47,17 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
                 generateKnightMoves(moveVector, fromSquare);
                 break;
            case Bishop:
-               generateBishopMoves(moveVector, fromSquare);
-               break;
+                generateSliderMoves(moveVector, fromSquare, Bishop);
+                break;
             case Rook:
-                generateRookMoves(moveVector, fromSquare);
+                generateSliderMoves(moveVector, fromSquare, Rook);
                 break;
            case Queen:
-               generateQueenMoves(moveVector, fromSquare);
-               break;
-//            case King:
-//                generateKingMoves(moveVector, fromSquare);
-//                break;
+                generateSliderMoves(moveVector, fromSquare, Queen);
+                break;
+           case King:
+                generateKingMoves(moveVector, fromSquare);
+                break;
             default:
                 // Not implemented / throw
                 break;
@@ -63,8 +67,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
 
 void Board::doMove(const Move *move) {
     // TODO: reimplement
-
-
+    
     // This function checks the legality of a move at the end by checking
     // if the king is in check in the resulting position return -1
     // if not in check return 0;
@@ -108,7 +111,7 @@ void Board::doMove(const Move *move) {
 //    }
 //
 //    // TODO implement castling
-//
+//    // TODO: dont forget to lose castling rights when you move/capture a rook@starting square
 //    player->reset(move.piece.square);
 //    player->set(move.target);
 //    playerPtype->reset(move.piece.square);
@@ -137,8 +140,13 @@ void Board::doMove(const Move *move) {
 //    return true;
 }
 
-void Board::logBitboards() const
+bool Board::inCheck(Color player) const
 {
+    // TODO: implement
+    return false;
+}
+
+void Board::logBitboards() const {
     #ifdef DEBUG
         for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
             const auto color = static_cast<Color>(colorInt);
@@ -151,7 +159,6 @@ void Board::logBitboards() const
         }
     #endif
 }
-
 
 /* private */
 
@@ -240,10 +247,74 @@ void Board::checkBoardConsistency() const
     }
 }
 
-bool Board::inCheck(Color player) const
-{
-    // TODO: implement
-    return false;
+Bitboard Board::getAttackedMask(Color player) const {
+    Bitboard attacks;
+    for (const auto piece: pieceMaps[player]) {
+        const Square &fromSquare = piece.first;
+        const Piecetype &pieceType = piece.second;
+        if (pieceType == Queen || pieceType == Rook || pieceType == Bishop) {
+            attacks = attacks | getAttacksFromSlider(fromSquare, pieceType);
+        }
+    }
+
+    attacks = attacks | MaskGeneration::computeKnightScopeFromBitboard(piecetypeBitboards[Knight] & colorBitboards[player]);
+    attacks = attacks | MaskGeneration::computePawnAttacksFromBitboard(piecetypeBitboards[Pawn] & colorBitboards[player], player);
+    attacks = attacks | MaskGeneration::computeKingScopeFromBitboard(piecetypeBitboards[King] & colorBitboards[player]);
+    return attacks;
+}
+
+Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) const {
+    const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
+    uint8_t firstDirection, lastDirection;
+    Bitboard scope;
+
+    switch (pieceType) {
+        case Queen:
+            firstDirection = FirstOrthogonal;
+            lastDirection = LastDiagonal;
+        break;
+
+        case Bishop:
+            firstDirection = FirstDiagonal;
+            lastDirection = LastDiagonal;
+        break;
+
+        case Rook:
+            firstDirection = FirstOrthogonal;
+            lastDirection = LastOrthogonal;
+        break;
+        
+        default:
+            throw std::invalid_argument("Invalid Piecetype, generateSliderMoves() should be called with a slider");
+        break;
+    }
+
+    // Slider attacks
+    for (uint8_t direction = firstDirection; direction <= lastDirection; direction++) {
+        Bitboard directionalScope = directionalLookUp[direction][fromSquare];
+        Square nearestPieceLocation = NoSquare;
+
+        switch (direction) {
+            case North:
+            case West:
+            case NorthEast:
+            case NorthWest:
+                nearestPieceLocation = (directionalScope & occupied).getLowestSetBit();
+                scope = scope | directionalScope.resetUpperBits(nearestPieceLocation);
+                break;
+            case South:
+            case East:
+            case SouthEast:
+            case SouthWest:
+                nearestPieceLocation = (directionalScope & occupied).getHighestSetBit();
+                scope = scope | directionalScope.resetLowerBits(nearestPieceLocation);
+                break;
+            default:
+                throw std::invalid_argument("Direction of Slider should be diagonal or orthogonal. Invalid direction received.");
+        }
+        scope.set(nearestPieceLocation); // .resetLowerBits() is including
+    }
+    return scope;
 }
 
 void Board::logBoard() const {
@@ -276,7 +347,7 @@ void Board::logBoard() const {
 
     os << "\nactivePlayer: " << activePlayer << std::endl;
     os << "enPassantSquare: " << enPassantSquare << std::endl;
-    os << "Castling rights (wKC, wQC, bKC, bQC): " << wKC << ' ' <<  wQC << ' ' <<  bKC << ' ' <<  bQC << std::endl;
-    os << "Move counters (halfMoveClock, fullMoveNumber): " << halfMoveClock << ' ' << fullMoveNumber << std::endl;
+    os << "wKC: " << wKC << ", wQC: " << wQC << ", bKC: " << bKC << ", bQC: " <<  bQC << std::endl;
+    os << "halfMoveClock: " << halfMoveClock << ", fullMoveNumber: " << fullMoveNumber;
     logger.log(os);
 }

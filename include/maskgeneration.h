@@ -142,27 +142,30 @@ namespace MaskGeneration {
         return (pawnAttacksWest | pawnAttacksEast);
     }
 
-    [[nodiscard]] constexpr Bitboard computeKnightScopeFromSquare(Square square) {
-        Bitboard playerKnight;
-        playerKnight.set(intToSquare(square));
-
+    [[nodiscard]] constexpr Bitboard computeKnightScopeFromBitboard(Bitboard bitboard) {
         std::array<Bitboard, NrDirections> directions = {
-                (playerKnight & ~computeFileMask(FileH)) << (OFFSET_NORTHEAST + OFFSET_NORTH),
-                (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_NORTHEAST + OFFSET_EAST),
-                (playerKnight & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_SOUTHEAST + OFFSET_EAST),
-                (playerKnight & ~computeFileMask(FileH)) << (OFFSET_SOUTHEAST + OFFSET_SOUTH),
-                (playerKnight & ~computeFileMask(FileA)) << (OFFSET_NORTHWEST + OFFSET_NORTH),
-                (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_NORTHWEST + OFFSET_WEST),
-                (playerKnight & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_SOUTHWEST + OFFSET_WEST),
-                (playerKnight & ~computeFileMask(FileA)) << (OFFSET_SOUTHWEST + OFFSET_SOUTH)
+            (bitboard & ~computeFileMask(FileH)) << (OFFSET_NORTHEAST + OFFSET_NORTH),
+            (bitboard & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_NORTHEAST + OFFSET_EAST),
+            (bitboard & ~(computeFileMask(FileG) | computeFileMask(FileH))) << (OFFSET_SOUTHEAST + OFFSET_EAST),
+            (bitboard & ~computeFileMask(FileH)) << (OFFSET_SOUTHEAST + OFFSET_SOUTH),
+            (bitboard & ~computeFileMask(FileA)) << (OFFSET_NORTHWEST + OFFSET_NORTH),
+            (bitboard & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_NORTHWEST + OFFSET_WEST),
+            (bitboard & ~(computeFileMask(FileA) | computeFileMask(FileB))) << (OFFSET_SOUTHWEST + OFFSET_WEST),
+            (bitboard & ~computeFileMask(FileA)) << (OFFSET_SOUTHWEST + OFFSET_SOUTH)
         };
         Bitboard knightAttacks;
         for (const auto &direction: directions) {
             knightAttacks = knightAttacks | direction;
         }
-
         return knightAttacks;
     }
+    
+    [[nodiscard]] constexpr Bitboard computeKnightScopeFromSquare(Square square) {
+        Bitboard playerKnight;
+        playerKnight.set(square);
+        return computeKnightScopeFromBitboard(playerKnight);
+    }
+
 
     [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computeKnightScopeLookUp() {
         std::array<Bitboard, BOARD_SIZE> knightScope;
@@ -174,6 +177,42 @@ namespace MaskGeneration {
         }
 
         return knightScope;
+    }
+
+    [[nodiscard]] constexpr Bitboard computeKingScopeFromBitboard(Bitboard bitboard) {
+        std::array<Bitboard, NrDirections> directions = {
+            (bitboard & ~computeRankMask(Rank8)) << (OFFSET_NORTH),
+            (bitboard & ~computeRankMask(Rank1)) << (OFFSET_SOUTH),
+            (bitboard & ~computeFileMask(FileH)) << (OFFSET_EAST),
+            (bitboard & ~computeFileMask(FileA)) << (OFFSET_WEST),
+
+            (bitboard & (~computeRankMask(Rank8) & ~computeFileMask(FileH))) << (OFFSET_NORTHEAST),
+            (bitboard & (~computeRankMask(Rank8) & ~computeFileMask(FileA))) << (OFFSET_NORTHWEST),
+            (bitboard & (~computeRankMask(Rank1) & ~computeFileMask(FileH))) << (OFFSET_SOUTHEAST),
+            (bitboard & (~computeRankMask(Rank1) & ~computeFileMask(FileA))) << (OFFSET_SOUTHWEST)
+        };
+        Bitboard kingAttacks;
+        for (const auto &direction: directions) {
+            kingAttacks = kingAttacks | direction;
+        }
+        return kingAttacks;
+    }
+
+    [[nodiscard]] constexpr Bitboard computeKingScopeFromSquare(Square square) {
+        Bitboard playerKing;
+        playerKing.set(square);
+        return computeKingScopeFromBitboard(playerKing);
+    }
+
+    [[nodiscard]] constexpr std::array<Bitboard, BOARD_SIZE> computeKingScopeLookUp() {
+        std::array<Bitboard, BOARD_SIZE> kingScope;
+
+        // for every square
+        for (int squareInt = 0; squareInt < NrSquares; ++squareInt) {
+            const Square square = intToSquare(squareInt);
+            kingScope[squareInt] = computeKingScopeFromSquare(square);
+        }
+        return kingScope;
     }
 
     [[nodiscard]] constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> computeDirectionalLookUp() {
@@ -194,4 +233,5 @@ namespace MaskGeneration {
         }
         return directionalScope;
     }
-}
+
+} // namespace MaskGeneration

@@ -158,13 +158,13 @@ const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
 };
 
 const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
-    {NoType, "NoType"},
     {Pawn,   "pawn"},
     {Knight, "knight"},
     {Bishop, "bishop"},
     {Rook,   "rook"},
     {Queen,  "queen"},
     {King,   "king"},
+    {NoType, "NoType"}
 };
 
 const std::unordered_map<Direction, std::string> directionStringMap = {

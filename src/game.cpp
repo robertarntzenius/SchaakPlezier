@@ -4,9 +4,7 @@
 Game::Game(const char *FENString) 
     : logger(ChessLogger::getInstance()), _board(Board(FENString))
 {
-    #ifdef DEBUG
-        logger.log("New game created!");
-    #endif
+    logger.debug("New game created!");
 }
 
 void Game::start()
@@ -34,7 +32,7 @@ void Game::test()
     std::vector<Move> moves;
     _board.getPossibleMoves(moves);
 
-    logger.logHeader("moves in game.test()");
+    logger.logHeader("moves in game.test");
     for (const auto &move : moves)
     {
         logger.log(move);

@@ -45,22 +45,25 @@ class Board {
          */
         void logBitboards() const;
     private:
+        /* Methods*/
         void InitializeFromFEN(const char *FENString);
+        void checkBoardConsistency() const;
 
-        
+        /* MoveGen */
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-        void generateBishopMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-        void generateRookMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-        void generateQueenMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-//        void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;
-
+        void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;
+        void generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare, Piecetype pieceType) const;
 
         void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
         void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
-
-        void checkBoardConsistency() const;
-
+        void generateCastleMove(std::vector<Move> &moveVector, CastlingSide side) const;
+        
+        /* MaskGen */
+        Bitboard getAttacksFromSlider(Square fromSquare, Piecetype piecetype) const;
+        Bitboard getAttackedMask(Color player) const;
+        
+        /* Member variables */
         ChessLogger& logger;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
@@ -76,6 +79,7 @@ class Board {
 
         int halfMoveClock, fullMoveNumber;
 
+        /* static lookup arrays*/
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
                 MaskGeneration::computePawnPushLookUp(White),
                 MaskGeneration::computePawnPushLookUp(Black)
@@ -86,16 +90,18 @@ class Board {
         };
         static constexpr std::array<Bitboard, BOARD_SIZE> knightScopeLookUp =
                 MaskGeneration::computeKnightScopeLookUp();
+        
+        static constexpr std::array<Bitboard, BOARD_SIZE> kingScopeLookUp = 
+                MaskGeneration::computeKingScopeLookUp();
 
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> directionalLookUp =
                 MaskGeneration::computeDirectionalLookUp();
-
 
         static constexpr std::array<Bitboard, NrColors> finalRank = {
                 MaskGeneration::computeRankMask(Rank8),
                 MaskGeneration::computeRankMask(Rank1)
         };
-        // Bitboard bPawnAttacks();
+
         // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
         // bv KingMoves[sq] = bitboard van de goede squareIndex
         // blackAttacks(sq) whiteAttacks(sq) (add all attacked squares in one bitboard)

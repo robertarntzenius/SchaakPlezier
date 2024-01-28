@@ -3,7 +3,7 @@
 //using namespace MoveGeneration;
 void Board::generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const {
 #ifdef DEBUG
-    logger.logHeader("generatePawnMoves()");
+    logger.logHeader("generatePawnMoves", fromSquare);
 #endif
     generatePawnCaptures(moveVector, fromSquare);
     generatePawnPushes(moveVector, fromSquare);
@@ -29,14 +29,8 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                     .setEnPassant(newEnPassantSquare)
                     .build()
             );
-            #ifdef DEBUG
-                logger.log(
-                    MoveBuilder(Pawn, fromSquare)
-                        .setTarget(toSquare)
-                        .setEnPassant(newEnPassantSquare)
-                        .build()
-                );
-            #endif
+            logger.debug(moveVector.back());
+
         }
 
         // Single push
@@ -49,28 +43,16 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                             .setPromotion(promotionType)
                             .build()
                     );
-                #ifdef DEBUG
-                    logger.log(
-                        MoveBuilder(Pawn, fromSquare)
-                            .setTarget(toSquare)
-                            .setPromotion(promotionType)
-                            .build()
-                        );
-                #endif
+                    logger.debug(moveVector.back());
                 }
-            } else {
+            }
+            else {
                 moveVector.emplace_back(
                     MoveBuilder(Pawn, fromSquare)
                         .setTarget(toSquare)
                         .build()
                 );
-                #ifdef DEBUG
-                    logger.log(
-                        MoveBuilder(Pawn, fromSquare)
-                            .setTarget(toSquare)
-                            .build()
-                        );
-                #endif
+                logger.debug(moveVector.back());
             }
         }
     }
@@ -92,15 +74,8 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                         .setPromotion(promotionType)
                         .build()
                 );
-                #ifdef DEBUG
-                    logger.log(
-                        MoveBuilder(Pawn, fromSquare)
-                            .setTarget(toSquare)
-                            .setCapture(capturePiecetype, toSquare)
-                            .setPromotion(promotionType)
-                            .build()
-                        );
-                #endif
+                logger.debug(moveVector.back());
+
             }
 
         // Normal capture
@@ -111,14 +86,8 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                     .setCapture(capturePiecetype, toSquare)
                     .build()
             );
-            #ifdef DEBUG
-                logger.log(
-                    MoveBuilder(Pawn, fromSquare)
-                        .setTarget(toSquare)
-                        .setCapture(capturePiecetype, toSquare)
-                        .build()
-                    );
-            #endif
+            logger.debug(moveVector.back());
+
 
         }
     }
@@ -133,13 +102,7 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                 .setCapture(capturePiecetype, captureSquare)
                 .build()
         );
-        #ifdef DEBUG
-            logger.log(
-                MoveBuilder(Pawn, fromSquare)
-                    .setTarget(enPassantSquare)
-                    .setCapture(capturePiecetype, captureSquare)
-                    .build()
-                );
-        #endif
+        logger.debug(moveVector.back());
+
     }
 }

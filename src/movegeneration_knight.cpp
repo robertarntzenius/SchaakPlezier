@@ -2,7 +2,7 @@
 
 void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const {
     #ifdef DEBUG
-    logger.logHeader("generateKnightMoves()");
+    logger.logHeader("generateKnightMoves", fromSquare);
     #endif
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
@@ -16,14 +16,7 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
                 .setCapture(pieceMaps[~activePlayer].at(toSquare), toSquare)
                 .build()
         );
-        #ifdef DEBUG
-            logger.log(
-                MoveBuilder(Knight, fromSquare)
-                    .setTarget(toSquare)
-                    .setCapture(pieceMaps[~activePlayer].at(toSquare), toSquare)
-                    .build()
-                );
-        #endif
+        logger.debug(moveVector.back());
     }
 
     // Knight moves
@@ -35,12 +28,7 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
                 .setTarget(toSquare)
                 .build()
         );
-        #ifdef DEBUG
-            logger.log(
-                MoveBuilder(Knight, fromSquare)
-                    .setTarget(toSquare)
-                    .build()
-                );
-        #endif
+        logger.debug(moveVector.back());
+
     }
 }

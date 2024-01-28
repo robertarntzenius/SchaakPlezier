@@ -10,7 +10,13 @@
 #include <cstdio>
 #include <cstdarg>
 
+enum LogLevel {
+    LEVEL_ALL = 2,
+    LEVEL_DEBUG = 1,
+    LEVEL_RELEASE = 0
+};
 
+// TODO make inline constexpr of log calls to optimize them away! 
 class ChessLogger {
 public:
     static ChessLogger& getInstance(const std::string &logFileName = "Schaakplezier.log") {
@@ -24,6 +30,51 @@ public:
         }
     }
 
+    void setLogLevel(LogLevel level) {
+        logLevel = level;
+    }
+    
+    template <typename... Args>
+    void debug(Args... args) {
+        if (logLevel < LEVEL_DEBUG) return;
+        // log("DEBUG");
+        log(args...);
+    }
+
+    template <typename... Args>
+    void release(Args... args) {
+        if (logLevel < LEVEL_RELEASE) return;
+        // log("RELEASE");
+        log(args...);
+    }
+
+    template <typename... Args>
+    void all(Args... args) {
+        // log("ALL");
+        log(args...);
+    }
+
+    void logHeader(std::string headerName) {
+        logHeader(headerName, "");
+    }
+
+    template<typename T>
+    void logHeader(std::string headerName, T arg) {
+        const std::size_t headerSize = 50;
+        std::stringstream ss;
+
+        ss << headerName << "(" << arg << ")";
+        headerName = ss.str();
+
+        if (headerName.size() > headerSize) {
+            throw std::invalid_argument("Header name too long: " + std::to_string(headerName.size()));
+        }
+
+        std::string equals((headerSize - headerName.length() - 2) / 2, '=');
+        std::string header = "\n" + equals + ' ' + headerName + ' ' + equals;
+        log(header.c_str());
+    }
+// private:
     void log(std::ostringstream& os) {
         if (logFile.is_open()) {
             logFile << os.str() << std::endl << std::endl;
@@ -65,22 +116,9 @@ public:
             logFile << oss.str() << std::endl;
         }
     }
-
-    void logHeader(const std::string& headerName) {
-        const std::size_t headerSize = 50;
-
-        if (headerName.size() > headerSize) {
-            throw std::invalid_argument("Header name too long: " + std::to_string(headerName.size()));
-        }
-
-        std::string equals((headerSize - headerName.length() - 2) / 2, '=');
-        std::string header = "\n" + equals + ' ' + headerName + ' ' + equals;
-        log(header.c_str());
-    }
-
 private:
-    explicit ChessLogger(const std::string& logFileName)
-        : logFile(logFileName, std::ios::out | std::ios::trunc)
+    explicit ChessLogger(const std::string& logFileName, LogLevel level = LEVEL_RELEASE)
+        : logFile(logFileName, std::ios::out | std::ios::trunc), logLevel(level)
     {
         if (!logFile.is_open()) {
             std::cerr << "Error: Unable to open logfile: '" << logFileName << "'\n";
@@ -94,5 +132,6 @@ private:
         oss << buffer;
     }
 
-    std::ofstream logFile;
+std::ofstream logFile;
+LogLevel logLevel;
 };
