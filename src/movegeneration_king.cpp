@@ -55,7 +55,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
     static constexpr Bitboard bQueenSideEmptySquares = Bitboard(0).set(b8).set(c8).set(d8);
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    const Bitboard opponentAttacks = getAttackedMask(~activePlayer);
+    const Bitboard opponentAttacks = getPlayerAttackMask(~activePlayer);
     logger.verbose("opponentAttacks", opponentAttacks);
 
     switch (side) {

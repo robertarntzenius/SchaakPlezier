@@ -70,7 +70,7 @@ public:
     template <typename... Args>
     void verbose(Args... args) {
         if (logLevel < LEVEL_VERBOSE) return;
-        log(args...);
+        log(LEVEL_VERBOSE, args...);
     }
 
     template <typename T>

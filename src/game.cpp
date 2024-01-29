@@ -4,9 +4,6 @@
 Game::Game(const char *FENString) 
     : logger(ChessLogger::getInstance()), _board(Board(FENString))
 {
-    logger.setLogLevel(LEVEL_ESSENTIAL);
-    logger.essential("New game created!");
-    logger.debug("test debug msg"); // Doesnt get logged!
 }
 
 void Game::start()

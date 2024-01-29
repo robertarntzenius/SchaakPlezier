@@ -26,7 +26,8 @@ Board::Board(const char *FENString)
     InitializeFromFEN(FENString);
 }
 
-void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
+// FIXME should be const, maybe move incheck call & doMove somewhere
+void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
     logBoard();
 
@@ -35,37 +36,166 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) const {
     //       a specific type.
 
     // for every piece
+    std::vector<Move> psuedoLegalMoves;
+
     for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
         const Square &fromSquare = squarePiecetypePair.first;
         const Piecetype &type = squarePiecetypePair.second;
 
         switch (type) {
             case Pawn:
-                generatePawnMoves(moveVector, fromSquare);
+                generatePawnMoves(psuedoLegalMoves, fromSquare);
                 break;
             case Knight:
-                generateKnightMoves(moveVector, fromSquare);
+                generateKnightMoves(psuedoLegalMoves, fromSquare);
                 break;
            case Bishop:
-                generateSliderMoves(moveVector, fromSquare, Bishop);
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Bishop);
                 break;
             case Rook:
-                generateSliderMoves(moveVector, fromSquare, Rook);
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Rook);
                 break;
            case Queen:
-                generateSliderMoves(moveVector, fromSquare, Queen);
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Queen);
                 break;
            case King:
-                generateKingMoves(moveVector, fromSquare);
+                generateKingMoves(psuedoLegalMoves, fromSquare);
                 break;
             default:
                 // Not implemented / throw
                 break;
         }
     }
+
+    for (const auto& move : psuedoLegalMoves) {
+        std::array<bool, NrCastlingRights> copyCastlingRights = {wKC, wQC, bKC, bQC};
+        Square copyEnPassantSquare = enPassantSquare;
+
+        doMove(move);
+        if (!inCheck(~activePlayer)) {
+            moveVector.emplace_back(std::move(move));
+        }        
+        undoMove(move, copyCastlingRights, copyEnPassantSquare);
+        // checkBoardConsistency();
+    }
 }
 
-void Board::doMove(const Move *move) {
+void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
+    if (toSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(toSquare);
+        pieceMaps[player][toSquare] = pieceType;
+        colorBitboards[player].set(toSquare);
+    }
+
+    if (fromSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(fromSquare, false);
+        colorBitboards[player].set(fromSquare, false);
+        pieceMaps[player].erase(fromSquare);
+    }
+}
+
+void Board::doMove(const Move &move) {   
+    if (move.isCapture) {
+        movePiece(~activePlayer, move.capturePiece, move.captureSquare, NoSquare);
+    }
+
+    movePiece(activePlayer, move.playerPiece, move.fromSquare, move.targetSquare);
+
+    if (move.isPromotion) {
+        piecetypeBitboards[Pawn].set(move.targetSquare, false);
+        piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
+        pieceMaps[activePlayer][move.targetSquare] = move.promotionPiece;
+    }
+
+    if (move.isCastling) {
+        switch (move.targetSquare) {
+        case g1:
+            movePiece(activePlayer, Rook, h1, f1);
+            break;
+        case c1:
+            movePiece(activePlayer, Rook, a1, d1);
+            break;
+        case g8:
+            movePiece(activePlayer, Rook, h8, f8);
+            break;
+        case c8:
+            movePiece(activePlayer, Rook, a8, d8);
+            break;
+        default:
+            throw std::invalid_argument("Non valid Castle move");
+        }
+    }
+    
+    auto removeCastlingRights = [this](Square square){
+        switch(square) {
+            case a1: wQC = false; break;
+            case h1: wKC = false; break;
+            case a8: bQC = false; break;
+            case h8: bKC = false; break;
+            case e1: wQC = false; wKC = false; break;
+            case e8: bQC = false; bKC = false; break;
+            default: break; 
+        }
+    };
+
+    removeCastlingRights(move.fromSquare);
+    removeCastlingRights(move.targetSquare);
+
+    halfMoveClock++;
+    if ((halfMoveClock % 2) == 0) {
+        fullMoveNumber++;
+    }
+    enPassantSquare = move.newEnPassant;
+    activePlayer = ~activePlayer;
+}
+
+void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare) {
+    activePlayer = ~activePlayer;
+
+    wKC = copyCastlingRights[wKingside];
+    wQC = copyCastlingRights[wQueenside];
+    bKC = copyCastlingRights[bKingside];
+    bQC = copyCastlingRights[bQueenside];
+    enPassantSquare = copyEnPassantSquare;
+
+    if ((halfMoveClock % 2) == 0) {
+        fullMoveNumber--;
+    }
+    halfMoveClock--;
+
+    if (move.isCastling) {
+        switch (move.targetSquare) {
+        case g1:
+            movePiece(activePlayer, Rook, f1, h1);
+            break;
+        case c1:
+            movePiece(activePlayer, Rook, d1, a1);
+            break;
+        case g8:
+            movePiece(activePlayer, Rook, f8, h8);
+            break;
+        case c8:
+            movePiece(activePlayer, Rook, d8, a8);
+            break;
+        default:
+            throw std::invalid_argument("Non valid Castle move");
+        }
+    }
+
+    if (move.isPromotion) {
+        piecetypeBitboards[Pawn].set(move.targetSquare, true);
+        piecetypeBitboards[move.promotionPiece].set(move.targetSquare, false);
+        pieceMaps[activePlayer][move.targetSquare] = Pawn;
+    }
+
+    movePiece(activePlayer, move.playerPiece, move.targetSquare, move.fromSquare);
+
+    if (move.isCapture) {
+        movePiece(~activePlayer, move.capturePiece, NoSquare, move.captureSquare);
+    }
+}
+
+
     // TODO: reimplement
     
     // This function checks the legality of a move at the end by checking
@@ -85,8 +215,7 @@ void Board::doMove(const Move *move) {
 //             *opponent = m_ColorBitboards.at(invertColor(activePlayer)),
 //             *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
 //             *opponentPtype = m_pieceTypeBitboards.at(move.capturedPiece.type);
-//    std::vector<Piece> *playerPieces = (activePlayer == White) ? &wPieces : &bPieces;
-//    std::vector<Piece> *opponentPieces = (activePlayer == White) ? &bPieces : &wPieces;
+
 //
 //    Square previousEnPassant = enPassantSquare;
 //    setEnPassant(move.enPassant);
@@ -138,12 +267,12 @@ void Board::doMove(const Move *move) {
 //    }
 //
 //    return true;
-}
 
 bool Board::inCheck(Color player) const
 {
-    // TODO: implement
-    return false;
+    Bitboard opponentAttacks = getPlayerAttackMask(~player);
+    Bitboard playerKing = piecetypeBitboards[King] & colorBitboards[player];
+    return (!(opponentAttacks & playerKing).empty());
 }
 
 void Board::logBitboards() const {
@@ -245,7 +374,7 @@ void Board::checkBoardConsistency() const
     }
 }
 
-Bitboard Board::getAttackedMask(Color player) const {
+Bitboard Board::getPlayerAttackMask(Color player) const {
     Bitboard attacks;
     for (const auto piece: pieceMaps[player]) {
         const Square &fromSquare = piece.first;

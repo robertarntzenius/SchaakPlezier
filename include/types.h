@@ -87,7 +87,8 @@ enum CastlingSide : uint8_t {
     wKingside,
     wQueenside,
     bKingside,
-    bQueenside
+    bQueenside,
+    NrCastlingRights = 4
 };
 
 struct Move {

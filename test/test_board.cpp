@@ -18,11 +18,12 @@ void test_board_default_getPossibleMoves() {
 
 void test_board_TestFENS_getPossibleMoves() {
     std::pair<const char *, int> testFENs[] = {
-            {testFEN1, 51},
+            {testFEN1, 5},
             {testFEN2, 44},
             {testFEN3, 49},
             {testFEN4, 31}
     };
+    
     for (const auto &testEntry : testFENs) {
         const char *FENstring = testEntry.first;
         const std::size_t correctNrMoves = testEntry.second;

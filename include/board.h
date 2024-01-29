@@ -18,15 +18,20 @@ class Board {
          *
          * @param moves
          */
-        void getPossibleMoves(std::vector<Move> &moveVector) const;
+        void getPossibleMoves(std::vector<Move> &moveVector);
 
         /**
          * @brief Performs move from current board state
          *
          * @param move
          */
-        void doMove(const Move *move);
-
+        void doMove(const Move &move);
+        /**
+         * @brief Takes back the last  move from current board state
+         *
+         * @param move
+         */
+        void undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare);
         /**
          * @brief returns whether specific player is in check from the current board state
          *
@@ -48,6 +53,7 @@ class Board {
         /* Methods*/
         void InitializeFromFEN(const char *FENString);
         void checkBoardConsistency() const;
+        void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
 
         /* MoveGen */
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
@@ -61,7 +67,7 @@ class Board {
         
         /* MaskGen */
         Bitboard getAttacksFromSlider(Square fromSquare, Piecetype piecetype) const;
-        Bitboard getAttackedMask(Color player) const;
+        Bitboard getPlayerAttackMask(Color player) const;
         
         /* Member variables */
         ChessLogger& logger;
