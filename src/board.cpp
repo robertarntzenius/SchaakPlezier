@@ -126,7 +126,7 @@ void Board::doMove(const Move &move) {
         }
     }
     
-    auto removeCastlingRights = [this](Square square){
+    auto removeCastlingRights = [this](Square square) {
         switch(square) {
             case a1: wQC = false; break;
             case h1: wKC = false; break;
@@ -194,79 +194,6 @@ void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCa
         movePiece(~activePlayer, move.capturePiece, NoSquare, move.captureSquare);
     }
 }
-
-
-    // TODO: reimplement
-    
-    // This function checks the legality of a move at the end by checking
-    // if the king is in check in the resulting position return -1
-    // if not in check return 0;
-
-    // This function only changes the bitboards depending on the Move it receives
-
-    // Before changing any of the player bitboards, see if the move is a capture
-    // if the move is a capture, change necessary opponent bitboards first
-    // move.capture is the pType of the captured piece
-
-    // TODO change occupied & empty and other bitboards I might've missed.
-    // These arent being used now, so not very important at the moment
-
-//    Bitboard *player = m_ColorBitboards.at(activePlayer),
-//             *opponent = m_ColorBitboards.at(invertColor(activePlayer)),
-//             *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
-//             *opponentPtype = m_pieceTypeBitboards.at(move.capturedPiece.type);
-
-//
-//    Square previousEnPassant = enPassantSquare;
-//    setEnPassant(move.enPassant);
-//
-//
-//    if (opponentPtype != nullptr)
-//    {
-//        opponentPieces->erase(
-//            std::remove(opponentPieces->begin(), opponentPieces->end(), move.capturedPiece)
-//            , opponentPieces->end());
-//
-//            opponent->reset(move.capturedPiece.square);
-//            opponentPtype->reset(move.capturedPiece.square);
-//    }
-//
-//    for (auto& piece : *playerPieces)
-//    {
-//        if (piece == move.piece ) {
-//            piece.square = move.target;  // Update the square to the destination square
-//            break;  // Break out of the loop once the piece is found and updated
-//        }
-//    }
-//
-//    // TODO implement castling
-//    // TODO: dont forget to lose castling rights when you move/capture a rook@starting square
-//    player->reset(move.piece.square);
-//    player->set(move.target);
-//    playerPtype->reset(move.piece.square);
-//    playerPtype->set(move.target);
-//
-//    #ifdef DEBUG
-//        // logBitboards();
-//
-//        for (Piece &piece : wPieces)
-//        {
-//            logger.log(piece);
-//        }
-//        for (Piece &piece : bPieces)
-//        {
-//            logger.log(piece);
-//        }
-//    #endif
-//
-//    _assert(checkBoardConsistency());
-//
-//    if (inCheck()) { // TODO implement
-//        setEnPassant(previousEnPassant);
-//        return false;
-//    }
-//
-//    return true;
 
 bool Board::inCheck(Color player) const
 {
