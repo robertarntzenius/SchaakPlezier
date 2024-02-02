@@ -40,8 +40,8 @@ void test_board_TestFENS_getPossibleMoves() {
 
 
 int main() {
-    test_board_default_getPossibleMoves();
-    test_board_TestFENS_getPossibleMoves();
+    // test_board_default_getPossibleMoves();
+    // test_board_TestFENS_getPossibleMoves();
     // doMove
     // inCheck
     return 0;

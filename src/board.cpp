@@ -2,8 +2,8 @@
 
 /* public */
 
-Board::Board(const char *FENString)
-    : logger(ChessLogger::getInstance()),
+Board::Board(const char *FENString, const std::string &logFile)
+    : logger(ChessLogger::getInstance(logFile)),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps(),
@@ -19,9 +19,7 @@ Board::Board(const char *FENString)
         // TODO implement
         logger.setLogLevel(LEVEL_VERBOSE);
     #endif
-    logger.essential("New Board created! - essential message");
-    logger.debug("New Board created! - debug message");
-    logger.verbose("New Board created! - verbose message");
+    logger.essential("New Board created!");
 
     InitializeFromFEN(FENString);
 }
@@ -29,7 +27,7 @@ Board::Board(const char *FENString)
 // FIXME should be const, maybe move incheck call & doMove somewhere
 void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
-    logBoard();
+    logBoard(LEVEL_DEBUG);
 
     // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
     //       this removes the need for a lot of methods and loops over all pieces just to find ones of
@@ -68,7 +66,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     }
 
     for (const auto& move : psuedoLegalMoves) {
-        std::array<bool, NrCastlingRights> copyCastlingRights = {wKC, wQC, bKC, bQC};
+        std::array<bool, NrCastlingRights> copyCastlingRights = getCastlingRights();
         Square copyEnPassantSquare = enPassantSquare;
 
         doMove(move);
@@ -93,6 +91,31 @@ void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Squa
         pieceMaps[player].erase(fromSquare);
     }
 }
+
+std::array<bool, 4> Board::getCastlingRights() const {
+    return {wKC, wQC, bKC, bQC};
+}
+
+void Board::setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights) {
+    wKC = newCastlingRights[wKingside];
+    wQC = newCastlingRights[wQueenside];
+    bKC = newCastlingRights[bKingside];
+    bQC = newCastlingRights[bQueenside];
+}
+
+Square Board::getEnPassantSquare() const {
+    return enPassantSquare;
+}
+
+void Board::setLogLevel(LogLevel logLevel)
+{
+    logger.setLogLevel(logLevel);
+}
+
+void Board::setEnPassantSquare(Square newEnpassantSquare) {
+    enPassantSquare = newEnpassantSquare;
+}
+
 
 void Board::doMove(const Move &move) {   
     if (move.isCapture) {
@@ -152,11 +175,8 @@ void Board::doMove(const Move &move) {
 void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare) {
     activePlayer = ~activePlayer;
 
-    wKC = copyCastlingRights[wKingside];
-    wQC = copyCastlingRights[wQueenside];
-    bKC = copyCastlingRights[bKingside];
-    bQC = copyCastlingRights[bQueenside];
-    enPassantSquare = copyEnPassantSquare;
+    setCastlingRights(copyCastlingRights);
+    setEnPassantSquare(copyEnPassantSquare);
 
     if ((halfMoveClock % 2) == 0) {
         fullMoveNumber--;
@@ -371,7 +391,7 @@ Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) con
     return scope;
 }
 
-void Board::logBoard() const {
+void Board::logBoard(LogLevel logLevel) const {
     std::ostringstream os;
     std::string board(BOARD_SIZE, '.');
 
@@ -403,5 +423,11 @@ void Board::logBoard() const {
     os << "enPassantSquare: " << enPassantSquare << std::endl;
     os << "wKC: " << wKC << ", wQC: " << wQC << ", bKC: " << bKC << ", bQC: " <<  bQC << std::endl;
     os << "halfMoveClock: " << halfMoveClock << ", fullMoveNumber: " << fullMoveNumber;
-    logger.essential(os.str());
-}
+    
+    switch (logLevel) {
+        case LEVEL_ESSENTIAL:   logger.essential(os.str()); break;
+        case LEVEL_DEBUG:       logger.debug(os.str());     break;
+        case LEVEL_VERBOSE:     logger.verbose(os.str());   break;
+        default: break;
+        }
+    }

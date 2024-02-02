@@ -10,7 +10,7 @@ class Board {
     public:
         ~Board() = default;
 
-        Board(const char *FENString = defaultStartingFEN);
+        Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
 
         /**
          * @brief Computes and inserts all possible moves from current board state
@@ -43,17 +43,26 @@ class Board {
         /**
          * @brief Logs current board state to logger in ASCII chessboard
          */
-        void logBoard() const;
+        void logBoard(LogLevel logLevel) const;
 
         /**
          * @brief Logs all Bitboard members to logger
          */
         void logBitboards() const;
+
+        // useful functions for testing
+        std::array<bool, NrCastlingRights> getCastlingRights() const;
+        void setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights);
+        void setEnPassantSquare(Square newEnpassantSquare);
+        Square getEnPassantSquare() const;
+        void setLogLevel(LogLevel logLevel);
+        void checkBoardConsistency() const;
+
     private:
         /* Methods*/
         void InitializeFromFEN(const char *FENString);
-        void checkBoardConsistency() const;
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
+        
 
         /* MoveGen */
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
