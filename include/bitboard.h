@@ -2,11 +2,10 @@
 
 #include "types.h"
 
+#include <iterator>
 #include <cstdlib>
 #include <vector>
 
-// NOTE: making this functionally constexpr was a hassle, but apparently it needs
-//       to be fully defined in the header
 
 class Bitboard {
     public:
@@ -22,7 +21,7 @@ class Bitboard {
         {
         }
 
-        constexpr bool operator==(const Bitboard &other) const {
+        [[nodiscard]] constexpr bool operator==(const Bitboard &other) const {
             return bits == other.bits;
         }
 
@@ -49,8 +48,8 @@ class Bitboard {
             return Bitboard(bits >> -offset);
         }
 
-        constexpr Bitboard &set(int bitNr, bool value = true) {
-            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+        constexpr Bitboard &set(Square square, bool value = true) {
+            ulong mask = 1UL << (BOARD_SIZE - square - 1);
 
             if (value) {
                 bits = bits | mask;
@@ -69,6 +68,29 @@ class Bitboard {
             return *this;
         }
 
+        // resets lower bits including index itself
+        constexpr Bitboard &resetLowerBits(Square square) {
+            if (square == NoSquare) {
+                return *this;
+            }
+
+            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            bits = bits & ~lowerBits;
+            set(square, false);
+            return *this;
+        }
+
+        // resets upper bits including index itself
+        constexpr Bitboard &resetUpperBits(Square square) {
+            if (square == NoSquare) {
+                return *this;
+            }
+
+            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            bits = bits & lowerBits;
+            return *this;
+        }
+
         [[nodiscard]] constexpr bool empty() const {
             return bits == 0;
         }
@@ -83,22 +105,65 @@ class Bitboard {
             return count;
         }
 
+        [[nodiscard]] constexpr Square getHighestSetBit() const {
+            if (bits == 0) {
+                return NoSquare;
+            }
+            int squareIndex = __builtin_clzll(bits);
+            return static_cast<Square>(squareIndex);
+        };
+
+        [[nodiscard]] constexpr Square getLowestSetBit() const {
+            if (bits == 0) {
+                return NoSquare;
+            }
+            int squareIndex = BOARD_SIZE - __builtin_ctzll(bits) - 1;
+            return static_cast<Square>(squareIndex);
+        };
+
         [[nodiscard]] constexpr bool test(int bitNr) const {
             ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
             return bits & mask;
         }
 
-        [[nodiscard]] std::vector<Square> getIndices() const {
-            std::vector<Square> indices;
-            ulong copy = bits;
-            while (copy) {
-                int square = __builtin_ctzll(copy); // Count trailing zeros using a built-in function
-                indices.push_back(static_cast<Square>(square));
-                copy &= copy - 1; // Clear the lowest set bit
+        [[nodiscard]] constexpr bool test(Square square) const {
+            if (square == NoSquare) {
+                return false;
             }
-            return indices;
+
+            ulong mask = 1UL << (BOARD_SIZE - square - 1);
+            return bits & mask;
+        }
+
+        class Iterator : public std::iterator<std::input_iterator_tag, Square> {
+            public:
+                explicit Iterator(ulong bits) : bitsCopy(bits) {}
+
+                [[nodiscard]] bool operator==(const Iterator& other) const { return bitsCopy == other.bitsCopy; }
+                [[nodiscard]] bool operator!=(const Iterator& other) const { return bitsCopy != other.bitsCopy; }
+
+                Iterator& operator++() {
+                    bitsCopy &= (bitsCopy - 1);
+                    return *this;
+                }
+
+                [[nodiscard]] Square operator*() const {
+                    return static_cast<Square>(BOARD_SIZE - __builtin_ctzll(bitsCopy) - 1);
+                }
+
+            private:
+                ulong bitsCopy;
+        };
+
+        [[nodiscard]] Iterator begin() const {
+            return Iterator(bits);
+        }
+
+        [[nodiscard]] static Iterator end() {
+            return Iterator(0);
         }
 
     private:
         ulong bits;
 };
+

@@ -8,12 +8,11 @@
 
 #include <unordered_map>
 #include <array>
-#include <memory>
 #include <string>
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-#ifdef DEBUG 
+#ifdef DEBUG
 // _assert will be compiled in Debug
 #define _assert(expr) \
     if (!(expr)) { \
@@ -28,42 +27,53 @@ constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 #define _assert(expr) ((void)0)
 #endif
 
-
-[[nodiscard]] static constexpr Color invertColor (Color color) {
-    return static_cast<Color>(color + 1 % NrColors);
-}
-
-[[nodiscard]] static constexpr Square intToSquare(int i) {
+[[nodiscard]] constexpr Square intToSquare(int i) {
     if (i < a8 || i > h1) {
-        throw std::out_of_range("Invalid chessboard square");
+        return NoSquare;
     }
 
     return static_cast<Square>(i);
 }
 
+// Conversions and Comparisons
+[[nodiscard]] constexpr Color operator~(Color color) {
+    return static_cast<Color>((color + 1) % NrColors);
+}
+
+[[nodiscard]] constexpr Rank squareToRank(Square square) {
+    return static_cast<Rank>(square / BOARD_DIMENSIONS);
+}
+
+[[nodiscard]] constexpr File squareToFile(Square square) {
+    return static_cast<File>(square % BOARD_DIMENSIONS);
+}
+
+[[nodiscard]] constexpr Square rankFileToSquare(Rank rank, File file) {
+    return static_cast<Square>(rank*BOARD_DIMENSIONS + file);
+}
+
+constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
+    Knight, Bishop, Rook, Queen
+};
+
 /**
  * Directional offsets based on L-shifts
  */
-enum DirectionalOffset : int {
-    NoOffset = 0,
+enum DirectionalOffset : int8_t {
+    OFFSET_NORTH =  8,
+    OFFSET_SOUTH = -8,
+    OFFSET_WEST  =  1,
+    OFFSET_EAST  = -1,
+    OFFSET_NORTHWEST = OFFSET_NORTH + OFFSET_WEST,
+    OFFSET_NORTHEAST = OFFSET_NORTH + OFFSET_EAST,
+    OFFSET_SOUTHWEST = OFFSET_SOUTH + OFFSET_WEST,
+    OFFSET_SOUTHEAST = OFFSET_SOUTH + OFFSET_EAST,
 
-    // Vertical directions
-    North = 8,
-    South = -8,
-
-    // Horizontal directions
-    West = 1,
-    East = -1,
-
-    // Diagonal directions
-    NorthEast = 7,
-    NorthWest = 9,
-    SouthEast = -9,
-    SouthWest = -7
+    NO_OFFSET = 0
 };
 
-
-static const std::unordered_map<Square, std::string> squareStringMap = {
+// Stringmaps for logging
+const std::unordered_map<Square, std::string> squareStringMap = {
     {a8, "a8"}, {b8, "b8"}, {c8, "c8"}, {d8, "d8"}, {e8, "e8"}, {f8, "f8"}, {g8, "g8"}, {h8, "h8"},
     {a7, "a7"}, {b7, "b7"}, {c7, "c7"}, {d7, "d7"}, {e7, "e7"}, {f7, "f7"}, {g7, "g7"}, {h7, "h7"},
     {a6, "a6"}, {b6, "b6"}, {c6, "c6"}, {d6, "d6"}, {e6, "e6"}, {f6, "f6"}, {g6, "g6"}, {h6, "h6"},
@@ -75,7 +85,7 @@ static const std::unordered_map<Square, std::string> squareStringMap = {
     {NoSquare, "NoSquare"}, {NrSquares, "NrSquares"},
 };
 
-static const std::unordered_map<std::string, Square> stringSquareMap = {
+const std::unordered_map<std::string, Square> stringSquareMap = {
     {"-", NoSquare},
     {"a8", a8}, {"b8", b8}, {"c8", c8}, {"d8", d8}, {"e8", e8}, {"f8", f8}, {"g8", g8}, {"h8", h8},
     {"a7", a7}, {"b7", b7}, {"c7", c7}, {"d7", d7}, {"e7", e7}, {"f7", f7}, {"g7", g7}, {"h7", h7},
@@ -87,29 +97,40 @@ static const std::unordered_map<std::string, Square> stringSquareMap = {
     {"a1", a1}, {"b1", b1}, {"c1", c1}, {"d1", d1}, {"e1", e1}, {"f1", f1}, {"g1", g1}, {"h1", h1},
 };
 
-//static const std::unordered_map<File, std::string> fileStringMap = {
-//        {A, "A"},
-//        {B, "B"},
-//        {C, "C"},
-//        {D, "D"},
-//        {E, "E"},
-//        {F, "F"},
-//        {G, "G"},
-//        {H, "H"}
-//};
+const std::unordered_map<File, std::string> fileStringMap = {
+       {FileA, "A"},
+       {FileB, "B"},
+       {FileC, "C"},
+       {FileD, "D"},
+       {FileE, "E"},
+       {FileF, "F"},
+       {FileG, "G"},
+       {FileH, "H"}
+};
 
-static const std::unordered_map<char, Color> charColorMap = {
+const std::unordered_map<Rank, std::string> rankStringMap = {
+       {Rank1, "1"},
+       {Rank2, "2"},
+       {Rank3, "3"},
+       {Rank4, "4"},
+       {Rank5, "5"},
+       {Rank6, "6"},
+       {Rank7, "7"},
+       {Rank8, "8"}
+};
+
+const std::unordered_map<char, Color> charColorMap = {
     {'w', White},
     {'b', Black},
 };
 
-static const std::unordered_map<Color, std::string> colorStringMap = {
+const std::unordered_map<Color, std::string> colorStringMap = {
     {White, "white"},
     {Black, "black"},
     {NrColors, "NrColors"},
 };
 
-static const std::unordered_map<char, Piecetype> charPiecetypeMap = {
+const std::unordered_map<char, Piecetype> charPiecetypeMap = {
     {'p', Pawn},    {'P', Pawn},
     {'n', Knight},  {'N', Knight},
     {'b', Bishop},  {'B', Bishop},
@@ -118,7 +139,7 @@ static const std::unordered_map<char, Piecetype> charPiecetypeMap = {
     {'k', King},    {'K', King},
 };
 
-static const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
+const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
     {Pawn, 'P'},
     {Knight, 'N'},
     {Bishop, 'B'},
@@ -127,7 +148,7 @@ static const std::unordered_map<Piecetype, char> whitePiecetypeCharMap = {
     {King, 'K'}
 };
 
-static const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
+const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
     {Pawn,   'p'},
     {Knight, 'n'},
     {Bishop, 'b'},
@@ -136,48 +157,92 @@ static const std::unordered_map<Piecetype, char> blackPiecetypeCharMap = {
     {King,   'k'},
 };
 
-static const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
-    {NoType, "NoType"},
+const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {Pawn,   "pawn"},
     {Knight, "knight"},
     {Bishop, "bishop"},
     {Rook,   "rook"},
     {Queen,  "queen"},
     {King,   "king"},
+    {NoType, "NoType"}
 };
+
+const std::unordered_map<Direction, std::string> directionStringMap = {
+       {North, "North"},
+       {South, "South"},
+       {East, "East"},
+       {West, "West"},
+       {NorthEast, "NorthEast"},
+       {NorthWest, "NorthWest"},
+       {SouthEast, "SouthEast"},
+       {SouthWest, "SouthWest"}
+};
+
+// Operator overloads for logging
+static std::ostream& operator<<(std::ostream &os, const Square &square) {
+    os << squareStringMap.at(square);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Color &color) {
+    os << colorStringMap.at(color);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Rank &rank) {
+    os << rankStringMap.at(rank);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const File &file) {
+    os << fileStringMap.at(file);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const Piecetype &piecetype) {
+    os << piecetypeStringMap.at(piecetype);
+    return os;
+}
 
 static std::ostream& operator<<(std::ostream &os, const Bitboard &bitboard) {
     for (int i = 0; i < BOARD_SIZE; i++) {
-        os << ((bitboard.test(i))? '1' : '0');
+        os << ((bitboard.test(i)) ? '1' : '0');
 
         if (i % BOARD_DIMENSIONS == BOARD_DIMENSIONS - 1) {
             os << '\n';
         }
     }
+    return os;
+}
 
+static std::ostream& operator<<(std::ostream &os, const Direction &direction) {
+    os << directionStringMap.at(direction);
     return os;
 }
 
 static std::ostream& operator<<(std::ostream &os, const Move &move) {
-    os << "From: " << squareStringMap.at(move.from)
-       << ", To: " << squareStringMap.at(move.target);
-    return os;
-}
+    os << "[" << move.playerPiece << " - " << move.fromSquare << move.targetSquare << "]";
 
-static std::ostream& operator<<(std::ostream &os, const CaptureMove &move) {
-    os << static_cast<const Move&>(move)
-       << ", Capture: " << move.captureSquare;
-    return os;
-}
+    if (move.newEnPassant != NoSquare) {
+        os << " | DoublePawn | "
+           << "newEnPassantSquare:" << move.newEnPassant;
+    }
 
-static std::ostream& operator<<(std::ostream& os, const DoublePawnMove& move) {
-    os << static_cast<const Move&>(move)
-       << ", En Passant Square: " << move.enPassantSquare;
-    return os;
-}
+    if (move.isCapture) {
+        os << " | Capture | "
+           << "capturePiece:" << move.capturePiece
+           << ", captureSquare:" << move.captureSquare;
+    }
 
-static std::ostream& operator<<(std::ostream &os, const CastleMove &move) {
-    os << static_cast<const Move&>(move)
-       << ", Rook Move: [" << move.castleRookMove << "]";
+    if (move.isPromotion) {
+        os << " | Promotion | "
+           << "promotionType:" << move.promotionPiece;
+    }
+
+    if (move.isCastling) {
+        os << " | Castling | ";
+        // os << ...;
+    }
+
     return os;
 }

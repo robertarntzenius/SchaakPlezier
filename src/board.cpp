@@ -2,137 +2,237 @@
 
 /* public */
 
-Board::Board(const char *FENString)
-    : logger(ChessLogger::getInstance()),
-      piecetypeBitboardMap{
-              {Pawn,    {}},
-              {Knight,  {}},
-              {Bishop,  {}},
-              {Rook,    {}},
-              {Queen,   {}},
-              {King,    {}},
-      },
-      colorBitboardMap{
-              {White, {}},
-              {Black, {}},
-      },
-      activePlayer(Color::White),
+Board::Board(const char *FENString, const std::string &logFile)
+    : logger(ChessLogger::getInstance(logFile)),
+      piecetypeBitboards(),
+      colorBitboards(),
+      pieceMaps(),
+      activePlayer(White),
       wKC(false), wQC(false), bKC(false), bQC(false),
       enPassantSquare(NoSquare),
       halfMoveClock(0),
       fullMoveNumber(0)
 {
-    #ifdef DEBUG
-        logger.log("New Board created!");
+    #if defined(DEBUG)
+        logger.setLogLevel(LEVEL_DEBUG);
+    #elif defined(VERBOSE)
+        // TODO implement
+        logger.setLogLevel(LEVEL_VERBOSE);
     #endif
+    logger.essential("New Board created!");
 
     InitializeFromFEN(FENString);
-
-    #ifdef DEBUG
-        logBoard();
-        logBitboards();
-    #endif
 }
 
-void Board::getPossibleMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
-    #ifdef DEBUG
-        logger.logHeader("getPossibleMoves()");
-        logBoard();
-    #endif
+// FIXME should be const, maybe move incheck call & doMove somewhere
+void Board::getPossibleMoves(std::vector<Move> &moveVector) {
+    logger.logHeader("getPossibleMoves");
+    logBoard(LEVEL_DEBUG);
 
-    // FIXME: should vector contain normal ptrs or a smart ptrs for safety?
+    // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
+    //       this removes the need for a lot of methods and loops over all pieces just to find ones of
+    //       a specific type.
 
-    generatePawnMoves(moveVector);
+    // for every piece
+    std::vector<Move> psuedoLegalMoves;
+
+    for (const auto &squarePiecetypePair: pieceMaps[activePlayer]) {
+        const Square &fromSquare = squarePiecetypePair.first;
+        const Piecetype &type = squarePiecetypePair.second;
+
+        switch (type) {
+            case Pawn:
+                generatePawnMoves(psuedoLegalMoves, fromSquare);
+                break;
+            case Knight:
+                generateKnightMoves(psuedoLegalMoves, fromSquare);
+                break;
+           case Bishop:
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Bishop);
+                break;
+            case Rook:
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Rook);
+                break;
+           case Queen:
+                generateSliderMoves(psuedoLegalMoves, fromSquare, Queen);
+                break;
+           case King:
+                generateKingMoves(psuedoLegalMoves, fromSquare);
+                break;
+            default:
+                // Not implemented / throw
+                break;
+        }
+    }
+
+    for (const auto& move : psuedoLegalMoves) {
+        std::array<bool, NrCastlingRights> copyCastlingRights = getCastlingRights();
+        Square copyEnPassantSquare = enPassantSquare;
+
+        doMove(move);
+        if (!inCheck(~activePlayer)) {
+            moveVector.emplace_back(std::move(move));
+        }        
+        undoMove(move, copyCastlingRights, copyEnPassantSquare);
+        // checkBoardConsistency();
+    }
 }
 
-void Board::doMove(const Move *move) {
-    // TODO: reimplement
+void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
+    if (toSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(toSquare);
+        pieceMaps[player][toSquare] = pieceType;
+        colorBitboards[player].set(toSquare);
+    }
 
-
-    // This function checks the legality of a move at the end by checking
-    // if the king is in check in the resulting position return -1
-    // if not in check return 0;
-
-    // This function only changes the bitboards depending on the Move it receives
-
-    // Before changing any of the player bitboards, see if the move is a capture
-    // if the move is a capture, change necessary opponent bitboards first
-    // move.capture is the pType of the captured piece
-
-    // TODO change occupied & empty and other bitboards I might've missed.
-    // These arent being used now, so not very important at the moment
-
-//    Bitboard *player = m_ColorBitboards.at(activePlayer),
-//             *opponent = m_ColorBitboards.at(invertColor(activePlayer)),
-//             *playerPtype = m_pieceTypeBitboards.at(move.piece.type),
-//             *opponentPtype = m_pieceTypeBitboards.at(move.capturedPiece.type);
-//    std::vector<Piece> *playerPieces = (activePlayer == White) ? &wPieces : &bPieces;
-//    std::vector<Piece> *opponentPieces = (activePlayer == White) ? &bPieces : &wPieces;
-//
-//    Square previousEnPassant = enPassantSquare;
-//    setEnPassant(move.enPassant);
-//
-//
-//    if (opponentPtype != nullptr)
-//    {
-//        opponentPieces->erase(
-//            std::remove(opponentPieces->begin(), opponentPieces->end(), move.capturedPiece)
-//            , opponentPieces->end());
-//
-//            opponent->reset(move.capturedPiece.square);
-//            opponentPtype->reset(move.capturedPiece.square);
-//    }
-//
-//    for (auto& piece : *playerPieces)
-//    {
-//        if (piece == move.piece ) {
-//            piece.square = move.target;  // Update the square to the destination square
-//            break;  // Break out of the loop once the piece is found and updated
-//        }
-//    }
-//
-//    // TODO implement castling
-//
-//    player->reset(move.piece.square);
-//    player->set(move.target);
-//    playerPtype->reset(move.piece.square);
-//    playerPtype->set(move.target);
-//
-//    #ifdef DEBUG
-//        // logBitboards();
-//
-//        for (Piece &piece : wPieces)
-//        {
-//            logger.log(piece);
-//        }
-//        for (Piece &piece : bPieces)
-//        {
-//            logger.log(piece);
-//        }
-//    #endif
-//
-//    _assert(checkBoardConsistency());
-//
-//    if (inCheck()) { // TODO implement
-//        setEnPassant(previousEnPassant);
-//        return false;
-//    }
-//
-//    return true;
+    if (fromSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(fromSquare, false);
+        colorBitboards[player].set(fromSquare, false);
+        pieceMaps[player].erase(fromSquare);
+    }
 }
 
-void Board::logBitboards() const
+std::array<bool, NrCastlingRights> Board::getCastlingRights() const {
+    return {wKC, wQC, bKC, bQC};
+}
+
+void Board::setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights) {
+    wKC = newCastlingRights[wKingside];
+    wQC = newCastlingRights[wQueenside];
+    bKC = newCastlingRights[bKingside];
+    bQC = newCastlingRights[bQueenside];
+}
+
+Square Board::getEnPassantSquare() const {
+    return enPassantSquare;
+}
+
+void Board::setLogLevel(LogLevel logLevel)
 {
-    #ifdef DEBUG
-        for (const auto &entry : colorBitboardMap) {
-            logger.log(colorStringMap.at(entry.first).c_str(), entry.second);
-        }
-        for (const auto &entry : piecetypeBitboardMap) {
-            logger.log(piecetypeStringMap.at(entry.first).c_str(), entry.second);
-        }
-    #endif
+    logger.setLogLevel(logLevel);
 }
 
+void Board::setEnPassantSquare(Square newEnpassantSquare) {
+    enPassantSquare = newEnpassantSquare;
+}
+
+
+void Board::doMove(const Move &move) {   
+    if (move.isCapture) {
+        movePiece(~activePlayer, move.capturePiece, move.captureSquare, NoSquare);
+    }
+
+    movePiece(activePlayer, move.playerPiece, move.fromSquare, move.targetSquare);
+
+    if (move.isPromotion) {
+        piecetypeBitboards[Pawn].set(move.targetSquare, false);
+        piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
+        pieceMaps[activePlayer][move.targetSquare] = move.promotionPiece;
+    }
+
+    if (move.isCastling) {
+        switch (move.targetSquare) {
+        case g1:
+            movePiece(activePlayer, Rook, h1, f1);
+            break;
+        case c1:
+            movePiece(activePlayer, Rook, a1, d1);
+            break;
+        case g8:
+            movePiece(activePlayer, Rook, h8, f8);
+            break;
+        case c8:
+            movePiece(activePlayer, Rook, a8, d8);
+            break;
+        default:
+            throw std::invalid_argument("Non valid Castle move");
+        }
+    }
+    
+    auto removeCastlingRights = [this](Square square) {
+        switch(square) {
+            case a1: wQC = false; break;
+            case h1: wKC = false; break;
+            case a8: bQC = false; break;
+            case h8: bKC = false; break;
+            case e1: wQC = false; wKC = false; break;
+            case e8: bQC = false; bKC = false; break;
+            default: break; 
+        }
+    };
+
+    removeCastlingRights(move.fromSquare);
+    removeCastlingRights(move.targetSquare);
+
+    halfMoveClock++;
+    if ((halfMoveClock % 2) == 0) {
+        fullMoveNumber++;
+    }
+    enPassantSquare = move.newEnPassant;
+    activePlayer = ~activePlayer;
+}
+
+void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare) {
+    activePlayer = ~activePlayer;
+
+    setCastlingRights(copyCastlingRights);
+    setEnPassantSquare(copyEnPassantSquare);
+
+    if ((halfMoveClock % 2) == 0) {
+        fullMoveNumber--;
+    }
+    halfMoveClock--;
+
+    if (move.isCastling) {
+        switch (move.targetSquare) {
+        case g1:
+            movePiece(activePlayer, Rook, f1, h1);
+            break;
+        case c1:
+            movePiece(activePlayer, Rook, d1, a1);
+            break;
+        case g8:
+            movePiece(activePlayer, Rook, f8, h8);
+            break;
+        case c8:
+            movePiece(activePlayer, Rook, d8, a8);
+            break;
+        default:
+            throw std::invalid_argument("Non valid Castle move");
+        }
+    }
+
+    if (move.isPromotion) {
+        piecetypeBitboards[Pawn].set(move.targetSquare, true);
+        piecetypeBitboards[move.promotionPiece].set(move.targetSquare, false);
+        pieceMaps[activePlayer][move.targetSquare] = Pawn;
+    }
+
+    movePiece(activePlayer, move.playerPiece, move.targetSquare, move.fromSquare);
+
+    if (move.isCapture) {
+        movePiece(~activePlayer, move.capturePiece, NoSquare, move.captureSquare);
+    }
+}
+
+bool Board::inCheck(Color player) const
+{
+    Bitboard opponentAttacks = getPlayerAttackMask(~player);
+    Bitboard playerKing = piecetypeBitboards[King] & colorBitboards[player];
+    return (!(opponentAttacks & playerKing).empty());
+}
+
+void Board::logBitboards() const {
+    for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
+        const auto color = static_cast<Color>(colorInt);
+        logger.verbose(colorStringMap.at(color).c_str(), colorBitboards[color]);
+    }
+
+    for (int piecetypeInt = 0; piecetypeInt < NrPiecetypes; ++piecetypeInt) {
+        const auto type = static_cast<Piecetype>(piecetypeInt);
+        logger.verbose(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
+    }
+}
 
 /* private */
 
@@ -147,7 +247,7 @@ void Board::InitializeFromFEN(const char *FENString)
     iss >> boardString >> activeColorChar >> castlingRightsString
         >> enPassantSquareString >> halfMoveClock >> fullMoveNumber;
 
-    int square = 0;
+    int squareInt = 0;
 
     for (const char &c : boardString) {
         switch (c) {
@@ -155,21 +255,22 @@ void Board::InitializeFromFEN(const char *FENString)
                 break;
             case '1': case '2': case '3': case '4':
             case '5': case '6': case '7': case '8':
-                square += c - '0';
+                squareInt += c - '0';
                 break;
             default:
+                const Square square = intToSquare(squareInt);
                 Piecetype type = charPiecetypeMap.at(c);
-                piecetypeBitboardMap.at(type).set(square);
+                piecetypeBitboards[type].set(square);
 
                 if (isupper(c) != 0) {
-                    colorBitboardMap.at(White).set(square);
-                    whitePieceMap[intToSquare(square)] = type;
+                    colorBitboards[White].set(square);
+                    pieceMaps[White][square] = type;
                 } else {
-                    colorBitboardMap.at(Black).set(square);
-                    blackPieceMap[intToSquare(square)] = type;
+                    colorBitboards[Black].set(square);
+                    pieceMaps[Black][square] = type;
                 }
 
-                square++;
+                squareInt++;
                 break;
         }
     }
@@ -191,135 +292,117 @@ void Board::InitializeFromFEN(const char *FENString)
 
     #ifdef DEBUG
         checkBoardConsistency();
-        logger.log("%d %d %d %d %d %d %d %d", activePlayer, halfMoveClock, fullMoveNumber, enPassantSquare, wKC, wQC, bKC, bQC);
     #endif
 }
 
-
-
-void Board::generatePawnMoves(std::vector<std::unique_ptr<Move>> &moveVector) const {
-#ifdef DEBUG
-    logger.logHeader("generatePawnMoves()");
-#endif
-    // TODO: reimplement
-
-//    Piecetype playerPawnType = (activePlayer == Color::White) ? wPawn : bPawn;
-//    Piecetype opponentPawnType = (activePlayer == Color::White) ? bPawn : wPawn;
-//    const Bitboard *playerPawns = (activePlayer == Color::White) ? &wpawns : &bpawns;
-//    const Bitboard *opponent = (activePlayer == Color::White) ? &black : &white;
-//    const Bitboard empty = Bitboard(black | white).flip();
-//
-//
-//    // Generate Capture Moves
-//    for (Square fromSquare : getIndices(*playerPawns)) {
-//        // doing the comparison here skips the for loop for many pawns
-//        Bitboard validAttacks = (PawnAttacks[color][fromSquare] & *opponent);
-//        for (Square toSquare : getIndices(validAttacks)) {
-//#ifdef DEBUG
-//            Move move(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
-//            logger.log("CAPTURE");
-//            logger.log(move);
-//#endif
-//            pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, findPiece(toSquare));
-//        }
-//
-//        // enPassantSquare
-//        // cant use validAttacks because the enPassantSquare square is empty by definition
-//        if ((enPassantSquare != NoSquare) && (PawnAttacks[color][fromSquare].test(enPassantSquare))) {
-//#ifdef DEBUG
-//            Move move(fromSquare, enPassantSquare, playerPawnType, opponentPawnType);
-//            logger.log("ENPASSANT");
-//            logger.log(move);
-//#endif
-//            Square capturedPieceSquare = (activePlayer == White) ? intToSquare(enPassantSquare + BOARD_DIMENSIONS) : intToSquare(enPassantSquare - BOARD_DIMENSIONS);
-//            pawnMoves.emplace_back(fromSquare, enPassantSquare, playerPawnType, findPiece(capturedPieceSquare));
-//            // TODO: make sure to handle this move correctly when actually making it
-//        }
-//    }
-//
-//    // Generate Push moves
-//    for (Square fromSquare : getIndices(*playerPawns)) { // for every pawn
-//        for (Square toSquare : getIndices(PawnPushes[color][fromSquare])) { // for every attacked square of that pawn
-//
-//            // Double pushes
-//            if ( (abs(fromSquare - toSquare) == 2 * BOARD_DIMENSIONS)
-//                 && (empty.test(intToSquare((toSquare+fromSquare)/2))) // if one square in front is empty
-//                 && (empty.test(toSquare)) )
-//            {
-//#ifdef DEBUG
-//                Move move(fromSquare, toSquare, playerPawnType, NoType);
-//                logger.log("DOUBLE PUSH");
-//                logger.log(move);
-//#endif
-//                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType, (intToSquare((toSquare+fromSquare)/2)));
-//
-//                // TODO set enpassant square or at least pass it along with the move?
-//            }
-//
-//                // Single pushes
-//            else if ( (abs(fromSquare - toSquare) == BOARD_DIMENSIONS)
-//                      && empty.test(toSquare))
-//            {
-//#ifdef DEBUG
-//                Move move(fromSquare, toSquare, playerPawnType, NoType);
-//                logger.log("SINGLE PUSH");
-//                logger.log(move);
-//#endif
-//                pawnMoves.emplace_back(fromSquare, toSquare, playerPawnType, NoType);
-//            }
-//        }
-//    }
-//    return pawnMoves;
-}
-
-
 void Board::checkBoardConsistency() const
 {
-    _assert(whitePieceMap.size() == colorBitboardMap.at(White).count());
-    _assert(blackPieceMap.size() == colorBitboardMap.at(Black).count());
+    _assert(pieceMaps[White].size() == colorBitboards[White].count());
+    _assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
-    for (const auto &squarePiecetypePair : whitePieceMap) {
+    for (const auto &squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
-        _assert(colorBitboardMap.at(White).test(square));
-        _assert(piecetypeBitboardMap.at(type).test(square));
+        _assert(colorBitboards[White].test(square));
+        _assert(piecetypeBitboards[type].test(square));
     }
 
     Bitboard noOverlapBoard = Bitboard();
-    for (const auto &colorBitboardPair : colorBitboardMap) {
-        const Bitboard bitboard = colorBitboardPair.second;
+    for (const auto &bitboard : colorBitboards) {
         _assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
 
     noOverlapBoard.reset();
-    for (const auto &piecetypeBitboardPair : piecetypeBitboardMap) {
-        const Bitboard bitboard = piecetypeBitboardPair.second;
+    for (const auto &bitboard : piecetypeBitboards) {
         _assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
 }
 
-bool Board::inCheck(Color player) const
-{
-    // TODO: implement
-    return false;
+Bitboard Board::getPlayerAttackMask(Color player) const {
+    Bitboard attacks;
+    for (const auto piece: pieceMaps[player]) {
+        const Square &fromSquare = piece.first;
+        const Piecetype &pieceType = piece.second;
+        if (pieceType == Queen || pieceType == Rook || pieceType == Bishop) {
+            attacks = attacks | getAttacksFromSlider(fromSquare, pieceType);
+        }
+    }
+
+    attacks = attacks | MaskGeneration::computeKnightScopeFromBitboard(piecetypeBitboards[Knight] & colorBitboards[player]);
+    attacks = attacks | MaskGeneration::computePawnAttacksFromBitboard(piecetypeBitboards[Pawn] & colorBitboards[player], player);
+    attacks = attacks | MaskGeneration::computeKingScopeFromBitboard(piecetypeBitboards[King] & colorBitboards[player]);
+    return attacks;
 }
 
-void Board::logBoard() const
-{
+Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) const {
+    const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
+    uint8_t firstDirection, lastDirection;
+    Bitboard scope;
+
+    switch (pieceType) {
+        case Queen:
+            firstDirection = FirstOrthogonal;
+            lastDirection = LastDiagonal;
+        break;
+
+        case Bishop:
+            firstDirection = FirstDiagonal;
+            lastDirection = LastDiagonal;
+        break;
+
+        case Rook:
+            firstDirection = FirstOrthogonal;
+            lastDirection = LastOrthogonal;
+        break;
+        
+        default:
+            throw std::invalid_argument("Invalid Piecetype, generateSliderMoves() should be called with a slider");
+        break;
+    }
+
+    // Slider attacks
+    for (uint8_t direction = firstDirection; direction <= lastDirection; direction++) {
+        Bitboard directionalScope = directionalLookUp[direction][fromSquare];
+        Square nearestPieceLocation = NoSquare;
+
+        switch (direction) {
+            case North:
+            case West:
+            case NorthEast:
+            case NorthWest:
+                nearestPieceLocation = (directionalScope & occupied).getLowestSetBit();
+                scope = scope | directionalScope.resetUpperBits(nearestPieceLocation);
+                break;
+            case South:
+            case East:
+            case SouthEast:
+            case SouthWest:
+                nearestPieceLocation = (directionalScope & occupied).getHighestSetBit();
+                scope = scope | directionalScope.resetLowerBits(nearestPieceLocation);
+                break;
+            default:
+                throw std::invalid_argument("Direction of Slider should be diagonal or orthogonal. Invalid direction received.");
+        }
+        scope.set(nearestPieceLocation); // .resetLowerBits() is including
+    }
+    return scope;
+}
+
+void Board::logBoard(LogLevel logLevel) const {
     std::ostringstream os;
     std::string board(BOARD_SIZE, '.');
 
-    for (const auto& squarePiecetypePair : whitePieceMap) {
+    for (const auto& squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
         board[square] = whitePiecetypeCharMap.at(type);
     }
 
-    for (const auto& squarePiecetypePair : blackPieceMap) {
+    for (const auto& squarePiecetypePair : pieceMaps[Black]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
@@ -335,6 +418,16 @@ void Board::logBoard() const
         os  << std::endl;
     }
     os << "\n   a b c d e f g h\n";
-    os << "enPassantSquare: " << squareStringMap.at(enPassantSquare) << std::endl;
-    logger.log(os);
-}
+
+    os << "\nactivePlayer: " << activePlayer << std::endl;
+    os << "enPassantSquare: " << enPassantSquare << std::endl;
+    os << "wKC: " << wKC << ", wQC: " << wQC << ", bKC: " << bKC << ", bQC: " <<  bQC << std::endl;
+    os << "halfMoveClock: " << halfMoveClock << ", fullMoveNumber: " << fullMoveNumber;
+    
+    switch (logLevel) {
+        case LEVEL_ESSENTIAL:   logger.essential(os.str()); break;
+        case LEVEL_DEBUG:       logger.debug(os.str());     break;
+        case LEVEL_VERBOSE:     logger.verbose(os.str());   break;
+        default: break;
+        }
+    }

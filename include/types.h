@@ -1,17 +1,19 @@
 #pragma once
 
+#include <cstdint>
+
 constexpr int BOARD_DIMENSIONS = 8;
 constexpr int BOARD_SIZE = BOARD_DIMENSIONS * BOARD_DIMENSIONS;
 
 
-enum Color : int {
+enum Color : uint8_t {
     White,
     Black,
     NrColors = 2
 };
 
-enum Square : int {
-    a8=0, b8, c8, d8, e8, f8, g8, h8,
+enum Square : int8_t {
+    a8 = 0, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a6, b6, c6, d6, e6, f6, g6, h6,
     a5, b5, c5, d5, e5, f5, g5, h5,
@@ -22,8 +24,19 @@ enum Square : int {
     NrSquares = 64, NoSquare
 };
 
+enum Piecetype : uint8_t {
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King,
+    NrPiecetypes = 6,
+    NrPromotiontypes = 4,
+    NoType = 7
+};
 
-enum File : int {
+enum File : uint8_t {
     FileA = 0,
     FileB,
     FileC,
@@ -35,53 +48,63 @@ enum File : int {
     NrFiles = 8
 };
 
-enum Rank : int {
-    Rank1 = 7,
-    Rank2 = 6,
-    Rank3 = 5,
-    Rank4 = 4,
-    Rank5 = 3,
-    Rank6 = 2,
-    Rank7 = 1,
-    Rank8 = 0
+enum Rank : uint8_t {
+    Rank8 = 0,
+    Rank7,
+    Rank6,
+    Rank5,
+    Rank4,
+    Rank3,
+    Rank2,
+    Rank1,
+    NrRanks = 8
 };
 
-enum Piecetype : int {
-    NoType = 0,
-    Pawn,
-    Knight,
-    Bishop,
-    Rook,
-    Queen,
-    King,
+// NOTE: do not use for offset values, use the DirectionalOffset enum instead!
+enum Direction : uint8_t {
+    // Vertical directions
+    North,
+    South,
+
+    // Horizontal directions
+    West,
+    East,
+
+    // Diagonal directions
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+
+    FirstOrthogonal = North,
+    LastOrthogonal = East,
+    FirstDiagonal = NorthEast,
+    LastDiagonal = SouthWest,
+    NrDirections = 8
+};
+
+enum CastlingSide : uint8_t {
+    wKingside,
+    wQueenside,
+    bKingside,
+    bQueenside,
+    NrCastlingRights = 4
 };
 
 struct Move {
-    // Basic information needed for all moves
-    const Square from;
-    const Square target;
+    // General move info (must be set)
+    Piecetype playerPiece = NoType;
+    Square fromSquare   = NoSquare;
+    Square targetSquare = NoSquare;
 
-    const enum {
-        Basic,
-        Capture,
-        DoublePawn,
-        Castle,
-        Promotion
-    } type;
-};
+    // Move type flags
+    bool isCastling     = false;
+    bool isCapture      = false;
+    bool isPromotion    = false;
 
-struct CaptureMove : public Move {
-    const Square captureSquare;
-};
-
-struct DoublePawnMove : public Move {
-    const Square enPassantSquare;
-};
-
-struct CastleMove : public Move {
-    const Move castleRookMove;
-};
-
-struct PromotionMove : public Move {
-    const Piecetype promotionType;
+    // Support move info (may have default values)
+    Piecetype promotionPiece  = NoType;   // Promotions
+    Piecetype capturePiece    = NoType;   // Captures
+    Square captureSquare    = NoSquare;   // Captures
+    Square newEnPassant     = NoSquare;   // Double pawn moves
 };

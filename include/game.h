@@ -11,6 +11,7 @@ class Game {
 
         void start();
         void test();
+
     private:
         bool isOver() const;
 
