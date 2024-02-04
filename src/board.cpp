@@ -29,6 +29,8 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
     logBoard(LEVEL_DEBUG);
 
+    moveVector.clear();
+
     // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
     //       this removes the need for a lot of methods and loops over all pieces just to find ones of
     //       a specific type.
@@ -222,6 +224,13 @@ bool Board::inCheck(Color player) const
     return (!(opponentAttacks & playerKing).empty());
 }
 
+bool Board::inCheck() const
+{
+    Bitboard opponentAttacks = getPlayerAttackMask(~activePlayer);
+    Bitboard playerKing = piecetypeBitboards[King] & colorBitboards[activePlayer];
+    return (!(opponentAttacks & playerKing).empty());
+}
+
 void Board::logBitboards() const {
     for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
         const auto color = static_cast<Color>(colorInt);
@@ -232,6 +241,36 @@ void Board::logBitboards() const {
         const auto type = static_cast<Piecetype>(piecetypeInt);
         logger.verbose(piecetypeStringMap.at(type).c_str(), piecetypeBitboards[type]);
     }
+}
+
+std::ostream &operator<<(std::ostream &os, const Board &board) {
+    std::string boardString(BOARD_SIZE, '.');
+
+    for (const auto& squarePiecetypePair : board.pieceMaps[White]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        boardString[square] = whitePiecetypeCharMap.at(type);
+    }
+
+    for (const auto& squarePiecetypePair : board.pieceMaps[Black]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        boardString[square] = blackPiecetypeCharMap.at(type);
+    }
+
+    for (int rank = 0; rank < BOARD_DIMENSIONS; rank++) {
+        os << BOARD_DIMENSIONS - rank << " ";
+        for (int file = 0; file < BOARD_DIMENSIONS; file++) {
+            int index = rank * BOARD_DIMENSIONS + (file);
+            os << " " << boardString[index];
+        }
+        os  << std::endl;
+    }
+    os << "\n   a b c d e f g h\n";
+
+    return os;
 }
 
 /* private */
@@ -392,32 +431,12 @@ Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) con
 }
 
 void Board::logBoard(LogLevel logLevel) const {
+    if (logger.getLogLevel() < logLevel) {
+        return;
+    }
+
     std::ostringstream os;
-    std::string board(BOARD_SIZE, '.');
-
-    for (const auto& squarePiecetypePair : pieceMaps[White]) {
-        const Square square = squarePiecetypePair.first;
-        const Piecetype type = squarePiecetypePair.second;
-
-        board[square] = whitePiecetypeCharMap.at(type);
-    }
-
-    for (const auto& squarePiecetypePair : pieceMaps[Black]) {
-        const Square square = squarePiecetypePair.first;
-        const Piecetype type = squarePiecetypePair.second;
-
-        board[square] = blackPiecetypeCharMap.at(type);
-    }
-
-    for (int rank = 0; rank < BOARD_DIMENSIONS; rank++) {
-        os << BOARD_DIMENSIONS - rank << " ";
-        for (int file = 0; file < BOARD_DIMENSIONS; file++) {
-            int index = rank * BOARD_DIMENSIONS + (file);
-            os << " " << board[index];
-        }
-        os  << std::endl;
-    }
-    os << "\n   a b c d e f g h\n";
+    os << *this;
 
     os << "\nactivePlayer: " << activePlayer << std::endl;
     os << "enPassantSquare: " << enPassantSquare << std::endl;

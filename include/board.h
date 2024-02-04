@@ -41,6 +41,13 @@ class Board {
         [[nodiscard]] bool inCheck(Color player) const;
 
         /**
+         * @brief returns whether active player is in check from the current board state
+         *
+         * @return bool
+         */
+        [[nodiscard]] bool inCheck() const;
+
+        /**
          * @brief Logs current board state to logger in ASCII chessboard
          */
         void logBoard(LogLevel logLevel) const;
@@ -49,6 +56,13 @@ class Board {
          * @brief Logs all Bitboard members to logger
          */
         void logBitboards() const;
+
+        /**
+         * @brief Get active player
+         */
+        Color getActivePlayer() const { return activePlayer; };
+
+        friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
         // useful functions for testing
         std::array<bool, NrCastlingRights> getCastlingRights() const;
@@ -62,7 +76,7 @@ class Board {
         /* Methods*/
         void InitializeFromFEN(const char *FENString);
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
-        
+
 
         /* MoveGen */
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
