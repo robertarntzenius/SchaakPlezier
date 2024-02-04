@@ -50,17 +50,26 @@ elseif(BUILD_TYPE STREQUAL "Release")
 elseif(BUILD_TYPE STREQUAL "Debug")
     # Add this -DDEBUG which essentially has adds #define DEBUG to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    target_compile_definitions(SchaakPlezier PRIVATE -DDEBUG)
-    target_compile_definitions(Board PRIVATE -DDEBUG)
-    enable_testing()
-    add_subdirectory(test)
+    
+    set(BUILD_TYPE_FLAGS "-DDEBUG" CACHE STRING "Compile flags added to this target")
+
+    target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
+    target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
+    # enable_testing()
+    # add_subdirectory(test)
 elseif(BUILD_TYPE STREQUAL "Verbose")
     # Add this -DVERBOSE which essentially has adds #define VERBOSE to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    target_compile_definitions(SchaakPlezier PRIVATE -DVERBOSE)
-    target_compile_definitions(Board PRIVATE -DVERBOSE)
-    enable_testing()
-    add_subdirectory(test)
+    
+    set(BUILD_TYPE_FLAGS "-DVERBOSE" CACHE STRING "Compile flags added to this target")
+
+    target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
+    target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
+    # enable_testing()
+    # add_subdirectory(test)
 else()
     message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release, Debug or Verbose)")
 endif()
+
+enable_testing()
+add_subdirectory(test)

@@ -25,13 +25,30 @@ enum LogLevel {
 class ChessLogger {
 public:
     static ChessLogger& getInstance(const std::string &logFileName = "Schaakplezier.log") {
-        static ChessLogger instance(logFileName);
+        static ChessLogger instance;
+        instance.setLogFile(logFileName);
         return instance;
     }
 
     ~ChessLogger() {
-        if (logFile.is_open()) {
-            logFile.close();
+        for (auto &entry : logFilesMap) {
+            std::ofstream &logFile = entry.second;
+            if (logFile.is_open()) {
+                logFile.close();
+            }
+        }
+    }
+
+    void setLogFile(std::string logFileName) {
+        if (logFilesMap[logFileName].is_open()) {
+            return;
+        }
+
+        logFilesMap[logFileName] = std::ofstream(logFileName, std::ios::out | std::ios::trunc);
+        currentLogFileName = logFileName;
+        
+        if (!logFilesMap[currentLogFileName].is_open()) {
+            std::cerr << "Error: Unable to open logFilesMap[currentLogFileName]: '" << logFileName << "'\n";
         }
     }
 
@@ -104,54 +121,51 @@ public:
 
 private:
     void log(std::ostringstream& os) {
-        if (logFile.is_open()) {
-            logFile << os.str() << std::endl << std::endl;
+        if (logFilesMap[currentLogFileName].is_open()) {
+            logFilesMap[currentLogFileName] << os.str() << std::endl << std::endl;
         }
     }
 
     void log(const char* msg) {
-        if (logFile.is_open()) {
-            logFile << msg << std::endl;
+        if (logFilesMap[currentLogFileName].is_open()) {
+            logFilesMap[currentLogFileName] << msg << std::endl;
         }
     }
 
     void log(const char* msg, const Bitboard& bitboard) {
-        if (logFile.is_open()) {
-            logFile << msg << std::endl;
-            logFile << bitboard << std::endl;
+        if (logFilesMap[currentLogFileName].is_open()) {
+            logFilesMap[currentLogFileName] << msg << std::endl;
+            logFilesMap[currentLogFileName] << bitboard << std::endl;
         }
     }
 
     template <typename T>
     void log(const T& msg) {
-        if (logFile.is_open()) {
-            logFile << msg << std::endl;
+        if (logFilesMap[currentLogFileName].is_open()) {
+            logFilesMap[currentLogFileName] << msg << std::endl;
         }
     }
 
     template <typename... Args>
     void log(Args... args) {
-        if (logFile.is_open()) {
-            ((logFile << args << ' '), ...) << std::endl;
+        if (logFilesMap[currentLogFileName].is_open()) {
+            ((logFilesMap[currentLogFileName] << args << ' '), ...) << std::endl;
         }
     }
 
     template <typename... Args>
     void log(const char* format, Args... args) {
-        if (logFile.is_open()) {
+        if (logFilesMap[currentLogFileName].is_open()) {
             std::ostringstream oss;
             formatAndLog(oss, format, args...);
-            logFile << oss.str() << std::endl;
+            logFilesMap[currentLogFileName] << oss.str() << std::endl;
         }
     }
 
 private:
-    explicit ChessLogger(const std::string& logFileName, LogLevel level = LEVEL_ESSENTIAL)
-        : logFile(logFileName, std::ios::out | std::ios::trunc), logLevel(level)
+    explicit ChessLogger(LogLevel level = LEVEL_ESSENTIAL)
+        : logFilesMap(), currentLogFileName(), logLevel(level)
     {
-        if (!logFile.is_open()) {
-            std::cerr << "Error: Unable to open logfile: '" << logFileName << "'\n";
-        }
     }
 
     template <typename... Args>
@@ -161,6 +175,7 @@ private:
         oss << buffer;
     }
 
-    std::ofstream logFile;
+    std::unordered_map<std::string, std::ofstream> logFilesMap;
+    std::string currentLogFileName;
     LogLevel logLevel;
 };

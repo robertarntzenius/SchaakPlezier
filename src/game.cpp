@@ -8,22 +8,20 @@ Game::Game(const char *FENString)
 
 void Game::start()
 {
-    // TODO implement
+   while (!this->isOver())
+   {
+        std::vector<Move> moves;
+        _board.getPossibleMoves(moves);
 
-//    while (!this->isOver())
-//    {
-//          _assert(CheckBitboards())
-//        Move *possibleMoves = _board.getPossibleMoves();
-//
-//        // get active player to decide on one of the possible moves
-//
-//        selectedMove = ()? : ;
-//
-//
-//        _board.doMove(selectedMove);
-//
-//        _board.switchTurn();
-//    }
+       // get active player to decide on one of the possible moves
+
+    //    selectedMove = ()? : ;
+
+
+    //    _board.doMove(selectedMove);
+
+    //    _board.switchTurn();
+   }
 }
 
 void Game::test()

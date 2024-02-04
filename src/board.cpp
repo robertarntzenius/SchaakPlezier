@@ -92,7 +92,7 @@ void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Squa
     }
 }
 
-std::array<bool, 4> Board::getCastlingRights() const {
+std::array<bool, NrCastlingRights> Board::getCastlingRights() const {
     return {wKC, wQC, bKC, bQC};
 }
 
