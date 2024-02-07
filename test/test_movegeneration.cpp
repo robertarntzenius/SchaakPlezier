@@ -32,7 +32,7 @@ void countLeafNodes(Board& board, int depth, u_int64_t &move_count) {
     }
 }
 
-uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const std::string name, int depth) {
+uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const std::string& name, int depth) {
     if (depth <= 0) {
         return 1;
     }
@@ -80,21 +80,17 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     return leaf_nodes;
 }
 
-simplesearch
-search
-evaluate
-
 int main() {
-    for (auto test_entry : positionToLeafNodesMap) {
+    for (const auto& test_entry : positionToLeafNodesMap) {
         const std::string &name = test_entry.first;
         const char* FEN = test_entry.second.first;
         const std::vector<uint64_t> &expectedLeafNodes = test_entry.second.second;
 
         int max_depth = expectedLeafNodes.size();
         
-        for (int depth = 1; depth <= max_depth; depth++) {
+        for (int depth = 1; depth < max_depth; depth++) {
             uint64_t leaf_nodes = test_MoveGenerationMoveApplicationPerformance(FEN, name, depth);
-            _assert(leaf_nodes == expectedLeafNodes[depth - 1]);
+            _assert(leaf_nodes == expectedLeafNodes[depth]);
         }
     }
     return 0;

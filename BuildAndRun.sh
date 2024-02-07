@@ -4,16 +4,20 @@ build_type="Release"
 verbose=false
 
 # Parse all args here using getopts
-while getopts ":hvb:" opt; do
+while getopts ":hrbv:" opt; do
   case $opt in
-    i) # Show usage
+    h) # Show usage
       echo "Usage: ./BuildAndRun.sh [OPTIONS]"
       echo ""
       echo "Options:"
+      echo "  -r               Rebuild from scratch."
       echo "  -b <BUILDTYPE>   Set the build type to either 'Debug' or 'Release'. Default is 'Release'."
       echo "  -v               Display the log file content after running."
       echo "  -h               Display this message."
       exit
+      ;;
+    r) # rebuild
+      rebuild=true
       ;;
     v) # cat the logfile if you add -v to this script call
       verbose=true
@@ -47,7 +51,7 @@ source_dir="$PWD"
 build_dir="$source_dir/build/$build_type"
 
 # Clean the build directory
-if [ -d "$build_dir" ]; then
+if [ -d "$build_dir" ] && [ "$rebuild" ]; then
     echo "Build directory already exists. Deleting..."
     rm -r "$build_dir"
 fi

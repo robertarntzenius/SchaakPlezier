@@ -10,11 +10,11 @@ constexpr const char *testFEN4 = "rnbqkbnr/p1p1pppp/1p6/3pP3/8/8/PPPP1PPP/RNBQKB
 
 
 int main() {
-    Game game(testFEN4);
+    Game game(defaultStartingFEN);
 
     try {
-//        game->start();
-        game.test();
+        game.start();
+//        game.test();
 
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;

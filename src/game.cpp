@@ -15,7 +15,16 @@ void Game::start()
 
     Move move;
 
-    do {
+    // Opening messages
+
+    // Clear screen
+    std::cout << "\033[2J\033[H";
+    std::cout << "Starting new game. " << _board.getActivePlayer() << " to play.\n"
+              << "Type \"quit\" to end the game. Enter moves by typing a square your "
+              << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
+              << "Enjoy!\n";
+
+    while (true) {
         _board.getPossibleMoves(moves);
 
         // Print board
@@ -35,18 +44,34 @@ void Game::start()
         }
 
         // Parse move
-        while (!parseMove(moves, input, move)) {
+        do {
+            std::cout << "Move: ";
             std::cin >> input;
-        };
+            if (input == "quit") {
+                return;
+            }
+            if (input.starts_with('q') || input.starts_with('Q')) {
+                std::cout << "Did you intend to quit the game? (y/n)\n";
+                std::cin >> input;
+                if (input == "y") {
+                    return;
+                }
+            }
+        } while (!parseMove(moves, input, move));
 
         _board.doMove(move);
-        
-        //    _board.switchTurn();
-    } while (std::cin >> input);
+
+        std::cout << "\033[2J\033[H";
+    }
+
+
 }
 
 bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Move &move) {
     if (userInput.size() != 4) {
+        std::cout << "Invalid input. Please input a valid move in the following notation:\n"
+                  << " [square][square]\n"
+                  << " for example: g2g4\n";
         return false;
     }
 
@@ -63,11 +88,32 @@ bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Mov
             std::cout << "Invalid move. Please input a legal move in the following notation:\n"
                       << " [square][square]\n"
                       << " for example: g2g4\n";
-            return false;        }
+            return false;
+        }
+
+        // Set move to move found in vector
         move = *it;
 
         if (move.isPromotion) {
-            while (!parsePromotionMove(moves, it, userInput, move)) std::cin >> userInput;
+            // If promotion move, ask for promotion type and set accordingly
+            bool valid = false;
+
+            do {
+                char promotionTypeChar;
+                std::cout << "Please input a promotion piece type: (Q,N,B,R): ";
+                std::cin >> promotionTypeChar;
+
+                switch (promotionTypeChar) {
+                    case 'q': case 'Q': case 'n': case 'N':
+                    case 'b': case 'B': case 'r': case 'R':
+                        move.promotionPiece = charPiecetypeMap.at(promotionTypeChar);
+                        valid = true;
+                        break;
+                    default:
+                        std::cout << "Invalid char. Not a piece type.\n";
+                        break;
+                }
+            } while (!valid);
         }
 
         return true;
@@ -79,42 +125,7 @@ bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Mov
         return false;
     }
 
-
-
     return false;
-}
-
-
-bool Game::parsePromotionMove(const std::vector<Move> &moves, std::iterator<const Move *, std::vector<Move>> it, std::string &userInput, Move &move) {
-
-    do {
-        try {
-            char promotionTypeChar;
-            std::cout << "Please input a promotion piece type: (Q,N,B,R)";
-            cin >> promotionTypeChar
-            Piecetype type = charPiecetypeMap.at(promotionTypeChar);
-
-            auto isPromotionMove = [fromSquare, toSquare, type](const Move &move) {
-                return ((move.fromSquare == fromSquare)
-                        && (move.targetSquare == toSquare)
-                        && (move.promotionPiece == type));
-            };
-
-            auto promotionIt = std::find_if(it, moves.end(), isPromotionMove);
-            if (promotionIt == moves.end()) {
-                std::cout << "Invalid promotion piece type. Please input a legal move in the following notation:\n"
-                          << " [square][square]\n"
-                          << " for example: g2g4\n";
-                return false;
-            }
-        } catch () {
-            std::cout << "Invalid char. Not a piece type."
-                      << "Please input a legal move in the following notation:\n"
-                      << " [square][square]\n"
-                      << " for example: g2g4\n";
-            return false;
-        }
-    } while (true);
 }
 
 void Game::test()
