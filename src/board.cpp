@@ -16,7 +16,6 @@ Board::Board(const char *FENString, const std::string &logFile)
     #if defined(DEBUG)
         logger.setLogLevel(LEVEL_DEBUG);
     #elif defined(VERBOSE)
-        // TODO implement
         logger.setLogLevel(LEVEL_VERBOSE);
     #endif
     logger.essential("New Board created!");
@@ -24,16 +23,11 @@ Board::Board(const char *FENString, const std::string &logFile)
     InitializeFromFEN(FENString);
 }
 
-// FIXME should be const, maybe move incheck call & doMove somewhere
 void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
     logBoard(LEVEL_DEBUG);
 
     moveVector.clear();
-
-    // NOTE: loop over all player pieces here and call methods for (pseudo-)legality from switch case
-    //       this removes the need for a lot of methods and loops over all pieces just to find ones of
-    //       a specific type.
 
     // for every piece
     std::vector<Move> psuedoLegalMoves;
@@ -61,7 +55,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
            case King:
                 generateKingMoves(psuedoLegalMoves, fromSquare);
                 break;
-            default:
+           default:
                 // Not implemented / throw
                 break;
         }
@@ -73,8 +67,8 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
 
         doMove(move);
         if (!inCheck(~activePlayer)) {
-            moveVector.emplace_back(std::move(move));
-        }        
+            moveVector.emplace_back(move);
+        }
         undoMove(move, copyCastlingRights, copyEnPassantSquare);
         // checkBoardConsistency();
     }
@@ -322,6 +316,7 @@ void Board::InitializeFromFEN(const char *FENString)
             case 'Q': wQC = true; break;
             case 'k': bKC = true; break;
             case 'q': bQC = true; break;
+            case '-': break;
             default:
                 throw std::invalid_argument("Invalid char found in FEN parser during initialization of castling rights: " + std::to_string(c));
         }
@@ -436,9 +431,10 @@ void Board::logBoard(LogLevel logLevel) const {
     }
 
     std::ostringstream os;
-    os << *this;
 
-    os << "\nactivePlayer: " << activePlayer << std::endl;
+    os << *this << "\n";
+
+    os << "activePlayer: " << activePlayer << std::endl;
     os << "enPassantSquare: " << enPassantSquare << std::endl;
     os << "wKC: " << wKC << ", wQC: " << wQC << ", bKC: " << bKC << ", bQC: " <<  bQC << std::endl;
     os << "halfMoveClock: " << halfMoveClock << ", fullMoveNumber: " << fullMoveNumber;

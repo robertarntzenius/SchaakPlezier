@@ -1,0 +1,27 @@
+-- Responibilities of classes --
+
+SchaakPlezier -p1=AIBest -p2=AI2 -FEN="..."
+
+
+Main:
+ - fetch call arguments to set which type of players
+ - create game and call run
+
+
+Game:
+ - Should only have one public method (run)
+ - setup board
+ - handles players / input
+ - technically should check if move is in possible moves
+ - handles time controlls
+ - notifies players when it's their turn
+   * passes copy of board to player
+   * passes timestamp to player
+
+
+Player (Abstract class):
+ - Should only have one public method (your turn)
+ - When notified by game
+   * performs search (with pruning) (maybe multithread)
+   * evaluates positions 
+   * returns move

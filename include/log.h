@@ -61,37 +61,37 @@ public:
     }
     
     template <typename... Args>
-    void debug(Args... args) {
+    inline void debug(Args... args) {
         if (logLevel < LEVEL_DEBUG) return;
         log(args...);
     }
 
     template <typename T>
-    void debug(T arg) {
+    inline void debug(T arg) {
         if (logLevel < LEVEL_DEBUG) return;
         log(arg);
     }
 
     template <typename... Args>
-    void essential(Args... args) {
+    inline void essential(Args... args) {
         if (logLevel < LEVEL_ESSENTIAL) return;
         log(args...);
     }
 
     template <typename T>
-    void essential(T arg) {
+    inline void essential(T arg) {
         if (logLevel < LEVEL_ESSENTIAL) return;
         log(arg);
     }
 
     template <typename... Args>
-    void verbose(Args... args) {
+    inline void verbose(Args... args) {
         if (logLevel < LEVEL_VERBOSE) return;
         log(LEVEL_VERBOSE, args...);
     }
 
     template <typename T>
-    void verbose(T arg) {
+    inline void verbose(T arg) {
         if (logLevel < LEVEL_VERBOSE) return;
         log(arg);
     }

@@ -22,7 +22,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-
 # endif()
 
 add_executable(SchaakPlezier
-    src/game.cpp
+        src/game.cpp
     src/main.cpp
 )
 

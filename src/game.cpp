@@ -2,7 +2,8 @@
 #include "log.h"
 
 Game::Game(const char *FENString) 
-    : logger(ChessLogger::getInstance()), _board(Board(FENString))
+    : logger(ChessLogger::getInstance()),
+      board(Board(FENString))
 {
 }
 
@@ -13,53 +14,66 @@ void Game::start()
     std::vector<Move> moves;
     moves.reserve(64);
 
+    RandomPlayer player;
     Move move;
 
-    // Opening messages
+    logger.debug("Starting game!");
 
     // Clear screen
     std::cout << "\033[2J\033[H";
-    std::cout << "Starting new game. " << _board.getActivePlayer() << " to play.\n"
+
+    // Opening messages
+    std::cout << "Starting new game. " << board.getActivePlayer() << " to play.\n"
               << "Type \"quit\" to end the game. Enter moves by typing a square your "
               << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
               << "Enjoy!\n";
 
     while (true) {
-        _board.getPossibleMoves(moves);
+        board.getPossibleMoves(moves);
 
         // Print board
-        std::cout << _board;
+        std::cout << board;
 
+
+        // TODO FIXME insufficient material
         if (moves.empty()) {
             // Game over
-            if (_board.inCheck()) {
+            if (board.inCheck()) {
                 // Win for not-active player
-                std::cout << ~_board.getActivePlayer() << " player won the game! \n";
+                std::cout << ~board.getActivePlayer() << " player won the game! \n";
+                logger.debug("Game finished;", ~board.getActivePlayer(), "won!");
                 return;
             }
 
             // Stalemate
             std::cout << "Stalemate! \n";
+            logger.debug("Stalemate");
             return;
         }
 
-        // Parse move
-        do {
-            std::cout << "Move: ";
-            std::cin >> input;
-            if (input == "quit") {
-                return;
-            }
-            if (input.starts_with('q') || input.starts_with('Q')) {
-                std::cout << "Did you intend to quit the game? (y/n)\n";
-                std::cin >> input;
-                if (input == "y") {
-                    return;
-                }
-            }
-        } while (!parseMove(moves, input, move));
+        move = moves[player.decideOnMove(board, moves)];
 
-        _board.doMove(move);
+        // Parse move
+//        do {
+//            std::cout << "Move: ";
+//            std::cin >> input;
+//            if (input == "quit") {
+//                logger.debug("quit");
+//                return;
+//            }
+//            if (input.starts_with('q') || input.starts_with('Q')) {
+//                std::cout << "Did you intend to quit the game? (y/n)\n";
+//                std::cin >> input;
+//                if (input == "y") {
+//                    logger.debug("quit");
+//                    return;
+//                }
+//            }
+//        } while (!parseMove(moves, input, move));
+
+        board.doMove(move);
+
+        logger.debug(move);
 
         std::cout << "\033[2J\033[H";
     }
@@ -126,44 +140,4 @@ bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Mov
     }
 
     return false;
-}
-
-void Game::test()
-{
-    std::vector<Move> moves;
-    _board.getPossibleMoves(moves);
-
-    logger.logHeader("moves in game.test");
-    for (const auto &move : moves)
-    {
-        logger.essential(move);
-    }
-
-    Bitboard lonelyRook{};
-
-    Square rookSquare = f4;
-
-    lonelyRook.set(rookSquare);
-
-    logger.essential(lonelyRook,
-               "\n", Bitboard().set().resetLowerBits(rookSquare),
-               "\n", Bitboard().set().resetUpperBits(rookSquare));
-
-//            bool moveIsLegal = _board.makeMove(move);
-//            if (moveIsLegal) {
-//                break;
-//            }
-//            else {
-//                // TODO implement
-//                // _board.unMakeMove(move);
-//            }
-    
-
-// TODO implement
-// if(_board.inCheck()) {
-//     logger.log("turn has won!");
-// }
-//        _board.switchTurn();
-
-
 }

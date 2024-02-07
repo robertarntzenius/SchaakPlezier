@@ -65,6 +65,7 @@ class Board {
         friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
         // useful functions for testing
+        // FIXME remove
         std::array<bool, NrCastlingRights> getCastlingRights() const;
         void setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights);
         void setEnPassantSquare(Square newEnpassantSquare);
@@ -130,30 +131,4 @@ class Board {
                 MaskGeneration::computeRankMask(Rank8),
                 MaskGeneration::computeRankMask(Rank1)
         };
-
-        // Bitboards worden vaak geprecompute en in een array gezet for quick lookup
-        // bv KingMoves[sq] = bitboard van de goede squareIndex
-        // blackAttacks(sq) whiteAttacks(sq) (add all attacked squares in one bitboard)
-            // dan later legalKingMoves = Kingmoves[sq] & (!black/whiteAttacks)
-        
-        // NON-SLIDING PIECES (psuedolegal moves)
-        // TODO add bitboards / getterFunctions that return bitboards for 
-            // empty
-            //  white/black:
-                //  pawns
-                //  PawnAttacksWest (using emtpy & NotHFile)
-                //  PawnAttacksEast (using emtpy & NotAFile) 
-            //  kingMoves[sq]
-            //  knightsAttacks[sq] (using emtpy & NotAFile & NotABFile & NotGHFile & NotHFile)
-        
-        // SLIDING PIECES (psuedolegal moves)
-        // TODO Add directions enum to generate bitboard masks for north east etc
-        // TODO add rankMask(sq), fileMask(sq), diagonalMask(sq), antidiagonalMask(sq) functions
-        // RookAttacks[sq]   = rankMask[sq]     | fileMask[sq];
-        // BishopAttacks[sq] = DiagonalMask[sq] | AntiDiagonalMask[sq];
-        // QueenAttacks[sq]  = RookAttacks[sq] | BishopAttacks[sq];
-
-
-        // TODO XRayAttacks (to handle pinned pieces)
-        // TODO blockers (to find legalmoves from psuedolegal moves for SLIDING PIECES)
 };
