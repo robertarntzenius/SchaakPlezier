@@ -56,8 +56,8 @@ if [ "$build_type" != "Release" ] && [ "$build_type" != "Debug" ] && [ "$build_t
     exit 1
 fi
 
-source_dir="$PWD"
-build_dir="$source_dir/build/$build_type"
+source_dir="$PWD/core"
+build_dir="$PWD/build/$build_type"
 
 # Clean the build directory
 if [ -d "$build_dir" ] && [ $rebuild == true ]; then
