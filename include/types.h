@@ -107,4 +107,6 @@ struct Move {
     Piecetype capturePiece    = NoType;   // Captures
     Square captureSquare    = NoSquare;   // Captures
     Square newEnPassant     = NoSquare;   // Double pawn moves
+ 
+    bool operator<=>(const Move&) const = default;
 };

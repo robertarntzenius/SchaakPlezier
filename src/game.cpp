@@ -9,12 +9,11 @@ Game::Game(const char *FENString)
 
 void Game::start()
 {
-    std::string input;
-
     std::vector<Move> moves;
     moves.reserve(64);
 
-    RandomPlayer player;
+    HumanPlayer player1;
+    RandomPlayer player2;
     Move move;
 
     logger.debug("Starting game!");
@@ -41,9 +40,21 @@ void Game::start()
             return;
         }
 
-        // TODO 50 move rule
+        // TODO implement
+        if (board.checkFiftyMoveRule()) {
+            std::cout << "Game finished; draw by 50 move rule!\n";
+            logger.debug("Game finished; draw by 50 move rule!");
+            return;
+        }
 
+        // TODO implement
+        if (board.checkThreeFoldRepetition()) {
+            std::cout << "Game finished; draw by three fold repetition!\n";
+            logger.debug("Game finished; draw by three fold repetition!");
+            return;
+        }
 
+        // Check for (stale)mate
         if (moves.empty()) {
             // Game over
             if (board.inCheck()) {
@@ -58,26 +69,24 @@ void Game::start()
             logger.debug("Stalemate");
             return;
         }
-
-        move = moves[player.decideOnMove(board, moves)];
-
-        // Parse move
-//        do {
-//            std::cout << "Move: ";
-//            std::cin >> input;
-//            if (input == "quit") {
-//                logger.debug("quit");
-//                return;
-//            }
-//            if (input.starts_with('q') || input.starts_with('Q')) {
-//                std::cout << "Did you intend to quit the game? (y/n)\n";
-//                std::cin >> input;
-//                if (input == "y") {
-//                    logger.debug("quit");
-//                    return;
-//                }
-//            }
-//        } while (!parseMove(moves, input, move));
+        
+        // Player interaction
+        if (board.getActivePlayer() == White) {
+            int player1Choice = player1.decideOnMove(board, moves);
+            if (player1Choice == -1) {
+                // Quit
+                return;
+            }
+            move = moves[player1Choice];
+        }
+        else {
+            int player2Choice = player2.decideOnMove(board, moves);
+            if (player2Choice == -1) {
+                // Quit
+                return;
+            }
+            move = moves[player2Choice];
+        }
 
         board.doMove(move);
 
@@ -85,65 +94,4 @@ void Game::start()
 
         std::cout << "\033[2J\033[H";
     }
-}
-
-bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Move &move) {
-    if (userInput.size() != 4) {
-        std::cout << "Invalid input. Please input a valid move in the following notation:\n"
-                  << " [square][square]\n"
-                  << " for example: g2g4\n";
-        return false;
-    }
-
-    try {
-        const Square fromSquare = stringSquareMap.at(userInput.substr(0, 2));
-        const Square toSquare = stringSquareMap.at(userInput.substr(2, 2));
-
-        auto isMove = [fromSquare, toSquare](const Move &move) {
-            return ((move.fromSquare == fromSquare) && (move.targetSquare == toSquare));
-        };
-
-        auto it = std::find_if(moves.begin(), moves.end(), isMove);
-        if (it == moves.end()) {
-            std::cout << "Invalid move. Please input a legal move in the following notation:\n"
-                      << " [square][square]\n"
-                      << " for example: g2g4\n";
-            return false;
-        }
-
-        // Set move to move found in vector
-        move = *it;
-
-        if (move.isPromotion) {
-            // If promotion move, ask for promotion type and set accordingly
-            bool valid = false;
-
-            do {
-                char promotionTypeChar;
-                std::cout << "Please input a promotion piece type: (Q,N,B,R): ";
-                std::cin >> promotionTypeChar;
-
-                switch (promotionTypeChar) {
-                    case 'q': case 'Q': case 'n': case 'N':
-                    case 'b': case 'B': case 'r': case 'R':
-                        move.promotionPiece = charPiecetypeMap.at(promotionTypeChar);
-                        valid = true;
-                        break;
-                    default:
-                        std::cout << "Invalid char. Not a piece type.\n";
-                        break;
-                }
-            } while (!valid);
-        }
-
-        return true;
-
-    } catch (const std::exception &e) {
-        std::cout << "Invalid input. Please input a valid move in the following notation:\n"
-                  << " [square][square]\n"
-                  << " for example: g2g4\n";
-        return false;
-    }
-
-    return false;
 }

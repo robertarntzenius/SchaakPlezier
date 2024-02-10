@@ -357,7 +357,6 @@ void Board::checkBoardConsistency() const
 
 bool Board::checkInsufficientMaterial() const
 {
-    // Lambda functions to check draw combinations
     auto playerHasPieceCount = [this](Color player, Piecetype type, int num) -> bool {
         int count = 0;
         for (const auto entry : pieceMaps[player]) {
@@ -391,36 +390,47 @@ bool Board::checkInsufficientMaterial() const
         return true;
     };
 
-    // Check possible draw states
-    bool noPawns = playerHasPieceCount(White, Pawn, 0) && playerHasPieceCount(Black, Pawn, 0);
-    
-    // Cases: only King, King & 1 Knight/Bishop
-    bool drawWhite = noPawns && (
+    // King, King & 1 Knight, King & 1 Bishop
+    bool drawWhite = (
            (playerHasPieceCount(White, King, 1) && hasOnlyPiecetypes(White, {King}))
         || (playerHasPieceCount(White, Bishop, 1) && hasOnlyPiecetypes(White, {King, Bishop}))
         || (playerHasPieceCount(White, Knight, 1) && hasOnlyPiecetypes(White, {King, Knight}))
     );
 
-    // Cases: only King, King & 1 Knight/Bishop
-    bool drawBlack = noPawns && (
+    // King, King & 1 Knight, King & 1 Bishop
+    bool drawBlack = (
            (playerHasPieceCount(Black, King, 1) && hasOnlyPiecetypes(Black, {King}))
         || (playerHasPieceCount(Black, Bishop, 1) && hasOnlyPiecetypes(Black, {King, Bishop}))
         || (playerHasPieceCount(Black, Knight, 1) && hasOnlyPiecetypes(Black, {King, Knight}))
     );
 
-    bool twoKnightsOneKingWhite = 
+    // King vs King & 2 Knights
+    bool twoKnightsOneKingWhite = (
         playerHasPieceCount(White, Knight, 2) 
         && hasOnlyPiecetypes(White, {King, Knight}) 
-        && hasOnlyPiecetypes(Black, {King}
+        && hasOnlyPiecetypes(Black, {King})
     );
 
-    bool twoKnightsOneKingBlack = 
+    // King vs King & 2 Knights
+    bool twoKnightsOneKingBlack = (
         playerHasPieceCount(Black, Knight, 2) 
-        && hasOnlyPiecetypes(White, {King, Knight})
-        && hasOnlyPiecetypes(White, {King}
+        && hasOnlyPiecetypes(Black, {King, Knight})
+        && hasOnlyPiecetypes(White, {King})
     );
     
     return (drawWhite && drawBlack) || twoKnightsOneKingWhite || twoKnightsOneKingBlack;
+}
+
+bool Board::checkFiftyMoveRule() const
+{
+    // TODO implement
+    return false;
+}
+
+bool Board::checkThreeFoldRepetition() const
+{
+    // TODO implement
+    return false;
 }
 
 Bitboard Board::getPlayerAttackMask(Color player) const {

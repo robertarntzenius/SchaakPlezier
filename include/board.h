@@ -73,6 +73,8 @@ class Board {
         void setLogLevel(LogLevel logLevel);
         void checkBoardConsistency() const;
         bool checkInsufficientMaterial() const;
+        bool checkFiftyMoveRule() const;
+        bool checkThreeFoldRepetition() const;       
     private:
         /* Methods*/
         void InitializeFromFEN(const char *FENString);

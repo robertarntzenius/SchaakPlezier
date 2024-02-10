@@ -4,6 +4,7 @@
 #include "log.h"
 
 #include "randomplayer.h"
+#include "humanplayer.h"
 
 #include <algorithm>
 
