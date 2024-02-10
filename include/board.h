@@ -72,7 +72,7 @@ class Board {
         Square getEnPassantSquare() const;
         void setLogLevel(LogLevel logLevel);
         void checkBoardConsistency() const;
-
+        bool checkInsufficientMaterial() const;
     private:
         /* Methods*/
         void InitializeFromFEN(const char *FENString);

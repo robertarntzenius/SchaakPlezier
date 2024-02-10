@@ -2,9 +2,10 @@
 
 build_type="Release"
 verbose=false
+rebuild=false
 
 # Parse all args here using getopts
-while getopts ":hrbv:" opt; do
+while getopts ":hrb:v:" opt; do
   case $opt in
     h) # Show usage
       echo "Usage: ./BuildAndRun.sh [OPTIONS]"
@@ -23,10 +24,14 @@ while getopts ":hrbv:" opt; do
       verbose=true
       ;;
     b) # set the build type using -b Debug or -b Release
-      build_type=$OPTARG
+      build_type="${OPTARG}"
       ;;
     \?)
-      echo "Invalid option: -$OPTARG"
+      echo "Invalid option: -$opt"
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument."
       exit 1
       ;;
   esac
@@ -40,7 +45,6 @@ if [ "$#" -gt 0 ]; then
     exit
 fi
 
-
 # Set the build type
 if [ "$build_type" != "Release" ] && [ "$build_type" != "Debug" ] && [ "$build_type" != "Verbose" ]; then
     echo "Invalid build type, use Debug or Release. (Build type: $build_type)"
@@ -51,8 +55,8 @@ source_dir="$PWD"
 build_dir="$source_dir/build/$build_type"
 
 # Clean the build directory
-if [ -d "$build_dir" ] && [ "$rebuild" ]; then
-    echo "Build directory already exists. Deleting..."
+if [ -d "$build_dir" ] && [ $rebuild == true ]; then
+    echo "Rebuild flag is set. Deleting build directory: $build_dir"
     rm -r "$build_dir"
 fi
 

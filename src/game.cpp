@@ -34,8 +34,16 @@ void Game::start()
         // Print board
         std::cout << board;
 
+        // Insufficient material
+        if (board.checkInsufficientMaterial()) {
+            std::cout << "Game finished; draw by insufficient material!\n";
+            logger.debug("Game finished; draw by insufficient material!");
+            return;
+        }
 
-        // TODO FIXME insufficient material
+        // TODO 50 move rule
+
+
         if (moves.empty()) {
             // Game over
             if (board.inCheck()) {
@@ -77,8 +85,6 @@ void Game::start()
 
         std::cout << "\033[2J\033[H";
     }
-
-
 }
 
 bool Game::parseMove(const std::vector<Move> &moves, std::string& userInput, Move &move) {
