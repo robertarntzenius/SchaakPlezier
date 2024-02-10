@@ -1,9 +1,6 @@
 
 file(GLOB TEST_SOURCES "test*.cpp")
 
-# Enable testing
-enable_testing()
-
 foreach(TEST_SOURCE ${TEST_SOURCES})
     # Extract the test name (excluding the .cc extension)
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.22)
 project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
-
 # Als we heel serieus willen doen:
 # add_compile_options(-Wshadow -Wconversion)
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
@@ -21,27 +20,6 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-
 #   message(WARNING "Clang-Tidy not found. Static analysis will not be applied.")
 # endif()
 
-add_executable(SchaakPlezier
-    src/game.cpp
-    src/main.cpp
-    src/humanplayer.cpp
-)
-
-add_library(Board SHARED
-    src/movegeneration_pawn.cpp
-    src/movegeneration_knight.cpp
-    src/movegeneration_sliders.cpp
-    src/movegeneration_king.cpp
-    src/board.cpp
-)
-
-
-target_include_directories(SchaakPlezier PUBLIC include)
-target_include_directories(Board PUBLIC include)
-
-target_link_libraries(SchaakPlezier Board)
-
-
 if(NOT BUILD_TYPE)
     message(STATUS "Build configuration defaulted to Release")
     set(BUILD_TYPE "Release")
@@ -51,26 +29,24 @@ elseif(BUILD_TYPE STREQUAL "Release")
 elseif(BUILD_TYPE STREQUAL "Debug")
     # Add this -DDEBUG which essentially has adds #define DEBUG to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    
     set(BUILD_TYPE_FLAGS "-DDEBUG" CACHE STRING "Compile flags added to this target")
-
-    target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
-    target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
-    # enable_testing()
-    # add_subdirectory(test)
+    enable_testing()
 elseif(BUILD_TYPE STREQUAL "Verbose")
     # Add this -DVERBOSE which essentially has adds #define VERBOSE to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    
     set(BUILD_TYPE_FLAGS "-DVERBOSE" CACHE STRING "Compile flags added to this target")
-
-    target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
-    target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
-    # enable_testing()
-    # add_subdirectory(test)
+    enable_testing()
 else()
     message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release, Debug or Verbose)")
 endif()
 
-enable_testing()
-add_subdirectory(test)
+
+add_executable(SchaakPlezier
+    main.cpp
+)
+
+target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
+
+target_include_directories(SchaakPlezier PRIVATE include)
+add_subdirectory(board)
+add_subdirectory(game)
