@@ -47,6 +47,5 @@ add_executable(SchaakPlezier
 
 target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
 
-target_include_directories(SchaakPlezier PRIVATE include)
 add_subdirectory(board)
 add_subdirectory(game)

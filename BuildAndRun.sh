@@ -3,16 +3,18 @@
 build_type="Release"
 verbose=false
 rebuild=false
+execute=false
 
 # Parse all args here using getopts
-while getopts ":hrb:v:" opt; do
+while getopts "hb:rve" opt; do
   case $opt in
     h) # Show usage
       echo "Usage: ./BuildAndRun.sh [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  -r               Rebuild from scratch."
       echo "  -b <BUILDTYPE>   Set the build type to either 'Debug' or 'Release'. Default is 'Release'."
+      echo "  -r               Rebuild from scratch."
+      echo "  -e               Run SchaakPlezier after building."
       echo "  -v               Display the log file content after running."
       echo "  -h               Display this message."
       exit
@@ -23,11 +25,14 @@ while getopts ":hrb:v:" opt; do
     v) # cat the logfile if you add -v to this script call
       verbose=true
       ;;
+    e) # run ./Schaakplezier after building
+      execute=true
+      ;;
     b) # set the build type using -b Debug or -b Release
       build_type="${OPTARG}"
       ;;
     \?)
-      echo "Invalid option: -$opt"
+      echo "Invalid option: $opt"
       exit 1
       ;;
     :)
@@ -64,7 +69,7 @@ mkdir -p "$build_dir"
 cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type"
 cd "$build_dir" || exit
 
-make && ./SchaakPlezier
+make || exit
 
 # Test if Debug or Verbose
 if [ "$build_type" == "Debug" ] || [ "$build_type" == "Verbose" ]; then
@@ -74,6 +79,10 @@ if [ "$build_type" == "Debug" ] || [ "$build_type" == "Verbose" ]; then
     echo "===== Tests ====="
     ctest --rerun-failed --output-on-failure
     echo ""
+fi
+
+if $execute; then 
+  ./SchaakPlezier -w human -b human || exit
 fi
 
 # Output log to terminal if verbose

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "board.h"
+#include <memory>
 
 class Player {
     public:
@@ -9,4 +10,5 @@ class Player {
 
         // TODO add timestamp
         virtual int decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
+        virtual PlayerType getPlayerType() = 0;
 };

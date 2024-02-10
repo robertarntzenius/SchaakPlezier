@@ -7,7 +7,8 @@ add_library(Board SHARED
 )
 target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
 
-target_include_directories(Board PUBLIC include)
+target_include_directories(Board PUBLIC include) 
+
 target_link_libraries(SchaakPlezier Board)
 
 add_subdirectory(test)

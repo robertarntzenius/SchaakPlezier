@@ -11,6 +11,11 @@
 #include <string>
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr const char *testFEN1 = "r3k2r/p1pp1pb1/bn2Qnp1/2qPN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQkq - 3 2";
+constexpr const char *testFEN2 = "2kr3r/p1ppqpb1/bn2Qnp1/3PN3/1p2P3/8/PPPBBPPP/R3K2R b KQ - 3 2";
+constexpr const char *testFEN3 = "rnb2k1r/pp1Pbppp/2p5/q7/2B5/8/PPPQNnPP/RNB1K2R w KQ - 3 9";
+constexpr const char *testFEN4 = "rnbqkbnr/p1p1pppp/1p6/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3";
+constexpr const char *gameOverFEN = "k7/2KP4/8/8/8/8/8/8 b - - 20 10";
 
 #ifdef DEBUG
 // _assert will be compiled in Debug
@@ -178,6 +183,18 @@ const std::unordered_map<Direction, std::string> directionStringMap = {
        {SouthWest, "SouthWest"}
 };
 
+const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
+    {"human", Human},
+    {"Human", Human},
+    {"random", Random},
+    {"Random", Random},
+};
+
+const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
+    {Human, "Human"},
+    {Random, "Random"},
+};
+
 // Operator overloads for logging
 static std::ostream& operator<<(std::ostream &os, const Square &square) {
     os << squareStringMap.at(square);
@@ -201,6 +218,11 @@ static std::ostream& operator<<(std::ostream &os, const File &file) {
 
 static std::ostream& operator<<(std::ostream &os, const Piecetype &piecetype) {
     os << piecetypeStringMap.at(piecetype);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const PlayerType &playerType) {
+    os << playerTypeStringMap.at(playerType);
     return os;
 }
 

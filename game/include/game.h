@@ -2,21 +2,20 @@
 
 #include "board.h"
 #include "log.h"
-
-#include "randomplayer.h"
-#include "humanplayer.h"
+#include "player.h"
 
 #include <algorithm>
 
 class Game {
     public:
-        explicit Game(const char *FENString = defaultStartingFEN);
+        Game(std::unique_ptr<Player> player1, std::unique_ptr<Player> player2, const char *FENString = defaultStartingFEN);
         ~Game() = default;
 
         void start();
 
     private:
-        static bool parseMove(const std::vector<Move> &moves, std::string &input, Move &move);
+        std::unique_ptr<Player> player1;
+        std::unique_ptr<Player> player2;
 
         ChessLogger& logger;
         Board board;

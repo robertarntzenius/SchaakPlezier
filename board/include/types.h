@@ -110,3 +110,8 @@ struct Move {
  
     bool operator<=>(const Move&) const = default;
 };
+
+enum PlayerType {
+    Human,
+    Random,
+};
