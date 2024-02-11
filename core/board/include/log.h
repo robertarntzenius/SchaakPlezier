@@ -21,7 +21,6 @@ enum LogLevel {
     LEVEL_VERBOSE = 2
 };
 
-// TODO make inline constexpr of log calls to optimize them away! 
 class ChessLogger {
 public:
     static ChessLogger& getInstance(const std::string &logFileName = "Schaakplezier.log") {
@@ -162,7 +161,6 @@ private:
         }
     }
 
-private:
     explicit ChessLogger(LogLevel level = LEVEL_ESSENTIAL)
         : logFilesMap(), currentLogFileName(), logLevel(level)
     {

@@ -5,6 +5,7 @@
 #include "movegeneration.h"
 #include "log.h"
 
+#include <algorithm>
 
 class Board {
     public:

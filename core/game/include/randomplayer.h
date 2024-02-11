@@ -3,7 +3,6 @@
 #include "player.h"
 #include <ctime>
 
-
 class RandomPlayer : public Player {
     public:
         RandomPlayer() { std::srand(static_cast<unsigned int>(std::time(nullptr))); }

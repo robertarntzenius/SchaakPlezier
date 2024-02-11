@@ -2,6 +2,7 @@
 
 #include "humanplayer.h"
 #include "randomplayer.h"
+#include <memory>
 
 class PlayerFactory {
 public:

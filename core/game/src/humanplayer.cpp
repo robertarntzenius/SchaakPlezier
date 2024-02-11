@@ -3,7 +3,7 @@
 
 int HumanPlayer::decideOnMove(Board boardCopy, const std::vector<Move> &moves) {
     std::string input;
-    Move playerMove;
+    int playerMoveIndex;
     ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");
 
     do {
@@ -21,23 +21,13 @@ int HumanPlayer::decideOnMove(Board boardCopy, const std::vector<Move> &moves) {
                 return -1;
             }
         }
-    } while (!parseMove(moves, input, playerMove));
+    } while (!parseMove(moves, input, playerMoveIndex));
 
-    // FIXME use parse move to get index
-    auto iter = std::find_if(moves.begin(), moves.end(), [playerMove](const Move &move) {
-        return playerMove == move;
-    });
-
-    int index = -1;
-    if (iter != moves.end()) {
-        index = std::distance(moves.begin(), iter);
-    }
-    
-    return index;
+    return playerMoveIndex;
 }
 
 /* private: */
-bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInput, Move &move) {
+bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInput, int &moveIndex) {
     if (userInput.size() != 4) {
         std::cout << "Invalid input. Please input a valid move in the following notation:\n"
                   << " [square][square]\n"
@@ -53,16 +43,18 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             return ((move.fromSquare == fromSquare) && (move.targetSquare == toSquare));
         };
 
-        auto it = std::find_if(moves.begin(), moves.end(), isMove);
-        if (it == moves.end()) {
+        auto move_it = std::find_if(moves.begin(), moves.end(), isMove);
+        if (move_it == moves.end()) {
             std::cout << "Invalid move. Please input a legal move in the following notation:\n"
                       << " [square][square]\n"
                       << " for example: g2g4\n";
             return false;
         }
 
+        moveIndex = std::distance(moves.begin(), move_it);
+
         // Set move to move found in vector
-        move = *it;
+        Move move = *move_it;
 
         if (move.isPromotion) {
             // If promotion move, ask for promotion type and set accordingly
@@ -84,8 +76,17 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
                         break;
                 }
             } while (!valid);
-        }
+            
+            Piecetype promotionPiecetype = move.promotionPiece;
+            auto isPromotionMove = [fromSquare, toSquare, promotionPiecetype](const Move &move) {
+                return (   (move.fromSquare == fromSquare) 
+                        && (move.targetSquare == toSquare) 
+                        && (move.promotionPiece == promotionPiecetype));
+            };
 
+            auto promo_it = std::find_if(moves.begin(), moves.end(), isPromotionMove);
+            moveIndex = std::distance(moves.begin(), promo_it);
+        }
         return true;
 
     } catch (const std::exception &e) {

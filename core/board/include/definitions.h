@@ -183,18 +183,6 @@ const std::unordered_map<Direction, std::string> directionStringMap = {
     {SouthWest, "SouthWest"}
 };
 
-const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
-    {"human", Human},
-    {"Human", Human},
-    {"random", Random},
-    {"Random", Random},
-};
-
-const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
-    {Human, "Human"},
-    {Random, "Random"},
-};
-
 // Operator overloads for logging
 static std::ostream& operator<<(std::ostream &os, const Square &square) {
     os << squareStringMap.at(square);
@@ -218,11 +206,6 @@ static std::ostream& operator<<(std::ostream &os, const File &file) {
 
 static std::ostream& operator<<(std::ostream &os, const Piecetype &piecetype) {
     os << piecetypeStringMap.at(piecetype);
-    return os;
-}
-
-static std::ostream& operator<<(std::ostream &os, const PlayerType &playerType) {
-    os << playerTypeStringMap.at(playerType);
     return os;
 }
 

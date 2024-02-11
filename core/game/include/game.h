@@ -1,10 +1,13 @@
 #pragma once
 
+#include "playerfactory.h"
+#include "player.h"
 #include "board.h"
 #include "log.h"
-#include "player.h"
 
-#include <algorithm>
+#include <vector>
+#include <string>
+
 
 class Game {
     public:
