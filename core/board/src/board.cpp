@@ -10,8 +10,7 @@ Board::Board(const char *FENString, const std::string &logFile)
       activePlayer(White),
       wKC(false), wQC(false), bKC(false), bQC(false),
       enPassantSquare(NoSquare),
-      halfMoveClock(0),
-      fullMoveNumber(0)
+      halfMoveClock(0), fullMoveNumber(0), fiftyMoveCounter(0)
 {
     #if defined(DEBUG)
         logger.setLogLevel(LEVEL_DEBUG);
@@ -64,12 +63,13 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     for (const auto& move : psuedoLegalMoves) {
         std::array<bool, NrCastlingRights> copyCastlingRights = getCastlingRights();
         Square copyEnPassantSquare = enPassantSquare;
+        int copyFiftyMoveCounter = fiftyMoveCounter;
 
         doMove(move);
         if (!inCheck(~activePlayer)) {
             moveVector.emplace_back(move);
         }
-        undoMove(move, copyCastlingRights, copyEnPassantSquare);
+        undoMove(move, copyCastlingRights, copyEnPassantSquare, copyFiftyMoveCounter);
         // checkBoardConsistency();
     }
 }
@@ -92,15 +92,14 @@ std::array<bool, NrCastlingRights> Board::getCastlingRights() const {
     return {wKC, wQC, bKC, bQC};
 }
 
-void Board::setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights) {
-    wKC = newCastlingRights[wKingside];
-    wQC = newCastlingRights[wQueenside];
-    bKC = newCastlingRights[bKingside];
-    bQC = newCastlingRights[bQueenside];
-}
 
 Square Board::getEnPassantSquare() const {
     return enPassantSquare;
+}
+
+int Board::getfiftyMoveCounter() const
+{
+    return fiftyMoveCounter;
 }
 
 void Board::setLogLevel(LogLevel logLevel)
@@ -108,14 +107,13 @@ void Board::setLogLevel(LogLevel logLevel)
     logger.setLogLevel(logLevel);
 }
 
-void Board::setEnPassantSquare(Square newEnpassantSquare) {
-    enPassantSquare = newEnpassantSquare;
-}
-
-
 void Board::doMove(const Move &move) {   
     if (move.isCapture) {
         movePiece(~activePlayer, move.capturePiece, move.captureSquare, NoSquare);
+        fiftyMoveCounter = 0;
+    }
+    if (move.playerPiece == Pawn) {
+        fiftyMoveCounter = 0;
     }
 
     movePiece(activePlayer, move.playerPiece, move.fromSquare, move.targetSquare);
@@ -159,7 +157,8 @@ void Board::doMove(const Move &move) {
 
     removeCastlingRights(move.fromSquare);
     removeCastlingRights(move.targetSquare);
-
+    
+    fiftyMoveCounter++;
     halfMoveClock++;
     if ((halfMoveClock % 2) == 0) {
         fullMoveNumber++;
@@ -168,11 +167,15 @@ void Board::doMove(const Move &move) {
     activePlayer = ~activePlayer;
 }
 
-void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare) {
+void Board::undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare, int copyFiftyMoveCounter) {
     activePlayer = ~activePlayer;
 
-    setCastlingRights(copyCastlingRights);
-    setEnPassantSquare(copyEnPassantSquare);
+    wKC = copyCastlingRights[wKingside];
+    wQC = copyCastlingRights[wQueenside];
+    bKC = copyCastlingRights[bKingside];
+    bQC = copyCastlingRights[bQueenside];
+    enPassantSquare = copyEnPassantSquare;
+    fiftyMoveCounter = copyFiftyMoveCounter;
 
     if ((halfMoveClock % 2) == 0) {
         fullMoveNumber--;
@@ -331,6 +334,7 @@ void Board::InitializeFromFEN(const char *FENString)
 
 void Board::checkBoardConsistency() const
 {
+    #if defined(DEBUG) || defined(VERBOSE)
     _assert(pieceMaps[White].size() == colorBitboards[White].count());
     _assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
@@ -353,78 +357,49 @@ void Board::checkBoardConsistency() const
         _assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
+    #endif
 }
 
 bool Board::checkInsufficientMaterial() const
 {
-    auto playerHasPieceCount = [this](Color player, Piecetype type, int num) -> bool {
-        int count = 0;
-        for (const auto entry : pieceMaps[player]) {
-            Piecetype pType = entry.second;
-            if (pType == type) {
-                count++;
-            }
-        }
-        return (count == num);
-    };
+    if (!piecetypeBitboards[Pawn].empty() || !piecetypeBitboards[Rook].empty() || !piecetypeBitboards[Queen].empty()) {
+        return false;
+    }
 
-    auto hasOnlyPiecetypes = [this](Color player, std::vector<Piecetype> types) -> bool {
-        // All player pieces
-        for (const auto entry : pieceMaps[player]) {
-            bool matchesAllowedType = false;
-            Piecetype pType = entry.second;
+    // Only minor pieces left
+    int nrKnights = piecetypeBitboards[Knight].count();
+    int nrBishops = piecetypeBitboards[Bishop].count();
+    int nrMinorPieces = nrKnights + nrBishops;
 
-            // if in allowed piecetypes
-            for (const auto& allowedPieceType : types) {
-                if (pType == allowedPieceType) {
-                    matchesAllowedType = true;
-                    break;
-                }
-            }
-
-            // not in allowed piecetypes
-            if (!matchesAllowedType) {
-                return false;
-            }
-        }
+    // Definitely not enough material
+    if (nrMinorPieces < 2) {
         return true;
-    };
+    }
 
-    // King, King & 1 Knight, King & 1 Bishop
-    bool drawWhite = (
-           (playerHasPieceCount(White, King, 1) && hasOnlyPiecetypes(White, {King}))
-        || (playerHasPieceCount(White, Bishop, 1) && hasOnlyPiecetypes(White, {King, Bishop}))
-        || (playerHasPieceCount(White, Knight, 1) && hasOnlyPiecetypes(White, {King, Knight}))
-    );
+    // Definitely enough material
+    if ((nrMinorPieces > 2) || nrKnights > 0) {
+        return false;
+    }
 
-    // King, King & 1 Knight, King & 1 Bishop
-    bool drawBlack = (
-           (playerHasPieceCount(Black, King, 1) && hasOnlyPiecetypes(Black, {King}))
-        || (playerHasPieceCount(Black, Bishop, 1) && hasOnlyPiecetypes(Black, {King, Bishop}))
-        || (playerHasPieceCount(Black, Knight, 1) && hasOnlyPiecetypes(Black, {King, Knight}))
-    );
-
-    // King vs King & 2 Knights
-    bool twoKnightsOneKingWhite = (
-        playerHasPieceCount(White, Knight, 2) 
-        && hasOnlyPiecetypes(White, {King, Knight}) 
-        && hasOnlyPiecetypes(Black, {King})
-    );
-
-    // King vs King & 2 Knights
-    bool twoKnightsOneKingBlack = (
-        playerHasPieceCount(Black, Knight, 2) 
-        && hasOnlyPiecetypes(Black, {King, Knight})
-        && hasOnlyPiecetypes(White, {King})
-    );
+    // Do checks with 2 bishops on board
+    Bitboard wBish = (piecetypeBitboards[Bishop] & colorBitboards[White]);
     
-    return (drawWhite && drawBlack) || twoKnightsOneKingWhite || twoKnightsOneKingBlack;
+    // One side has 2 Bishops
+    if (wBish.count() != 1) {
+        return false;
+    }
+
+    // Different color bishops
+    if ((piecetypeBitboards[Bishop] & darkSquares).count() == 1) {
+        return false;
+    }
+
+    return true;
 }
 
 bool Board::checkFiftyMoveRule() const
 {
-    // TODO implement
-    return false;
+    return (fiftyMoveCounter >= 50);
 }
 
 bool Board::checkThreeFoldRepetition() const

@@ -23,6 +23,7 @@ int HumanPlayer::decideOnMove(Board boardCopy, const std::vector<Move> &moves) {
         }
     } while (!parseMove(moves, input, playerMove));
 
+    // FIXME use parse move to get index
     auto iter = std::find_if(moves.begin(), moves.end(), [playerMove](const Move &move) {
         return playerMove == move;
     });

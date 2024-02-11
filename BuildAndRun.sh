@@ -14,7 +14,7 @@ while getopts "hb:rve" opt; do
       echo "Options:"
       echo "  -b <BUILDTYPE>   Set the build type to either 'Debug' or 'Release'. Default is 'Release'."
       echo "  -r               Rebuild from scratch."
-      echo "  -e               Run SchaakPlezier after building."
+      echo "  -e               Execute SchaakPlezier after building."
       echo "  -v               Display the log file content after running."
       echo "  -h               Display this message."
       exit
@@ -65,9 +65,9 @@ if [ -d "$build_dir" ] && [ $rebuild == true ]; then
     rm -r "$build_dir"
 fi
 
-mkdir -p "$build_dir"
+mkdir -p "$build_dir" || exit
 cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type"
-cd "$build_dir" || exit
+cd "$build_dir"
 
 make || exit
 
@@ -82,7 +82,7 @@ if [ "$build_type" == "Debug" ] || [ "$build_type" == "Verbose" ]; then
 fi
 
 if $execute; then 
-  ./SchaakPlezier -w human -b human || exit
+  ./SchaakPlezier -w human -b random || exit
 fi
 
 # Output log to terminal if verbose

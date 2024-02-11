@@ -8,14 +8,14 @@
 
 class Game {
     public:
-        Game(std::unique_ptr<Player> player1, std::unique_ptr<Player> player2, const char *FENString = defaultStartingFEN);
+        Game(std::unique_ptr<Player> whitePlayer, std::unique_ptr<Player> blackPlayer, const char *FENString = defaultStartingFEN);
         ~Game() = default;
 
         void start();
 
     private:
-        std::unique_ptr<Player> player1;
-        std::unique_ptr<Player> player2;
+        std::unique_ptr<Player> whitePlayer;
+        std::unique_ptr<Player> blackPlayer;
 
         ChessLogger& logger;
         Board board;

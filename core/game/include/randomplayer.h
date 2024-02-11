@@ -1,12 +1,13 @@
 #pragma once
 
 #include "player.h"
+#include <ctime>
+
 
 class RandomPlayer : public Player {
     public:
-        int decideOnMove (Board boardCopy, const std::vector<Move> &moves) override { return rand() % moves.size(); }
+        RandomPlayer() { std::srand(static_cast<unsigned int>(std::time(nullptr))); }
+        int decideOnMove (Board boardCopy, const std::vector<Move> &moves) override { return (std::rand() % moves.size()); }
         PlayerType getPlayerType() override {return Random;};
     private:
-//        int search (const Board &board, const std::vector<Move> &moves);
-//        double evaluate (const Board &board);
 };

@@ -103,25 +103,25 @@ const std::unordered_map<std::string, Square> stringSquareMap = {
 };
 
 const std::unordered_map<File, std::string> fileStringMap = {
-       {FileA, "A"},
-       {FileB, "B"},
-       {FileC, "C"},
-       {FileD, "D"},
-       {FileE, "E"},
-       {FileF, "F"},
-       {FileG, "G"},
-       {FileH, "H"}
+    {FileA, "A"},
+    {FileB, "B"},
+    {FileC, "C"},
+    {FileD, "D"},
+    {FileE, "E"},
+    {FileF, "F"},
+    {FileG, "G"},
+    {FileH, "H"}
 };
 
 const std::unordered_map<Rank, std::string> rankStringMap = {
-       {Rank1, "1"},
-       {Rank2, "2"},
-       {Rank3, "3"},
-       {Rank4, "4"},
-       {Rank5, "5"},
-       {Rank6, "6"},
-       {Rank7, "7"},
-       {Rank8, "8"}
+    {Rank1, "1"},
+    {Rank2, "2"},
+    {Rank3, "3"},
+    {Rank4, "4"},
+    {Rank5, "5"},
+    {Rank6, "6"},
+    {Rank7, "7"},
+    {Rank8, "8"}
 };
 
 const std::unordered_map<char, Color> charColorMap = {
@@ -173,14 +173,14 @@ const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
 };
 
 const std::unordered_map<Direction, std::string> directionStringMap = {
-       {North, "North"},
-       {South, "South"},
-       {East, "East"},
-       {West, "West"},
-       {NorthEast, "NorthEast"},
-       {NorthWest, "NorthWest"},
-       {SouthEast, "SouthEast"},
-       {SouthWest, "SouthWest"}
+    {North, "North"},
+    {South, "South"},
+    {East, "East"},
+    {West, "West"},
+    {NorthEast, "NorthEast"},
+    {NorthWest, "NorthWest"},
+    {SouthEast, "SouthEast"},
+    {SouthWest, "SouthWest"}
 };
 
 const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {

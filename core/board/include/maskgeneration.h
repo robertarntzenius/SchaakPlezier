@@ -234,4 +234,14 @@ namespace MaskGeneration {
         return directionalScope;
     }
 
+    [[nodiscard]] constexpr Bitboard computeDarkSquares() {
+        Bitboard darkSquares;
+        for (int squareInt = 1; squareInt < NrSquares; squareInt+=2) {
+            const Square square = intToSquare(squareInt);
+            darkSquares.set(square);
+        }
+        return darkSquares;
+    }
+
+
 } // namespace MaskGeneration

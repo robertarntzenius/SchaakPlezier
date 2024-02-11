@@ -2,9 +2,9 @@
 #include "log.h"
 
 
-Game::Game(std::unique_ptr<Player> player1, std::unique_ptr<Player> player2, const char *FENString)
-    : player1(std::move(player1)),
-      player2(std::move(player2)),
+Game::Game(std::unique_ptr<Player> whitePlayer, std::unique_ptr<Player> blackPlayer, const char *FENString)
+    : whitePlayer(std::move(whitePlayer)),
+      blackPlayer(std::move(blackPlayer)),
       logger(ChessLogger::getInstance()),
       board(Board(FENString))
 {
@@ -18,15 +18,15 @@ void Game::start()
     Move move;
 
     logger.debug("Starting game with players:");
-    logger.debug(player1->getPlayerType());
-    logger.debug(player2->getPlayerType());
+    logger.debug(whitePlayer->getPlayerType());
+    logger.debug(blackPlayer->getPlayerType());
 
     // Clear screen
     std::cout << "\033[2J\033[H";
 
     // Opening messages
     std::cout << "Starting new game. " << board.getActivePlayer() << " to play.\n"
-              << "white: " << player1->getPlayerType() << ", black: " << player2->getPlayerType() << "\n"
+              << "white: " << whitePlayer->getPlayerType() << ", black: " << blackPlayer->getPlayerType() << "\n"
               << "Type \"quit\" to end the game. Enter moves by typing a square your "
               << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
               << "Enjoy!\n";
@@ -60,7 +60,6 @@ void Game::start()
             return;
         }
 
-        // TODO implement
         if (board.checkFiftyMoveRule()) {
             std::cout << "Game finished; draw by 50 move rule!\n";
             logger.debug("Game finished; draw by 50 move rule!");
@@ -76,7 +75,7 @@ void Game::start()
 
         // Player interaction
         if (board.getActivePlayer() == White) {
-            int player1Choice = player1->decideOnMove(board, moves);
+            int player1Choice = whitePlayer->decideOnMove(board, moves);
             if (player1Choice == -1) {
                 // Quit
                 return;
@@ -84,7 +83,7 @@ void Game::start()
             move = moves[player1Choice];
         }
         else {
-            int player2Choice = player2->decideOnMove(board, moves);
+            int player2Choice = blackPlayer->decideOnMove(board, moves);
             if (player2Choice == -1) {
                 // Quit
                 return;

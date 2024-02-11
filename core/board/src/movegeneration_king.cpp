@@ -33,12 +33,12 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
     // Castling
     switch (activePlayer) {
         case White:
-            if (wKC) generateCastleMove(moveVector, wKingside); 
-            if (wQC) generateCastleMove(moveVector, wQueenside); 
+            if (wKC) {generateCastleMove(moveVector, wKingside);}
+            if (wQC) {generateCastleMove(moveVector, wQueenside);}
             break;
         case Black:
-            if (bKC) generateCastleMove(moveVector, bKingside); 
-            if (bQC) generateCastleMove(moveVector, bQueenside); 
+            if (bKC) {generateCastleMove(moveVector, bKingside);}
+            if (bQC) {generateCastleMove(moveVector, bQueenside);}
             break;
         default:
             throw std::invalid_argument("invalid active player");

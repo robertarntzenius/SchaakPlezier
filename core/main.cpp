@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
     
     const char *selectedFEN = defaultStartingFEN;
     PlayerFactory playerFactory;
-    std::unique_ptr<Player> player1 = playerFactory.makePlayer("Human");
-    std::unique_ptr<Player> player2 = playerFactory.makePlayer("Human");
+    std::unique_ptr<Player> whitePlayer = playerFactory.makePlayer("Human");
+    std::unique_ptr<Player> blackPlayer = playerFactory.makePlayer("Human");
 
     int opt;
     while ((opt = getopt(argc, argv, "f:w:b:")) != -1) {
@@ -21,10 +21,10 @@ int main(int argc, char *argv[]) {
                 selectedFEN = optarg;
                 break;
             case 'w':
-                player1 = playerFactory.makePlayer(optarg);
+                whitePlayer = playerFactory.makePlayer(optarg);
                 break;
             case 'b':
-                player2 = playerFactory.makePlayer(optarg);
+                blackPlayer = playerFactory.makePlayer(optarg);
                 break;
             case '?':
                 // Handle unknown or missing option argument
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    Game game(std::move(player1), std::move(player2), selectedFEN);
+    Game game(std::move(whitePlayer), std::move(blackPlayer), selectedFEN);
 
     try {
         game.start();

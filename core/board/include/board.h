@@ -31,7 +31,7 @@ class Board {
          *
          * @param move
          */
-        void undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare);
+        void undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare, int copyFiftyMoveCounter);
         /**
          * @brief returns whether specific player is in check from the current board state
          *
@@ -66,20 +66,19 @@ class Board {
 
         // useful functions for testing
         // FIXME remove
-        std::array<bool, NrCastlingRights> getCastlingRights() const;
-        void setCastlingRights(std::array<bool, NrCastlingRights> &newCastlingRights);
-        void setEnPassantSquare(Square newEnpassantSquare);
+        std::array<bool, NrCastlingRights> getCastlingRights() const;        
         Square getEnPassantSquare() const;
+        int getfiftyMoveCounter() const;
         void setLogLevel(LogLevel logLevel);
+
         void checkBoardConsistency() const;
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
-        bool checkThreeFoldRepetition() const;       
+        bool checkThreeFoldRepetition() const;
     private:
         /* Methods*/
         void InitializeFromFEN(const char *FENString);
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
-
 
         /* MoveGen */
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
@@ -109,7 +108,7 @@ class Board {
 
         Square enPassantSquare;
 
-        int halfMoveClock, fullMoveNumber;
+        int halfMoveClock, fullMoveNumber, fiftyMoveCounter;
 
         /* static lookup arrays*/
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
@@ -133,4 +132,7 @@ class Board {
                 MaskGeneration::computeRankMask(Rank8),
                 MaskGeneration::computeRankMask(Rank1)
         };
+
+        static constexpr Bitboard darkSquares = MaskGeneration::computeDarkSquares();
+        static constexpr Bitboard lightSquares = ~MaskGeneration::computeDarkSquares();
 };
