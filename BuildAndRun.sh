@@ -83,7 +83,7 @@ function cat_logfile {
 }
 
 function parse_args {
-  while getopts "hb:rveg" opt; do
+  while getopts "hb:rvegp:o:" opt; do
     case $opt in
       h) # Show usage
         show_usage
@@ -104,12 +104,18 @@ function parse_args {
       b) # set the build type using -b Debug or -b Release
         build_type="${OPTARG}"
         ;;
+      p) # Player: set white player using -p human or -p random
+        whitePlayer="${OPTARG}"
+        ;;
+      o) # Opponent: set black player using -o human or -o random
+        blackPlayer="${OPTARG}"
+        ;;
       \?)
         echo "Invalid option: $opt"
         exit 1
         ;;
       :)
-        echo "Option -$OPTARG requires an argument."
+        echo "$opt requires an argument."
         exit 1
         ;;
     esac
@@ -128,6 +134,8 @@ function show_usage {
   echo ""
   echo "Options:"
   echo "  -b <BUILDTYPE>   Set the build type to either 'Debug' or 'Release'. Default is 'Release'."
+  echo "  -p <PLAYERTYPE>  Set the white player to either 'human' or 'random'. Default is 'human'."
+  echo "  -o <PLAYERTYPE>  Set the black player to either 'human' or 'random'. Default is 'random'."
   echo "  -r               Rebuild from scratch."
   echo "  -e               Execute SchaakPlezier after building."
   echo "  -g               Compile with debugging symbols to enable profiler."
@@ -142,6 +150,8 @@ function main {
   rebuild=false
   execute=false
   profiler=false
+  whitePlayer="human"
+  blackPlayer="random"
 
   # User input
   parse_args "$@"
@@ -161,7 +171,7 @@ function main {
   run_profiler "$build_dir/SchaakPlezier"
 
   # Run
-  run_SchaakPlezier random random
+  run_SchaakPlezier "$whitePlayer" "$blackPlayer"
 
   # Output
   cat_logfile
