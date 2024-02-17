@@ -40,6 +40,16 @@ else()
     message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release, Debug or Verbose)")
 endif()
 
+# Profiler
+if(PROFILER STREQUAL "ON")
+    find_program(VALGRIND_EXECUTABLE valgrind)
+    if(VALGRIND_EXECUTABLE)
+        add_compile_options(-g)
+        message(STATUS "Compiling for profiler with debugging symbols")
+    else()
+        message(WARNING "Valgrind not found. Profiling not supported.")
+    endif()
+endif()
 
 add_executable(SchaakPlezier
     main.cpp
