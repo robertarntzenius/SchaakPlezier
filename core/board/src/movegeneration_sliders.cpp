@@ -3,7 +3,8 @@
 void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare, Piecetype pieceType) const {
     logger.logHeader("generateSliderMoves", fromSquare);
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    uint8_t firstDirection(0), lastDirection(0);
+    uint8_t firstDirection = 0;
+    uint8_t lastDirection = 0;
 
     Bitboard scope;
     switch (pieceType) {

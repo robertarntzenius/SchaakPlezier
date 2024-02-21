@@ -13,7 +13,9 @@ Game::Game(std::unique_ptr<Player> whitePlayer, std::unique_ptr<Player> blackPla
 void Game::start()
 {
     std::vector<Move> moves;
-    moves.reserve(64);
+
+    const int RESERVE = 64;
+    moves.reserve(RESERVE);
 
     Move move;
 

@@ -4,8 +4,9 @@
 
 class HumanPlayer : public Player {
     public:
-        int decideOnMove (Board boardCopy, const std::vector<Move> &moves) override;
-        PlayerType getPlayerType() override {return Human;};
+        [[nodiscard]] int decideOnMove (Board boardCopy, const std::vector<Move> &moves) override;
+        [[nodiscard]] PlayerType getPlayerType() override { return Human; };
+
     private:
-        static bool parseMove(const std::vector<Move> &moves, std::string& userInput, int &moveIndex);
+        [[nodiscard]] static bool parseMove(const std::vector<Move> &moves, std::string& userInput, int &moveIndex);
 };

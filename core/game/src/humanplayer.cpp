@@ -1,9 +1,9 @@
 #include "humanplayer.h"
 
 
-int HumanPlayer::decideOnMove(Board boardCopy, const std::vector<Move> &moves) {
+int HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
     std::string input;
-    int playerMoveIndex;
+    int playerMoveIndex = 0;
     ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");
 
     do {
@@ -51,7 +51,7 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             return false;
         }
 
-        moveIndex = std::distance(moves.begin(), move_it);
+        moveIndex = static_cast<int>(std::distance(moves.begin(), move_it));
 
         // Set move to move found in vector
         Move move = *move_it;
@@ -61,7 +61,7 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             bool valid = false;
 
             do {
-                char promotionTypeChar;
+                char promotionTypeChar = 0;
                 std::cout << "Please input a promotion piece type: (Q,N,B,R): ";
                 std::cin >> promotionTypeChar;
 
@@ -85,7 +85,7 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             };
 
             auto promo_it = std::find_if(moves.begin(), moves.end(), isPromotionMove);
-            moveIndex = std::distance(moves.begin(), promo_it);
+            moveIndex = static_cast<int>(std::distance(moves.begin(), promo_it));
         }
         return true;
 

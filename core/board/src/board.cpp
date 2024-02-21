@@ -367,9 +367,9 @@ bool Board::checkInsufficientMaterial() const
     }
 
     // Only minor pieces left
-    int nrKnights = piecetypeBitboards[Knight].count();
-    int nrBishops = piecetypeBitboards[Bishop].count();
-    int nrMinorPieces = nrKnights + nrBishops;
+    size_t nrKnights = piecetypeBitboards[Knight].count();
+    size_t nrBishops = piecetypeBitboards[Bishop].count();
+    size_t nrMinorPieces = nrKnights + nrBishops;
 
     // Definitely not enough material
     if (nrMinorPieces < 2) {
@@ -382,10 +382,10 @@ bool Board::checkInsufficientMaterial() const
     }
 
     // Do checks with 2 bishops on board
-    Bitboard wBish = (piecetypeBitboards[Bishop] & colorBitboards[White]);
+    Bitboard whiteBishops = (piecetypeBitboards[Bishop] & colorBitboards[White]);
     
     // One side has 2 Bishops
-    if (wBish.count() != 1) {
+    if (whiteBishops.count() != 1) {
         return false;
     }
 
@@ -399,7 +399,8 @@ bool Board::checkInsufficientMaterial() const
 
 bool Board::checkFiftyMoveRule() const
 {
-    return (fiftyMoveCounter >= 50);
+    static constexpr int FIFTY = 50;
+    return (fiftyMoveCounter >= FIFTY);
 }
 
 bool Board::checkThreeFoldRepetition() const
@@ -410,7 +411,7 @@ bool Board::checkThreeFoldRepetition() const
 
 Bitboard Board::getPlayerAttackMask(Color player) const {
     Bitboard attacks;
-    for (const auto piece: pieceMaps[player]) {
+    for (const auto &piece: pieceMaps[player]) {
         const Square &fromSquare = piece.first;
         const Piecetype &pieceType = piece.second;
         if (pieceType == Queen || pieceType == Rook || pieceType == Bishop) {
@@ -426,7 +427,8 @@ Bitboard Board::getPlayerAttackMask(Color player) const {
 
 Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) const {
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    uint8_t firstDirection, lastDirection;
+    uint8_t firstDirection = 0;
+    uint8_t lastDirection = 0;
     Bitboard scope;
 
     switch (pieceType) {

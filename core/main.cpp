@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<Player> whitePlayer = playerFactory.makePlayer("Human");
     std::unique_ptr<Player> blackPlayer = playerFactory.makePlayer("Human");
 
-    int opt;
+    int opt = 0;
     while ((opt = getopt(argc, argv, "f:w:b:")) != -1) {
         switch (opt) {
             case 'f':

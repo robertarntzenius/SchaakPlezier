@@ -3,7 +3,6 @@
 std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeString) {
     if (!stringPlayerTypeMap.contains(playerTypeString)) {
         throw std::invalid_argument("Unknown player type");
-        return nullptr;
     }
         
     PlayerType playerType = stringPlayerTypeMap.at(playerTypeString);
@@ -11,13 +10,11 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
     {
     case Human:
         return std::make_unique<HumanPlayer>();
-        break;
     case Random:
         return std::make_unique<RandomPlayer>();
-        break;
+    case MinMax:
+        return std::make_unique<MinMaxPlayer>();
     default:
         throw std::invalid_argument("Unknown player type");
-        return nullptr;
-        break;
     }
 }

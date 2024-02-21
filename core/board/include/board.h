@@ -103,6 +103,7 @@ class Board {
 
         std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
 
+        // FIXME throw all these into single struct to be copied at once
         Color activePlayer;
 
         bool wKC, wQC, bKC, bQC;

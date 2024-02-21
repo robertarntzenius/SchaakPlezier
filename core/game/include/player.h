@@ -6,6 +6,7 @@
 enum PlayerType {
     Human,
     Random,
+    MinMax,
 };
 
 class Player {
@@ -14,15 +15,15 @@ class Player {
         virtual ~Player() = default;
 
         // TODO add timestamp
-        virtual int decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
-        virtual PlayerType getPlayerType() = 0;
+        [[nodiscard]] virtual int decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
+        [[nodiscard]] virtual PlayerType getPlayerType() = 0;
 };
 
 const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
     {"human", Human},
     {"Human", Human},
     {"random", Random},
-    {"Random", Random},
+    {"Random", Random}, // TODO add MinMax
 };
 
 const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {

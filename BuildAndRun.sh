@@ -17,7 +17,7 @@ function clean_build_dir {
 
 function set_profiler_opt {
   profiler_opt="OFF"
-  if [ $profiler == true ]; then
+  if [ "$profiler" == true ]; then
       rebuild=true
       profiler_opt="ON"
       echo "Profiler flag is set. Compiling with symbols"

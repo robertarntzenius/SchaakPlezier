@@ -135,8 +135,14 @@ class Bitboard {
             return bits & mask;
         }
 
-        class Iterator : public std::iterator<std::input_iterator_tag, Square> {
+        class Iterator {
             public:
+                using iterator_category = std::input_iterator_tag;
+                using value_type = Square;
+                using difference_type = std::ptrdiff_t;
+                using pointer = Square*;
+                using reference = Square&;
+
                 explicit Iterator(ulong bits) : bitsCopy(bits) {}
 
                 [[nodiscard]] bool operator==(const Iterator& other) const { return bitsCopy == other.bitsCopy; }
