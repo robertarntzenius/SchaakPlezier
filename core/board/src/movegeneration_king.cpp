@@ -4,14 +4,14 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
     logger.logHeader("generateKingMoves", fromSquare);
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    const Bitboard attacks = kingScopeLookUp[fromSquare] & colorBitboards[~activePlayer];
+    const Bitboard attacks = kingScopeLookUp[fromSquare] & colorBitboards[~boardState.activePlayer];
 
     // King attacks
     for (const auto &toSquare : attacks) {
         moveVector.emplace_back(
             MoveBuilder(King, fromSquare)
                 .setTarget(toSquare)
-                .setCapture(pieceMaps[~activePlayer].at(toSquare), toSquare)
+                .setCapture(pieceMaps[~boardState.activePlayer].at(toSquare), toSquare)
                 .build()
         );
         logger.debug(moveVector.back());
@@ -31,14 +31,14 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
     }
 
     // Castling
-    switch (activePlayer) {
+    switch (boardState.activePlayer) {
         case White:
-            if (wKC) {generateCastleMove(moveVector, wKingside);}
-            if (wQC) {generateCastleMove(moveVector, wQueenside);}
+            if (boardState.wKC) {generateCastleMove(moveVector, wKingside);}
+            if (boardState.wQC) {generateCastleMove(moveVector, wQueenside);}
             break;
         case Black:
-            if (bKC) {generateCastleMove(moveVector, bKingside);}
-            if (bQC) {generateCastleMove(moveVector, bQueenside);}
+            if (boardState.bKC) {generateCastleMove(moveVector, bKingside);}
+            if (boardState.bQC) {generateCastleMove(moveVector, bQueenside);}
             break;
         default:
             throw std::invalid_argument("invalid active player");
@@ -47,7 +47,7 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
 }
 
 void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side) const {
-    logger.logHeader("generateCastleMove", activePlayer);
+    logger.logHeader("generateCastleMove", boardState.activePlayer);
 
     static constexpr Bitboard wKingSideEmptySquares = Bitboard(0).set(f1).set(g1);
     static constexpr Bitboard wQueenSideEmptySquares = Bitboard(0).set(b1).set(c1).set(d1);
@@ -55,7 +55,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
     static constexpr Bitboard bQueenSideEmptySquares = Bitboard(0).set(b8).set(c8).set(d8);
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    const Bitboard opponentAttacks = getPlayerAttackMask(~activePlayer);
+    const Bitboard opponentAttacks = getPlayerAttackMask(~boardState.activePlayer);
     logger.verbose("opponentAttacks", opponentAttacks);
 
     switch (side) {

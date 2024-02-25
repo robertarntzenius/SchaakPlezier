@@ -15,7 +15,7 @@ class Player {
         virtual ~Player() = default;
 
         // TODO add timestamp
-        [[nodiscard]] virtual int decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
+        [[nodiscard]] virtual size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) = 0;
         [[nodiscard]] virtual PlayerType getPlayerType() = 0;
 };
 
@@ -23,12 +23,15 @@ const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
     {"human", Human},
     {"Human", Human},
     {"random", Random},
-    {"Random", Random}, // TODO add MinMax
+    {"Random", Random}, 
+    {"MinMax", MinMax}, 
+    {"minmax", MinMax}, 
 };
 
 const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
     {Human, "Human"},
     {Random, "Random"},
+    {MinMax, "MinMax"},
 };
 
 

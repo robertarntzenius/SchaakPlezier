@@ -1,24 +1,24 @@
 #include "humanplayer.h"
 
 
-int HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
+size_t HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) {
     std::string input;
-    int playerMoveIndex = 0;
+    size_t playerMoveIndex = 0;
     ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");
-
+    
     do {
         std::cout << "Move: ";
         std::cin >> input;
         if (input == "quit") {
             logger.debug("quit");
-            return -1;
+            return SIZE_MAX;
         }
         if (input.starts_with('q') || input.starts_with('Q')) {
             std::cout << "Did you intend to quit the game? (y/n)\n";
             std::cin >> input;
             if (input == "y") {
                 logger.debug("quit");
-                return -1;
+                return SIZE_MAX;
             }
         }
     } while (!parseMove(moves, input, playerMoveIndex));
@@ -27,7 +27,7 @@ int HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vect
 }
 
 /* private: */
-bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInput, int &moveIndex) {
+bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInput, size_t &moveIndex) {
     if (userInput.size() != 4) {
         std::cout << "Invalid input. Please input a valid move in the following notation:\n"
                   << " [square][square]\n"
@@ -51,7 +51,7 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             return false;
         }
 
-        moveIndex = static_cast<int>(std::distance(moves.begin(), move_it));
+        moveIndex = std::distance(moves.begin(), move_it);
 
         // Set move to move found in vector
         Move move = *move_it;
@@ -85,7 +85,7 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
             };
 
             auto promo_it = std::find_if(moves.begin(), moves.end(), isPromotionMove);
-            moveIndex = static_cast<int>(std::distance(moves.begin(), promo_it));
+            moveIndex = std::distance(moves.begin(), promo_it);
         }
         return true;
 

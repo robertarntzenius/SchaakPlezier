@@ -20,16 +20,14 @@ void countLeafNodes(Board& board, int depth, u_int64_t &move_count) {
     }
 
     std::vector<Move> legal_moves;
-    board.getPossibleMoves(legal_moves);
+    BoardState copyState;
+
+    board.getPossibleMoves(legal_moves, copyState);
 
     for (const auto& move : legal_moves) {
-        std::array<bool, NrCastlingRights> copyCastlingRights = board.getCastlingRights();
-        Square copyEnPassantSquare = board.getEnPassantSquare();
-        int copyFiftyMoveCounter = board.getfiftyMoveCounter();
-        
         board.doMove(move);
         countLeafNodes(board, depth - 1, move_count);
-        board.undoMove(move, copyCastlingRights, copyEnPassantSquare, copyFiftyMoveCounter);
+        board.undoMove(move, copyState);
     }
 }
 
@@ -45,7 +43,9 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     auto start_time = std::chrono::high_resolution_clock::now();
     
     std::vector<Move> moves;
-    board.getPossibleMoves(moves);
+    BoardState copyState;
+
+    board.getPossibleMoves(moves, copyState);
     u_int64_t leaf_nodes = 0;
 
     testLogger.essential("\n\n");
@@ -53,18 +53,14 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     testLogger.essential(FEN);
     board.logBoard(LEVEL_ESSENTIAL);
 
-    for (auto move : moves) {       
-        std::array<bool, NrCastlingRights> copyCastlingRights = board.getCastlingRights();
-        Square copyEnPassantSquare = board.getEnPassantSquare();
-        int copyFiftyMoveCounter = board.getfiftyMoveCounter();
-        
+    for (auto move : moves) {
         board.doMove(move);
 
         u_int64_t move_count = 0;
         countLeafNodes(board, depth - 1, move_count);
 
         leaf_nodes += move_count;
-        board.undoMove(move, copyCastlingRights, copyEnPassantSquare, copyFiftyMoveCounter);
+        board.undoMove(move, copyState);
         
         testLogger.essential(move, move_count);
     }

@@ -4,14 +4,14 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
     logger.logHeader("generateKnightMoves", fromSquare);
 
     const Bitboard occupied = colorBitboards[Black] | colorBitboards[White];
-    const Bitboard attacks = knightScopeLookUp[fromSquare] & colorBitboards[~activePlayer];
+    const Bitboard attacks = knightScopeLookUp[fromSquare] & colorBitboards[~boardState.activePlayer];
 
     // Knight attacks
     for (const auto &toSquare : attacks) {
         moveVector.emplace_back(
             MoveBuilder(Knight, fromSquare)
                 .setTarget(toSquare)
-                .setCapture(pieceMaps[~activePlayer].at(toSquare), toSquare)
+                .setCapture(pieceMaps[~boardState.activePlayer].at(toSquare), toSquare)
                 .build()
         );
         logger.debug(moveVector.back());

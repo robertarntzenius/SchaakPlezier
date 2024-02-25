@@ -14,7 +14,7 @@ void Game::start()
 {
     std::vector<Move> moves;
 
-    const int RESERVE = 64;
+    const size_t RESERVE = 64;
     moves.reserve(RESERVE);
 
     Move move;
@@ -33,8 +33,9 @@ void Game::start()
               << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
               << "Enjoy!\n";
 
+    BoardState copyState;
     while (true) {
-        board.getPossibleMoves(moves);
+        board.getPossibleMoves(moves, copyState);
 
         // Print board
         std::cout << board;
@@ -77,16 +78,16 @@ void Game::start()
 
         // Player interaction
         if (board.getActivePlayer() == White) {
-            int player1Choice = whitePlayer->decideOnMove(board, moves);
-            if (player1Choice == -1) {
+            size_t player1Choice = whitePlayer->decideOnMove(board, moves, copyState);
+            if (player1Choice == SIZE_MAX) {
                 // Quit
                 return;
             }
             move = moves[player1Choice];
         }
         else {
-            int player2Choice = blackPlayer->decideOnMove(board, moves);
-            if (player2Choice == -1) {
+            size_t player2Choice = blackPlayer->decideOnMove(board, moves, copyState);
+            if (player2Choice == SIZE_MAX) {
                 // Quit
                 return;
             }

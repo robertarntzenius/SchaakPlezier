@@ -110,3 +110,10 @@ struct Move {
  
     bool operator<=>(const Move&) const = default;
 };
+
+struct BoardState {
+    Color activePlayer; //1
+    bool wKC, wQC, bKC, bQC; //4 
+    Square enPassantSquare; //1
+    uint16_t fullMoveNumber, halfMoveClock; // 6
+};

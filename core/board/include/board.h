@@ -19,7 +19,7 @@ class Board {
          *
          * @param moves
          */
-        void getPossibleMoves(std::vector<Move> &moveVector);
+        void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
 
         /**
          * @brief Performs move from current board state
@@ -32,7 +32,7 @@ class Board {
          *
          * @param move
          */
-        void undoMove(const Move &move, std::array<bool, NrCastlingRights> copyCastlingRights, Square copyEnPassantSquare, int copyFiftyMoveCounter);
+        void undoMove(const Move &move, const BoardState &state);
         /**
          * @brief returns whether specific player is in check from the current board state
          *
@@ -61,18 +61,15 @@ class Board {
         /**
          * @brief Get active player
          */
-        Color getActivePlayer() const { return activePlayer; };
+        Color getActivePlayer() const { return boardState.activePlayer; };
 
         friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
         // useful functions for testing
-        // FIXME remove
-        std::array<bool, NrCastlingRights> getCastlingRights() const;        
-        Square getEnPassantSquare() const;
-        int getfiftyMoveCounter() const;
         void setLogLevel(LogLevel logLevel);
 
         void checkBoardConsistency() const;
+        
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
         bool checkThreeFoldRepetition() const;
@@ -97,21 +94,13 @@ class Board {
         
         /* Member variables */
         ChessLogger& logger;
+        BoardState boardState;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;
 
         std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
-
-        // FIXME throw all these into single struct to be copied at once
-        Color activePlayer;
-
-        bool wKC, wQC, bKC, bQC;
-
-        Square enPassantSquare;
-
-        int halfMoveClock, fullMoveNumber, fiftyMoveCounter;
-
+        
         /* static lookup arrays*/
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
                 MaskGeneration::computePawnPushLookUp(White),

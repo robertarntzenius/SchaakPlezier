@@ -53,8 +53,8 @@ void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare
         }
         
 
-        if (colorBitboards[~activePlayer].test(nearestPieceLocation)) {
-            const Piecetype capturePiece = pieceMaps[~activePlayer].at(nearestPieceLocation);
+        if (colorBitboards[~boardState.activePlayer].test(nearestPieceLocation)) {
+            const Piecetype capturePiece = pieceMaps[~boardState.activePlayer].at(nearestPieceLocation);
             // add capture move
             moveVector.emplace_back(
                     MoveBuilder(pieceType, fromSquare)

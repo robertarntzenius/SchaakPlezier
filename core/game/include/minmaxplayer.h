@@ -2,64 +2,61 @@
 
 #include "player.h"
 
+#define MAX_EVAL 100.0
+#define MIN_EVAL -100.0
+
+
 class MinMaxPlayer : public Player {
 public:
     MinMaxPlayer() = default;
 
-    [[nodiscard]] int decideOnMove (Board boardCopy, const std::vector<Move> &moves) override {
+    [[nodiscard]] size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) override {
+        int sideFactor;
+        switch (copyState.activePlayer) {
+            case White: sideFactor = 1; break;
+            case Black: sideFactor = -1; break;
+            default: throw std::invalid_argument("Invalid color: " + std::to_string(copyState.activePlayer));
+        }
+        double bestEval = MIN_EVAL * sideFactor;
+
         const int maxDepth = 6;
-        double bestEval;
-        int bestMove = 0;
+        size_t bestMove = 0;
 
-        for (const auto &move : moves) {
-            std::array<bool, NrCastlingRights> copyCastlingRights = boardCopy.getCastlingRights();
-            Square copyEnPassantSquare = boardCopy.getEnPassantSquare();
-            int copyFiftyMoveCounter = boardCopy.getfiftyMoveCounter();
-
-            boardCopy.doMove(move);
-            const double moveEval = minMaxSearch(boardCopy, maxDepth - 1);
-            boardCopy.undoMove(move, copyCastlingRights, copyEnPassantSquare, copyFiftyMoveCounter);
-
-//            if (moveEval)
+        for (size_t moveIndex = 0; moveIndex <  moves.size(); moveIndex++) {                        
+            boardCopy.doMove(moves[moveIndex]);
+            const double currentEval = minMaxSearch(boardCopy, maxDepth - 1, -sideFactor);
+            boardCopy.undoMove(moves[moveIndex], copyState);
+            
+            if (currentEval > (bestEval * sideFactor)) {
+                bestEval = currentEval;
+                bestMove = moveIndex;
+            }
         }
 
-        return 0;
+        return bestMove;
     }
 
-    [[nodiscard]] double minMaxSearch(const Board &board, int depth) {
-        if (depth <= 0) {
+    [[nodiscard]] double minMaxSearch(Board &board, int depth, int sideFactor) {
+        if (depth <= 0) { // or checkmate?
             return evaluate(board);
         }
 
+        BoardState copyState;
+        std::vector<Move> moves;
+        board.getPossibleMoves(moves, copyState);
+        double bestEval = MIN_EVAL * sideFactor;
 
-
-        // FIXME not actually this, but smth like this
-        return minMaxSearch(board, depth - 1);
+        for (size_t currentMove = 0; currentMove < moves.size(); currentMove++) {
+            board.doMove(moves[currentMove]);
+            double currentEval = minMaxSearch(board, depth - 1, -sideFactor);
+            board.undoMove(moves[currentMove], copyState);
+            
+            if (currentEval > (bestEval * sideFactor)) {
+                bestEval = currentEval;
+            }
+        }
+        return bestEval;
     }
-
-
-//    // Recursive helper function for move application
-//    void countLeafNodes(Board& board, int depth, u_int64_t &move_count) {
-//        if (depth <= 0) {
-//            move_count++;
-//            return;
-//        }
-//
-//        std::vector<Move> legal_moves;
-//        board.getPossibleMoves(legal_moves);
-//
-//        for (const auto& move : legal_moves) {
-//            std::array<bool, NrCastlingRights> copyCastlingRights = board.getCastlingRights();
-//            Square copyEnPassantSquare = board.getEnPassantSquare();
-//            int copyFiftyMoveCounter = board.getfiftyMoveCounter();
-//
-//            board.doMove(move);
-//            countLeafNodes(board, depth - 1, move_count);
-//            board.undoMove(move, copyCastlingRights, copyEnPassantSquare, copyFiftyMoveCounter);
-//        }
-//    }
-
-
 
     [[nodiscard]] double evaluate(const Board &board) {
         return 0.0;
