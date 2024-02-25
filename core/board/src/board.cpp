@@ -68,6 +68,34 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyStat
     }
 }
 
+GameResult Board::getGameResult(bool noLegalMoves) const {
+    if (noLegalMoves) {
+        if (inCheck()) {
+            switch(~getActivePlayer()) {
+                case White: return WHITE_WIN_BY_CHECKMATE; break;
+                case Black: return BLACK_WIN_BY_CHECKMATE; break;
+                default: throw std::invalid_argument("Invalid color: " + std::to_string(~getActivePlayer()));
+            }
+        }
+        return DRAW_BY_STALEMATE;
+    }
+    
+    // Insufficient material
+    if (checkInsufficientMaterial()) {
+        return DRAW_BY_INSUFFICIENT_MATERIAL;
+    }
+
+    if (checkFiftyMoveRule()) {
+        return DRAW_BY_50_MOVES;
+    }
+
+    // TODO implement
+    if (checkThreeFoldRepetition()) {
+        return DRAW_BY_REPETITION;
+    }
+    return NOT_OVER;
+}
+
 void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
     if (toSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(toSquare);
@@ -80,11 +108,6 @@ void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Squa
         colorBitboards[player].set(fromSquare, false);
         pieceMaps[player].erase(fromSquare);
     }
-}
-
-void Board::setLogLevel(LogLevel logLevel)
-{
-    logger.setLogLevel(logLevel);
 }
 
 void Board::doMove(const Move &move) {   
@@ -119,7 +142,7 @@ void Board::doMove(const Move &move) {
             movePiece(boardState.activePlayer, Rook, a8, d8);
             break;
         default:
-            throw std::invalid_argument("Non valid Castle move");
+            throw std::invalid_argument("Invalid Castle move");
         }
     }
     

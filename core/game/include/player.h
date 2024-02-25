@@ -1,6 +1,7 @@
 #pragma once
 
 #include "board.h"
+#include "evaluation.h"
 
 
 enum PlayerType {

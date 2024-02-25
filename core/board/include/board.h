@@ -7,6 +7,7 @@
 
 #include <algorithm>
 
+
 class Board {
     public:
         ~Board() = default;
@@ -58,21 +59,22 @@ class Board {
          */
         void logBitboards() const;
 
-        /**
-         * @brief Get active player
-         */
-        Color getActivePlayer() const { return boardState.activePlayer; };
 
         friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
         // useful functions for testing
-        void setLogLevel(LogLevel logLevel);
-
         void checkBoardConsistency() const;
-        
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
         bool checkThreeFoldRepetition() const;
+
+        /* Setters & Getters */
+        void setLogLevel(LogLevel logLevel) { logger.setLogLevel(logLevel); }
+        
+        [[nodiscard]] const auto &getActivePlayer() const { return boardState.activePlayer; }
+        [[nodiscard]] const auto &getPieceMap(Color color) const { return pieceMaps[color]; }
+        [[nodiscard]] GameResult getGameResult(bool noLegalMoves) const;
+    
     private:
         /* Methods*/
         void InitializeFromFEN(const char *FENString);
@@ -87,7 +89,7 @@ class Board {
         void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
         void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateCastleMove(std::vector<Move> &moveVector, CastlingSide side) const;
-        
+    
         /* MaskGen */
         Bitboard getAttacksFromSlider(Square fromSquare, Piecetype piecetype) const;
         Bitboard getPlayerAttackMask(Color player) const;

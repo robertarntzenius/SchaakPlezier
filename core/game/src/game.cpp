@@ -36,45 +36,12 @@ void Game::start()
     BoardState copyState;
     while (true) {
         board.getPossibleMoves(moves, copyState);
+        logger.essential(board.getGameResult(moves.size() == 0));
 
         // Print board
         std::cout << board;
 
-        // Check for (stale)mate
-        if (moves.empty()) {
-            // Game over
-            if (board.inCheck()) {
-                // Win for not-active player
-                std::cout << ~board.getActivePlayer() << " player won the game! \n";
-                logger.debug("Game finished;", ~board.getActivePlayer(), "won!");
-                return;
-            }
-
-            // Stalemate
-            std::cout << "Stalemate! \n";
-            logger.debug("Stalemate");
-            return;
-        }
         
-        // Insufficient material
-        if (board.checkInsufficientMaterial()) {
-            std::cout << "Game finished; draw by insufficient material!\n";
-            logger.debug("Game finished; draw by insufficient material!");
-            return;
-        }
-
-        if (board.checkFiftyMoveRule()) {
-            std::cout << "Game finished; draw by 50 move rule!\n";
-            logger.debug("Game finished; draw by 50 move rule!");
-            return;
-        }
-
-        // TODO implement
-        if (board.checkThreeFoldRepetition()) {
-            std::cout << "Game finished; draw by three fold repetition!\n";
-            logger.debug("Game finished; draw by three fold repetition!");
-            return;
-        }
 
         // Player interaction
         if (board.getActivePlayer() == White) {

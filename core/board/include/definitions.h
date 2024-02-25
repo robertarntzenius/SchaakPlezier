@@ -24,7 +24,7 @@ constexpr const char *gameOverFEN = "k7/2KP4/8/8/8/8/8/8 b - - 20 10";
         std::string logstream = "-- [ASSERTION FAILED] at " + \
             std::string(__FILE__) + ":" + std::to_string(__LINE__); \
         std::cerr << logstream << std::endl; \
-        std::cerr << "See ../../build/Debug/Schaakplezier.log for more information" << std::endl; \
+        std::cerr << "See build/Debug/board/test/PerformanceTest_defaultFEN.log for more information" << std::endl; \
         exit(-1); \
     }
 #else
@@ -75,6 +75,34 @@ enum DirectionalOffset : int8_t {
     OFFSET_SOUTHEAST = OFFSET_SOUTH + OFFSET_EAST,
 
     NO_OFFSET = 0
+};
+
+enum GameResult {
+    NOT_OVER,
+    WHITE_WIN_BY_CHECKMATE,
+    BLACK_WIN_BY_CHECKMATE,
+    WHITE_WIN_BY_TIME_OUT,
+    BLACK_WIN_BY_TIME_OUT,
+    WHITE_WIN_BY_FORFEIT,
+    BLACK_WIN_BY_FORFEIT,
+    DRAW_BY_STALEMATE,
+    DRAW_BY_INSUFFICIENT_MATERIAL,
+    DRAW_BY_REPETITION,
+    DRAW_BY_50_MOVES,
+};
+
+const std::unordered_map<GameResult, std::string> gameResultStringMap = {
+    {NOT_OVER, "Game is not over"},
+    {WHITE_WIN_BY_CHECKMATE, "White won by checkmate!"},
+    {BLACK_WIN_BY_CHECKMATE, "Black won by checkmate!"},
+    {WHITE_WIN_BY_TIME_OUT, "White won by time out!"},
+    {BLACK_WIN_BY_TIME_OUT, "Black won by time out!"},
+    {WHITE_WIN_BY_FORFEIT, "White won by forfeit!"},
+    {BLACK_WIN_BY_FORFEIT, "Black won by forfeit!"},
+    {DRAW_BY_STALEMATE, "Draw by stalemate!"},
+    {DRAW_BY_INSUFFICIENT_MATERIAL, "Draw by insufficient material!"},
+    {DRAW_BY_REPETITION, "Draw by repetition!"},
+    {DRAW_BY_50_MOVES, "Draw by 50 move rule!"},
 };
 
 // Stringmaps for logging
@@ -206,6 +234,13 @@ static std::ostream& operator<<(std::ostream &os, const File &file) {
 
 static std::ostream& operator<<(std::ostream &os, const Piecetype &piecetype) {
     os << piecetypeStringMap.at(piecetype);
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const GameResult &gameResult) {
+    if (gameResult != NOT_OVER) {
+        os << gameResultStringMap.at(gameResult);
+    }
     return os;
 }
 

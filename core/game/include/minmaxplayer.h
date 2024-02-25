@@ -2,15 +2,14 @@
 
 #include "player.h"
 
-#define MAX_EVAL 100.0
-#define MIN_EVAL -100.0
-
-
-class MinMaxPlayer : public Player {
+class MinMaxPlayer : public Player, public Board {
 public:
+
     MinMaxPlayer() = default;
 
-    [[nodiscard]] size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) override {
+    [[nodiscard]] size_t decideOnMove (Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
+        Board boardCopy = board;
+        
         int sideFactor;
         switch (copyState.activePlayer) {
             case White: sideFactor = 1; break;
@@ -40,10 +39,33 @@ public:
         if (depth <= 0) { // or checkmate?
             return evaluate(board);
         }
-
         BoardState copyState;
         std::vector<Move> moves;
         board.getPossibleMoves(moves, copyState);
+        
+        switch (getGameResult(moves.size() == 0)) {
+            case NOT_OVER: break;
+
+            case WHITE_WIN_BY_CHECKMATE:
+            case WHITE_WIN_BY_TIME_OUT:
+            case WHITE_WIN_BY_FORFEIT:
+                return MAX_EVAL; // future: * (max_depth - current dept)   
+
+            case BLACK_WIN_BY_CHECKMATE:
+            case BLACK_WIN_BY_TIME_OUT: 
+            case BLACK_WIN_BY_FORFEIT: 
+                return MIN_EVAL; // future: * (max_depth - current dept)
+
+            case DRAW_BY_STALEMATE: 
+            case DRAW_BY_INSUFFICIENT_MATERIAL: 
+            case DRAW_BY_REPETITION: 
+            case DRAW_BY_50_MOVES:
+                return 0.0;
+
+            default:
+                throw std::invalid_argument("Invalid Game Result: " + std::to_string(getGameResult(moves.size() == 0)));
+            }
+
         double bestEval = MIN_EVAL * sideFactor;
 
         for (size_t currentMove = 0; currentMove < moves.size(); currentMove++) {
@@ -59,7 +81,20 @@ public:
     }
 
     [[nodiscard]] double evaluate(const Board &board) {
-        return 0.0;
+        double eval = 0.0;
+
+        // White
+        for (const auto &entry : board.getPieceMap(White)) {
+            const Piecetype &pieceType = entry.second;
+            eval += pieceValues[pieceType];
+        }
+
+        // Black
+        for (const auto &entry : board.getPieceMap(Black)) {
+            const Piecetype &pieceType = entry.second;
+            eval -= pieceValues[pieceType];
+        }
+        return eval;
     }
 
     PlayerType getPlayerType() override { return MinMax; };
