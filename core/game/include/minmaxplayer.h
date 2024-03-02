@@ -2,7 +2,7 @@
 
 #include "player.h"
 
-class MinMaxPlayer : public Player, public Board {
+class MinMaxPlayer : public Player {
 public:
 
     MinMaxPlayer() = default;

@@ -89,7 +89,7 @@ int main() {
         for (int depth = 1; depth < max_depth; depth++) {
             uint64_t leaf_nodes = test_MoveGenerationMoveApplicationPerformance(FEN, name, depth);
             std::cout << leaf_nodes << " " << depth << " " << expectedLeafNodes[depth] << std::endl;
-            // _assert(leaf_nodes == expectedLeafNodes[depth]);
+             _assert(leaf_nodes == expectedLeafNodes[depth]);
         }
     }
     return 0;
