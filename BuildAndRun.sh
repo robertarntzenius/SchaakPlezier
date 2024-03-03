@@ -28,7 +28,12 @@ function run_cmake_make {
   set_profiler_opt
   
   mkdir -p "$build_dir" || exit
-  cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type" -DPROFILER="$profiler_opt"
+  if [ $clang == true ]; then
+    cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type" -DPROFILER="$profiler_opt" -DCMAKE_CXX_COMPILER="clang++" -DCMAKE_C_COMPILER="clang"
+  else
+    cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type" -DPROFILER="$profiler_opt" -DCMAKE_CXX_COMPILER="g++" -DCMAKE_C_COMPILER="gcc"
+  fi
+
   cd "$build_dir"
 
   make || exit
@@ -83,7 +88,7 @@ function cat_logfile {
 }
 
 function parse_args {
-  while getopts "hb:rvegp:o:" opt; do
+  while getopts "hb:rvcegp:o:" opt; do
     case $opt in
       h) # Show usage
         show_usage
@@ -109,6 +114,9 @@ function parse_args {
         ;;
       o) # Opponent: set black player using -o human or -o random
         blackPlayer="${OPTARG}"
+        ;;
+      c)
+        clang=true
         ;;
       \?)
         echo "Invalid option: $opt"
@@ -140,6 +148,7 @@ function show_usage {
   echo "  -e               Execute SchaakPlezier after building."
   echo "  -g               Compile with debugging symbols to enable profiler."
   echo "  -v               Display the log file content after running."
+  echo "  -c               Compile with clang"
   echo "  -h               Display this message."
 }
 
@@ -150,6 +159,7 @@ function main {
   rebuild=false
   execute=false
   profiler=false
+  clang=false
   whitePlayer="human"
   blackPlayer="random"
 
