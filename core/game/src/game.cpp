@@ -54,7 +54,10 @@ GameResult Game::start(bool print)
         }
         
         move = moves[playerChoice];
-        board.doMove(move);
+
+	logger.essential(playerChoice, ": ", move);
+
+	board.doMove(move);
     
         if (print) {
             logger.debug(move);

@@ -3,13 +3,10 @@ project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
 # Als we heel serieus willen doen:
-#add_compile_options(-Wshadow)
-#add_compile_options(-Wconversion)
-add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
-# Set the Clang compiler
-# set(CMAKE_C_COMPILER clang)
-# set(CMAKE_CXX_COMPILER clang++)
+# add_compile_options(-Wshadow)
+# add_compile_options(-Wconversion)
+add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
 
 # Find Clang-Tidy
 # find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")

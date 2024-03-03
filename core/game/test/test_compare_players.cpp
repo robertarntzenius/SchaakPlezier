@@ -7,7 +7,7 @@
 
 
 int main(int argc, char *argv[]) {
-    const int NrGames = 1000;
+    const int nrGames = 100;
 
     const char *selectedFEN = defaultStartingFEN;
     PlayerFactory playerFactory;
@@ -18,15 +18,11 @@ int main(int argc, char *argv[]) {
     std::unordered_map<GameResult, size_t> gameresults;
 
     try {
-        for (int i = 0; i < NrGames; i++) {
+        for (int i = 0; i < nrGames; i++) {
             GameResult result = game.start(false);
             gameresults[result]++;
             
-            // if (!gameresults.contains(result)) {
-            //     gameresults[result] = 1;
-            // }
-            // else {
-            // }
+	    std::cout << "Game nr: " << i << " (out of " << nrGames << ")\n"; 
 
             game.resetBoard();
         }

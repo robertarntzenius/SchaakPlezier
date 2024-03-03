@@ -9,8 +9,6 @@ public:
     MinMaxPlayer() = default;
 
     [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
-        Board boardCopy = board;
-        
         double sideFactor;
         switch (copyState.activePlayer) {
             case White: sideFactor = 1.0; break;
@@ -19,16 +17,16 @@ public:
         }
         double bestEval = MIN_EVAL * sideFactor;
 
-        const int maxDepth = 1;
+        const int maxDepth = 2;
         size_t bestMove = 0;
 
         for (size_t moveIndex = 0; moveIndex <  moves.size(); moveIndex++) {                        
-            boardCopy.doMove(moves[moveIndex]);
-            const double currentEval = minMaxSearch(boardCopy, maxDepth - 1, -sideFactor);
-            boardCopy.undoMove(moves[moveIndex], copyState);
+            board.doMove(moves[moveIndex]);
+            const double currentEval = minMaxSearch(board, maxDepth - 1, -sideFactor);
+            board.undoMove(moves[moveIndex], copyState);
             
-            if (currentEval > (bestEval * sideFactor)) {
-                bestEval = currentEval;
+            if ( (currentEval * sideFactor) > bestEval) {
+                bestEval = currentEval * sideFactor;
                 bestMove = moveIndex;
             }
         }
@@ -50,12 +48,12 @@ public:
             case WHITE_WIN_BY_CHECKMATE:
             case WHITE_WIN_BY_TIME_OUT:
             case WHITE_WIN_BY_FORFEIT:
-                return MAX_EVAL; // future: * (max_depth - current dept)   
+                return MAX_EVAL + depth; // future: * (max_depth - current dept)   
 
             case BLACK_WIN_BY_CHECKMATE:
             case BLACK_WIN_BY_TIME_OUT: 
             case BLACK_WIN_BY_FORFEIT: 
-                return MIN_EVAL; // future: * (max_depth - current dept)
+                return MIN_EVAL - depth; // future: * (max_depth - current dept)
 
             case DRAW_BY_STALEMATE: 
             case DRAW_BY_INSUFFICIENT_MATERIAL: 
@@ -74,8 +72,8 @@ public:
             double currentEval = minMaxSearch(board, depth - 1, -sideFactor);
             board.undoMove(moves[currentMove], copyState);
             
-            if (currentEval > (bestEval * sideFactor)) {
-                bestEval = currentEval;
+            if ( (currentEval * sideFactor) > bestEval) {
+                bestEval = currentEval * sideFactor;
             }
         }
         return bestEval;
