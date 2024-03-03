@@ -2,23 +2,24 @@
 
 #include "player.h"
 
+
 class MinMaxPlayer : public Player {
 public:
 
     MinMaxPlayer() = default;
 
-    [[nodiscard]] size_t decideOnMove (Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
+    [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
         Board boardCopy = board;
         
-        int sideFactor;
+        double sideFactor;
         switch (copyState.activePlayer) {
-            case White: sideFactor = 1; break;
-            case Black: sideFactor = -1; break;
+            case White: sideFactor = 1.0; break;
+            case Black: sideFactor = -1.0; break;
             default: throw std::invalid_argument("Invalid color: " + std::to_string(copyState.activePlayer));
         }
         double bestEval = MIN_EVAL * sideFactor;
 
-        const int maxDepth = 6;
+        const int maxDepth = 1;
         size_t bestMove = 0;
 
         for (size_t moveIndex = 0; moveIndex <  moves.size(); moveIndex++) {                        
@@ -43,7 +44,7 @@ public:
         std::vector<Move> moves;
         board.getPossibleMoves(moves, copyState);
         
-        switch (getGameResult(moves.size() == 0)) {
+        switch (board.getGameResult(moves.size() == 0)) {
             case NOT_OVER: break;
 
             case WHITE_WIN_BY_CHECKMATE:
@@ -63,7 +64,7 @@ public:
                 return 0.0;
 
             default:
-                throw std::invalid_argument("Invalid Game Result: " + std::to_string(getGameResult(moves.size() == 0)));
+                throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.size() == 0)));
             }
 
         double bestEval = MIN_EVAL * sideFactor;

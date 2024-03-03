@@ -41,12 +41,14 @@ function run_cmake_make {
 
 function run_ctest {
   if [ "$build_type" == "Debug" ] || [ "$build_type" == "Verbose" ]; then
+    if [ $test == true ]; then
       echo ""
       echo ""
       echo ""
       echo "===== Tests ====="
       ctest --rerun-failed --output-on-failure
       echo ""
+    fi
   fi
 }
 
@@ -88,7 +90,7 @@ function cat_logfile {
 }
 
 function parse_args {
-  while getopts "hb:rvcegp:o:" opt; do
+  while getopts "hb:rvctegp:o:" opt; do
     case $opt in
       h) # Show usage
         show_usage
@@ -117,6 +119,9 @@ function parse_args {
         ;;
       c)
         clang=true
+        ;;
+      c)
+        test=true
         ;;
       \?)
         echo "Invalid option: $opt"
@@ -149,6 +154,7 @@ function show_usage {
   echo "  -g               Compile with debugging symbols to enable profiler."
   echo "  -v               Display the log file content after running."
   echo "  -c               Compile with clang"
+  echo "  -t               Run tests"
   echo "  -h               Display this message."
 }
 
@@ -160,6 +166,7 @@ function main {
   execute=false
   profiler=false
   clang=false
+  test=false
   whitePlayer="human"
   blackPlayer="random"
 

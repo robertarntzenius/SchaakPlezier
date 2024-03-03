@@ -2,7 +2,7 @@
 
 #include "humanplayer.h"
 #include "randomplayer.h"
-//#include "minmaxplayer.h"
+#include "minmaxplayer.h"
 
 #include <memory>
 

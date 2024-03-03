@@ -12,8 +12,8 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
         return std::make_unique<HumanPlayer>();
     case Random:
         return std::make_unique<RandomPlayer>();
-//    case MinMax:
-//        return std::make_unique<MinMaxPlayer>();
+   case MinMax:
+       return std::make_unique<MinMaxPlayer>();
     default:
         throw std::invalid_argument("Unknown player type");
     }

@@ -4,7 +4,7 @@
 
 Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
-      boardState{White, false, false, false, false, NoSquare, 0, 0},
+      boardState(defaultBoardState),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps()
@@ -16,7 +16,80 @@ Board::Board(const char *FENString, const std::string &logFile)
     #endif
     logger.essential("New Board created!");
 
-    InitializeFromFEN(FENString);
+    initializeFromFEN(FENString);
+}
+
+void Board::initializeFromFEN(const char *FENString)
+{
+    std::string boardString;
+    char activeColorChar = 0;
+    std::string castlingRightsString;
+    std::string enPassantSquareString;
+
+    std::istringstream iss(FENString);
+    iss >> boardString >> activeColorChar >> castlingRightsString
+        >> enPassantSquareString >> boardState.halfMoveClock >> boardState.fullMoveNumber;
+
+    int squareInt = 0;
+
+    for (const char &c : boardString) {
+        switch (c) {
+            case '/':
+                break;
+            case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8':
+                squareInt += c - '0';
+                break;
+            default:
+                const Square square = intToSquare(squareInt);
+                Piecetype type = charPiecetypeMap.at(c);
+                piecetypeBitboards[type].set(square);
+
+                if (isupper(c) != 0) {
+                    colorBitboards[White].set(square);
+                    pieceMaps[White][square] = type;
+                } else {
+                    colorBitboards[Black].set(square);
+                    pieceMaps[Black][square] = type;
+                }
+
+                squareInt++;
+                break;
+        }
+    }
+
+    boardState.activePlayer = charColorMap.at(activeColorChar);
+
+    for (const char &c : castlingRightsString) {
+        switch(c) {
+            case 'K': boardState.wKC = true; break;
+            case 'Q': boardState.wQC = true; break;
+            case 'k': boardState.bKC = true; break;
+            case 'q': boardState.bQC = true; break;
+            case '-': break;
+            default:
+                throw std::invalid_argument("Invalid char found in FEN parser during initialization of castling rights: " + std::to_string(c));
+        }
+    }
+
+    boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
+
+    #ifdef DEBUG
+        checkBoardConsistency();
+    #endif
+}
+
+void Board::clearBoard() {
+    for (auto &pieceMap : pieceMaps) {
+        pieceMap.clear();
+    }
+    for (auto &bitboard : piecetypeBitboards) {
+        bitboard.reset();
+    }
+    for (auto &bitboard : colorBitboards) {
+        bitboard.reset();
+    }
+    boardState = defaultBoardState;
 }
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState) {
@@ -261,68 +334,8 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
     return os;
 }
 
+
 /* private */
-
-void Board::InitializeFromFEN(const char *FENString)
-{
-    std::string boardString;
-    char activeColorChar = 0;
-    std::string castlingRightsString;
-    std::string enPassantSquareString;
-
-    std::istringstream iss(FENString);
-    iss >> boardString >> activeColorChar >> castlingRightsString
-        >> enPassantSquareString >> boardState.halfMoveClock >> boardState.fullMoveNumber;
-
-    int squareInt = 0;
-
-    for (const char &c : boardString) {
-        switch (c) {
-            case '/':
-                break;
-            case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8':
-                squareInt += c - '0';
-                break;
-            default:
-                const Square square = intToSquare(squareInt);
-                Piecetype type = charPiecetypeMap.at(c);
-                piecetypeBitboards[type].set(square);
-
-                if (isupper(c) != 0) {
-                    colorBitboards[White].set(square);
-                    pieceMaps[White][square] = type;
-                } else {
-                    colorBitboards[Black].set(square);
-                    pieceMaps[Black][square] = type;
-                }
-
-                squareInt++;
-                break;
-        }
-    }
-
-    boardState.activePlayer = charColorMap.at(activeColorChar);
-
-    for (const char &c : castlingRightsString) {
-        switch(c) {
-            case 'K': boardState.wKC = true; break;
-            case 'Q': boardState.wQC = true; break;
-            case 'k': boardState.bKC = true; break;
-            case 'q': boardState.bQC = true; break;
-            case '-': break;
-            default:
-                throw std::invalid_argument("Invalid char found in FEN parser during initialization of castling rights: " + std::to_string(c));
-        }
-    }
-
-    boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
-
-    #ifdef DEBUG
-        checkBoardConsistency();
-    #endif
-}
-
 void Board::checkBoardConsistency() const
 {
     #if defined(DEBUG) || defined(VERBOSE)

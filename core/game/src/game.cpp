@@ -3,14 +3,14 @@
 
 
 Game::Game(std::unique_ptr<Player> whitePlayer, std::unique_ptr<Player> blackPlayer, const char *FENString)
-    : whitePlayer(std::move(whitePlayer)),
-      blackPlayer(std::move(blackPlayer)),
+    : players{std::move(whitePlayer), std::move(blackPlayer)},
       logger(ChessLogger::getInstance()),
+      FENString(FENString),
       board(Board(FENString))
 {
 }
 
-void Game::start()
+GameResult Game::start(bool print)
 {
     std::vector<Move> moves;
 
@@ -18,54 +18,72 @@ void Game::start()
     moves.reserve(RESERVE);
 
     Move move;
+    if (print) {
+        logger.debug("Starting game with players:");
+        logger.debug(players[White]->getPlayerType());
+        logger.debug(players[Black]->getPlayerType());
 
-    logger.debug("Starting game with players:");
-    logger.debug(whitePlayer->getPlayerType());
-    logger.debug(blackPlayer->getPlayerType());
+        // Clear screen
+        std::cout << "\033[2J\033[H";
 
-    // Clear screen
-    std::cout << "\033[2J\033[H";
-
-    // Opening messages
-    std::cout << "Starting new game. " << board.getActivePlayer() << " to play.\n"
-              << "white: " << whitePlayer->getPlayerType() << ", black: " << blackPlayer->getPlayerType() << "\n"
-              << "Type \"quit\" to end the game. Enter moves by typing a square your "
-              << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
-              << "Enjoy!\n";
+        // Opening messages
+        std::cout << "Starting new game. " << board.getActivePlayer() << " to play.\n"
+                << "white: " << players[White]->getPlayerType() << ", black: " << players[Black]->getPlayerType() << "\n"
+                << "Type \"quit\" to end the game. Enter moves by typing a square your "
+                << "piece occupies followed by the square you want to move it to. (e2e4)\n\n"
+                << "Enjoy!\n";
+    }
 
     BoardState copyState;
     while (true) {
+    	if (print) {
+            // Print board
+            std::cout << board;
+        }
+
         board.getPossibleMoves(moves, copyState);
-        logger.essential(board.getGameResult(moves.size() == 0));
-
-        // Print board
-        std::cout << board;
-
-        
+        if (board.getGameResult(moves.size() == 0) != NOT_OVER) break;
 
         // Player interaction
-        if (board.getActivePlayer() == White) {
-            size_t player1Choice = whitePlayer->decideOnMove(board, moves, copyState);
-            if (player1Choice == SIZE_MAX) {
-                // Quit
-                return;
+        size_t playerChoice = players[board.getActivePlayer()]->decideOnMove(board, moves, copyState);
+        if (playerChoice == SIZE_MAX) {
+            if (board.getActivePlayer() == White) {
+                return BLACK_WIN_BY_FORFEIT; // Quit
             }
-            move = moves[player1Choice];
+            return WHITE_WIN_BY_FORFEIT; // Quit
         }
-        else {
-            size_t player2Choice = blackPlayer->decideOnMove(board, moves, copyState);
-            if (player2Choice == SIZE_MAX) {
-                // Quit
-                return;
-            }
-            move = moves[player2Choice];
-        }
-
+        
+        move = moves[playerChoice];
         board.doMove(move);
-
-        logger.debug(move);
-
-        std::cout << "\033[2J\033[H";
+    
+        if (print) {
+            logger.debug(move);
+            // Flush screen
+            std::cout << "\033[2J\033[H";
+        }
     }
+    
+    // Game over
+    if (print) {
+        std::cout << board;
+        std::cout << board.getGameResult(moves.size() == 0) << std::endl;
+    }
+
+    return board.getGameResult(moves.size() == 0);
 }
 
+void Game::setFEN(std::string newFENString)
+{
+    FENString = newFENString;
+}
+
+void Game::resetBoard()
+{
+    board.clearBoard();
+    board.initializeFromFEN(FENString.c_str());
+}
+
+void Game::setPlayer(Color color, std::unique_ptr<Player> player)
+{
+    players[color] = std::move(player);
+}

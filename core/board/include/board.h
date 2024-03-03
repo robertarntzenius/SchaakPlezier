@@ -11,14 +11,29 @@
 class Board {
     public:
         ~Board() = default;
-
         Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
+
+
+        
+        /**
+         * @brief initialize the board from the FENstring provided.
+         *
+         * @param FENString
+         */
+        void initializeFromFEN(const char *FENString);
+
+        /**
+         * @brief clears the board members and set boardState to default.
+         *
+         * @param
+         */
+        void clearBoard();
 
         /**
          * @brief Computes and inserts all possible moves from current board state
          *        in the moves vector by reference
          *
-         * @param moves
+         * @param moveVector, copyState
          */
         void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
 
@@ -77,7 +92,6 @@ class Board {
     
     private:
         /* Methods*/
-        void InitializeFromFEN(const char *FENString);
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
 
         /* MoveGen */

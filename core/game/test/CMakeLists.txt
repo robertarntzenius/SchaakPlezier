@@ -9,7 +9,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     add_executable(${TEST_NAME} ${TEST_SOURCE})
 
     # Link any libraries needed for the test
-    target_link_libraries(${TEST_NAME} Board)
+    target_link_libraries(${TEST_NAME} Game)
 
     # Add the test
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

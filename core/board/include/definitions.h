@@ -17,6 +17,7 @@ constexpr const char *testFEN3 = "rnb2k1r/pp1Pbppp/2p5/q7/2B5/8/PPPQNnPP/RNB1K2R
 constexpr const char *testFEN4 = "rnbqkbnr/p1p1pppp/1p6/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3";
 constexpr const char *gameOverFEN = "k7/2KP4/8/8/8/8/8/8 b - - 20 10";
 
+
 #ifdef DEBUG
 // _assert will be compiled in Debug
 #define _assert(expr) \
@@ -61,6 +62,9 @@ constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
     Knight, Bishop, Rook, Queen
 };
 
+constexpr BoardState defaultBoardState = {
+    White, false, false, false, false, NoSquare, 0, 0
+};
 /**
  * Directional offsets based on L-shifts
  */
