@@ -3,6 +3,7 @@
 #include "humanplayer.h"
 #include "randomplayer.h"
 #include "minmaxplayer.h"
+#include "montecarloplayer.h"
 
 #include <memory>
 

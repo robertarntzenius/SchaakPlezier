@@ -8,6 +8,7 @@ enum PlayerType {
     Human,
     Random,
     MinMax,
+    MonteCarlo,
 };
 
 class Player {
@@ -27,12 +28,16 @@ const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
     {"Random", Random}, 
     {"MinMax", MinMax}, 
     {"minmax", MinMax}, 
+    {"MonteCarlo", MonteCarlo},
+    {"montecarlo", MonteCarlo},
 };
 
 const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
     {Human, "Human"},
     {Random, "Random"},
     {MinMax, "MinMax"},
+    {MonteCarlo, "MonteCarlo"},
+        
 };
 
 
