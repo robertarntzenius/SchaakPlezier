@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
 
     const char *selectedFEN = defaultStartingFEN;
     PlayerFactory playerFactory;
-    std::unique_ptr<Player> whitePlayer = playerFactory.makePlayer("Random");
-    std::unique_ptr<Player> blackPlayer = playerFactory.makePlayer("MinMax");
+    std::unique_ptr<Player> whitePlayer = PlayerFactory::makePlayer("Random");
+    std::unique_ptr<Player> blackPlayer = PlayerFactory::makePlayer("MinMax");
 
     Game game(std::move(whitePlayer), std::move(blackPlayer), selectedFEN);
     std::unordered_map<GameResult, size_t> gameresults;

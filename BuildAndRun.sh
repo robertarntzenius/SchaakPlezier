@@ -34,7 +34,7 @@ function run_cmake_make {
     cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type" -DPROFILER="$profiler_opt" -DCMAKE_CXX_COMPILER="g++" -DCMAKE_C_COMPILER="gcc"
   fi
 
-  cd "$build_dir"
+  cd "$build_dir" || exit
 
   make || exit
 }
@@ -74,7 +74,7 @@ function run_profiler {
 
 function run_SchaakPlezier {
   if $execute; then 
-    ./SchaakPlezier -w $1 -b $2 || exit
+    ./SchaakPlezier -w "$1" -b "$2" || exit
   fi
 }
 
@@ -120,7 +120,7 @@ function parse_args {
       c)
         clang=true
         ;;
-      c)
+      t)
         test=true
         ;;
       \?)
@@ -137,7 +137,7 @@ function parse_args {
 
   # Remaining arguments
   if [ "$#" -gt 0 ]; then
-      echo "Unsupported option(s) provided: $@"
+      echo "Unsupported option(s) provided: " "$@"
       exit
   fi
 }

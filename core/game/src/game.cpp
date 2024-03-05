@@ -1,4 +1,6 @@
 #include "game.h"
+
+#include <utility>
 #include "log.h"
 
 
@@ -34,7 +36,7 @@ GameResult Game::start(bool print)
                 << "Enjoy!\n";
     }
 
-    BoardState copyState;
+    BoardState copyState{};
     while (true) {
     	if (print) {
             // Print board
@@ -42,7 +44,7 @@ GameResult Game::start(bool print)
         }
 
         board.getPossibleMoves(moves, copyState);
-        if (board.getGameResult(moves.size() == 0) != NOT_OVER) break;
+        if (board.getGameResult(moves.empty()) != NOT_OVER) break;
 
         // Player interaction
         size_t playerChoice = players[board.getActivePlayer()]->decideOnMove(board, moves, copyState);
@@ -69,15 +71,15 @@ GameResult Game::start(bool print)
     // Game over
     if (print) {
         std::cout << board;
-        std::cout << board.getGameResult(moves.size() == 0) << std::endl;
+        std::cout << board.getGameResult(moves.empty()) << std::endl;
     }
 
-    return board.getGameResult(moves.size() == 0);
+    return board.getGameResult(moves.empty());
 }
 
 void Game::setFEN(std::string newFENString)
 {
-    FENString = newFENString;
+    FENString = std::move(newFENString);
 }
 
 void Game::resetBoard()

@@ -20,7 +20,7 @@ void countLeafNodes(Board& board, int depth, u_int64_t &move_count) {
     }
 
     std::vector<Move> legal_moves;
-    BoardState copyState;
+    BoardState copyState{};
 
     board.getPossibleMoves(legal_moves, copyState);
 
@@ -43,7 +43,7 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     auto start_time = std::chrono::high_resolution_clock::now();
     
     std::vector<Move> moves;
-    BoardState copyState;
+    BoardState copyState{};
 
     board.getPossibleMoves(moves, copyState);
     u_int64_t leaf_nodes = 0;

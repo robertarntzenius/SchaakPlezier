@@ -2,7 +2,6 @@
 #include "playerfactory.h"
 
 #include <iostream>
-#include <cstring>
 #include <unistd.h>
 
 
@@ -10,8 +9,8 @@ int main(int argc, char *argv[]) {
     
     const char *selectedFEN = defaultStartingFEN;
     PlayerFactory playerFactory;
-    std::unique_ptr<Player> whitePlayer = playerFactory.makePlayer("Human");
-    std::unique_ptr<Player> blackPlayer = playerFactory.makePlayer("Human");
+    std::unique_ptr<Player> whitePlayer = PlayerFactory::makePlayer("Human");
+    std::unique_ptr<Player> blackPlayer = PlayerFactory::makePlayer("Human");
 
     int opt = 0;
     while ((opt = getopt(argc, argv, "f:w:b:")) != -1) {
@@ -21,10 +20,10 @@ int main(int argc, char *argv[]) {
                 selectedFEN = optarg;
                 break;
             case 'w':
-                whitePlayer = playerFactory.makePlayer(optarg);
+                whitePlayer = PlayerFactory::makePlayer(optarg);
                 break;
             case 'b':
-                blackPlayer = playerFactory.makePlayer(optarg);
+                blackPlayer = PlayerFactory::makePlayer(optarg);
                 break;
             case '?':
                 // Handle unknown or missing option argument

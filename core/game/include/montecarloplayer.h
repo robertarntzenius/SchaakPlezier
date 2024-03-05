@@ -3,10 +3,12 @@
 
 class MonteCarloPlayer : public Player {
     public:
-        MonteCarloPlayer (int nrIterations = 100) : Player(),
-                                                   nrIterations(nrIterations)
+        explicit MonteCarloPlayer (int nrIterations = 100)
+            : Player(),
+              nrIterations(nrIterations),
+              randomDevice(),
+              gen(randomDevice())
         {
-            std::srand(static_cast<unsigned int>(std::time(nullptr)));
         }
 
         [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
@@ -18,7 +20,7 @@ class MonteCarloPlayer : public Player {
             for (; moveIndex < moves.size(); moveIndex++) {
                 currentEval = 0;
 
-                for (int i = 0; i < nrIterations; i++) {
+                for (size_t i = 0; i < nrIterations; i++) {
                     GameResult result = simulateGame(board);
                     
                     if ((board.getActivePlayer() == White && result == WHITE_WIN_BY_CHECKMATE) ||
@@ -36,31 +38,34 @@ class MonteCarloPlayer : public Player {
             return bestMove;
         }
 
-    private:
+    PlayerType getPlayerType() override { return MonteCarlo; };
+
+private:
         [[nodiscard]] GameResult simulateGame(Board board) {
             std::vector<Move> moves;
-            BoardState copyState;
+            BoardState copyState{};
 
             board.getPossibleMoves(moves, copyState);
             
             int depth = 0;
             static const int limit = 50;
                     
-            while (board.getGameResult(moves.size() == 0) == NOT_OVER) {
+            while (board.getGameResult(moves.empty()) == NOT_OVER) {
                 if (depth >= limit) {
                     return (evaluate(board) >= 0)? WHITE_WIN_BY_CHECKMATE : BLACK_WIN_BY_CHECKMATE;
                 }
-            
-                int randomMove = std::rand() % moves.size();
+
+                std::uniform_int_distribution<> dist(0, moves.size());
+                int randomMove = dist(gen);
                 board.doMove(moves[randomMove]);
                 board.getPossibleMoves(moves, copyState);
                 depth++;
             }
             
-            return board.getGameResult(moves.size() == 0);
+            return board.getGameResult(moves.empty());
         }
 
-        [[nodiscard]] double evaluate(const Board &board) {
+        [[nodiscard]] static double evaluate(const Board &board) {
             double eval = 0.0;
 
             // White
@@ -76,8 +81,9 @@ class MonteCarloPlayer : public Player {
             }
             return eval;
         }
-   
-    PlayerType getPlayerType() override { return MonteCarlo; };
 
-    const int nrIterations;        
+        size_t nrIterations;
+
+        std::random_device randomDevice;
+        std::mt19937 gen;
 };

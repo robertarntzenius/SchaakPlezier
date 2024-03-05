@@ -9,7 +9,7 @@ public:
     MinMaxPlayer() = default;
 
     [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
-        double sideFactor;
+        int sideFactor;
         switch (copyState.activePlayer) {
             case White: sideFactor = 1.0; break;
             case Black: sideFactor = -1.0; break;
@@ -38,22 +38,22 @@ public:
         if (depth <= 0) { // or checkmate?
             return evaluate(board);
         }
-        BoardState copyState;
+        BoardState copyState{};
         std::vector<Move> moves;
         board.getPossibleMoves(moves, copyState);
         
-        switch (board.getGameResult(moves.size() == 0)) {
+        switch (board.getGameResult(moves.empty())) {
             case NOT_OVER: break;
 
             case WHITE_WIN_BY_CHECKMATE:
             case WHITE_WIN_BY_TIME_OUT:
             case WHITE_WIN_BY_FORFEIT:
-                return MAX_EVAL + depth; // future: * (max_depth - current dept)   
+                return MAX_EVAL + depth;
 
             case BLACK_WIN_BY_CHECKMATE:
             case BLACK_WIN_BY_TIME_OUT: 
             case BLACK_WIN_BY_FORFEIT: 
-                return MIN_EVAL - depth; // future: * (max_depth - current dept)
+                return MIN_EVAL - depth;
 
             case DRAW_BY_STALEMATE: 
             case DRAW_BY_INSUFFICIENT_MATERIAL: 
@@ -62,15 +62,15 @@ public:
                 return 0.0;
 
             default:
-                throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.size() == 0)));
+                throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.empty())));
             }
 
         double bestEval = MIN_EVAL * sideFactor;
 
-        for (size_t currentMove = 0; currentMove < moves.size(); currentMove++) {
-            board.doMove(moves[currentMove]);
+        for (auto move : moves) {
+            board.doMove(move);
             double currentEval = minMaxSearch(board, depth - 1, -sideFactor);
-            board.undoMove(moves[currentMove], copyState);
+            board.undoMove(move, copyState);
             
             if ( (currentEval * sideFactor) > bestEval) {
                 bestEval = currentEval * sideFactor;
@@ -79,7 +79,7 @@ public:
         return bestEval;
     }
 
-    [[nodiscard]] double evaluate(const Board &board) {
+    [[nodiscard]] static double evaluate(const Board &board) {
         double eval = 0.0;
 
         // White

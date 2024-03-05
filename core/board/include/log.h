@@ -9,6 +9,7 @@
 #include <string>
 #include <cstdio>
 #include <cstdarg>
+#include <utility>
 
 /* 
 LEVEL_VERBOSE: Extra debug info + more verbose, logged if level=verbose
@@ -38,7 +39,7 @@ public:
         }
     }
 
-    void setLogFile(std::string logFileName) {
+    void setLogFile(const std::string& logFileName) {
         if (logFilesMap[logFileName].is_open()) {
             return;
         }
@@ -97,7 +98,7 @@ public:
 
     void logHeader(std::string headerName) {
         if (logLevel < LEVEL_DEBUG) return;
-        logHeader(headerName, "");
+        logHeader(std::move(headerName), "");
     }
 
     template<typename T>
