@@ -36,18 +36,17 @@ GameResult Game::start(bool print)
                 << "Enjoy!\n";
     }
 
-    BoardState copyState{};
     while (true) {
     	if (print) {
             // Print board
             std::cout << board;
         }
 
-        board.getPossibleMoves(moves, copyState);
+        board.getPossibleMoves(moves);
         if (board.getGameResult(moves.empty()) != NOT_OVER) break;
 
         // Player interaction
-        size_t playerChoice = players[board.getActivePlayer()]->decideOnMove(board, moves, copyState);
+        size_t playerChoice = players[board.getActivePlayer()]->decideOnMove(board, moves);
         if (playerChoice == SIZE_MAX) {
             if (board.getActivePlayer() == White) {
                 return BLACK_WIN_BY_FORFEIT; // Quit
@@ -57,7 +56,7 @@ GameResult Game::start(bool print)
         
         move = moves[playerChoice];
 
-	logger.essential(playerChoice, ": ", move);
+	logger.debug(playerChoice, ": ", move);
 
 	board.doMove(move);
     
@@ -72,8 +71,8 @@ GameResult Game::start(bool print)
     if (print) {
         std::cout << board;
         std::cout << board.getGameResult(moves.empty()) << std::endl;
+        logger.essential(board.getGameResult(moves.empty()));
     }
-
     return board.getGameResult(moves.empty());
 }
 

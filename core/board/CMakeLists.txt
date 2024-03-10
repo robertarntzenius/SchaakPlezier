@@ -6,7 +6,7 @@ add_library(Board SHARED
     src/board.cpp
 )
 
-target_compile_definitions(Board PRIVATE ${BUILD_TYPE_FLAGS})
+target_compile_definitions(Board PRIVATE ${BOARD_BUILD_TYPE_FLAGS})
 
 target_include_directories(Board PUBLIC include) 
 

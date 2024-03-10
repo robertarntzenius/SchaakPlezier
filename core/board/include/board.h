@@ -6,18 +6,20 @@
 #include "log.h"
 
 #include <algorithm>
+#include <stack>
+
 
 class Board {
     public:
-            ~Board() = default;
-            Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
-            
-            /**
-             * @brief initialize the board from the FENstring provided.
-             *
-             * @param FENString
-             */
-            void initializeFromFEN(const char *FENString);
+        ~Board() = default;
+        Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
+        
+        /**
+         * @brief initialize the board from the FENstring provided.
+         *
+         * @param FENString
+         */
+        void initializeFromFEN(const char *FENString);
 
             /**
              * @brief clears the board members and set boardState to default.
@@ -26,33 +28,33 @@ class Board {
              */
             void clearBoard();
 
-            /**
-             * @brief Computes and inserts all possible moves from current board state
-             *        in the moves vector by reference
-             *
-             * @param moveVector, copyState
-             */
-            void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
+        /**
+         * @brief Computes and inserts all possible moves from current board state
+         *        in the moves vector by reference
+         *
+         * @param moveVector
+         */
+        void getPossibleMoves(std::vector<Move> &moveVector);
 
-            /**
-             * @brief Performs move from current board state
-             *
-             * @param move
-             */
-            void doMove(const Move &move);
-            /**
-             * @brief Takes back the last  move from current board state
-             *
-             * @param move
-             */
-            void undoMove(const Move &move, const BoardState &state);
-            /**
-             * @brief returns whether specific player is in check from the current board state
-             *
-             * @param player
-             * @return bool
-             */
-            [[nodiscard]] bool inCheck(Color player) const;
+        /**
+         * @brief Performs move from current board state
+         *
+         * @param move
+         */
+        void doMove(const Move &move);
+        /**
+         * @brief Takes back the last  move from current board state
+         *
+         * @param move
+         */
+        void undoMove();
+        /**
+         * @brief returns whether specific player is in check from the current board state
+         *
+         * @param player
+         * @return bool
+         */
+        [[nodiscard]] bool inCheck(Color player) const;
 
             /**
              * @brief returns whether active player is in check from the current board state
@@ -116,6 +118,7 @@ class Board {
         /* Member variables */
         ChessLogger& logger;
         BoardState boardState;
+        std::stack<MoveCommand> history;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;

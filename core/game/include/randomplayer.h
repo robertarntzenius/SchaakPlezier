@@ -11,8 +11,8 @@ class RandomPlayer : public Player {
         {
         }
 
-        [[nodiscard]] size_t decideOnMove(Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) override {
-            std::uniform_int_distribution<> dist(0, moves.size());
+        [[nodiscard]] size_t decideOnMove(Board boardCopy, const std::vector<Move> &moves) override {
+            std::uniform_int_distribution<> dist(0, moves.size() - 1);
             return dist(gen);
         }
 

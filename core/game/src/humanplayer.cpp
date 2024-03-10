@@ -1,7 +1,7 @@
 #include "humanplayer.h"
 
 
-size_t HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves, const BoardState &copyState) {
+size_t HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
     std::string input;
     size_t playerMoveIndex = 0;
     ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");

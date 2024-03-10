@@ -4,6 +4,7 @@
 Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
       boardState(defaultBoardState),
+      history(),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps()
@@ -91,12 +92,11 @@ void Board::clearBoard() {
     boardState = defaultBoardState;
 }
 
-void Board::getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState) {
+void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
     logBoard(LEVEL_DEBUG);
 
     moveVector.clear();
-    copyState = boardState;
 
     // for every piece
     std::vector<Move> psuedoLegalMoves;
@@ -135,7 +135,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyStat
         if (!inCheck(~boardState.activePlayer)) {
             moveVector.emplace_back(move);
         }
-        undoMove(move, copyState);
+        undoMove();
         // checkBoardConsistency();
     }
 }
@@ -218,7 +218,8 @@ void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Squa
     }
 }
 
-void Board::doMove(const Move &move) {   
+void Board::doMove(const Move &move) {
+    history.emplace(MoveCommand(move, boardState));
     if (move.isCapture) {
         movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare);
         boardState.halfMoveClock = 0;
@@ -278,8 +279,10 @@ void Board::doMove(const Move &move) {
     boardState.activePlayer = ~boardState.activePlayer;
 }
 
-void Board::undoMove(const Move &move, const BoardState &copyState) {
-    boardState = copyState;
+void Board::undoMove() {
+    MoveCommand moveCommand = history.top();
+    Move move = moveCommand.move;
+    boardState = moveCommand.beforeState;
 
     if (move.isCastling) {
         switch (move.targetSquare) {
@@ -311,6 +314,7 @@ void Board::undoMove(const Move &move, const BoardState &copyState) {
     if (move.isCapture) {
         movePiece(~boardState.activePlayer, move.capturePiece, NoSquare, move.captureSquare);
     }
+    history.pop();
 }
 
 bool Board::inCheck(Color player) const

@@ -117,3 +117,8 @@ struct BoardState {
     Square enPassantSquare; //1
     uint16_t fullMoveNumber, halfMoveClock; // 4
 };
+
+struct MoveCommand {
+    Move move;
+    BoardState beforeState;
+};
