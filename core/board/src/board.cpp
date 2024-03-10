@@ -1,7 +1,6 @@
 #include "board.h"
 
 /* public */
-
 Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
       boardState(defaultBoardState),
@@ -167,6 +166,42 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
         return DRAW_BY_REPETITION;
     }
     return NOT_OVER;
+}
+
+Color Board::getActivePlayer() const {
+    return boardState.activePlayer;
+}
+
+const BoardState Board::getBoardState() const
+{
+    return boardState;
+}
+
+const std::unordered_map<Square, Piecetype> Board::getPieceMap(Color color) const {
+    return pieceMaps[color];
+}
+
+const std::array<Bitboard, NrPiecetypes> Board::getPiecetypeBitboards() const {
+    return piecetypeBitboards;
+}
+
+const std::array<Bitboard, NrColors> Board::getColorBitboards() const {
+    return colorBitboards;
+}
+
+void Board::setBoardState(const BoardState &copyState) {
+    boardState = copyState;
+}
+void Board::getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards) {
+    piecetypeBitboards = copyPiecetypeBitboards; 
+}
+
+void Board::getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards ) {
+    colorBitboards = copyColorBitboards;
+}
+
+void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>, NrColors> &copyMaps) {
+    pieceMaps = copyMaps;
 }
 
 void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {

@@ -26,7 +26,7 @@ function set_profiler_opt {
 
 function run_cmake_make {
   set_profiler_opt
-  
+
   mkdir -p "$build_dir" || exit
   if [ $clang == true ]; then
     cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="$build_type" -DPROFILER="$profiler_opt" -DCMAKE_CXX_COMPILER="clang++" -DCMAKE_C_COMPILER="clang"
@@ -90,7 +90,7 @@ function cat_logfile {
 }
 
 function parse_args {
-  while getopts "hb:rvctegp:o:" opt; do
+  while getopts "hb:rvcteugp:o:" opt; do
     case $opt in
       h) # Show usage
         show_usage

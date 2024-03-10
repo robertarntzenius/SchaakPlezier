@@ -81,7 +81,7 @@ enum DirectionalOffset : int8_t {
     NO_OFFSET = 0
 };
 
-enum GameResult {
+enum GameResult : uint8_t {
     NOT_OVER,
     WHITE_WIN_BY_CHECKMATE,
     BLACK_WIN_BY_CHECKMATE,

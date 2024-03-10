@@ -7,89 +7,94 @@
 
 #include <algorithm>
 
-
 class Board {
     public:
-        ~Board() = default;
-        Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
+            ~Board() = default;
+            Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
+            
+            /**
+             * @brief initialize the board from the FENstring provided.
+             *
+             * @param FENString
+             */
+            void initializeFromFEN(const char *FENString);
+
+            /**
+             * @brief clears the board members and set boardState to default.
+             *
+             * @param
+             */
+            void clearBoard();
+
+            /**
+             * @brief Computes and inserts all possible moves from current board state
+             *        in the moves vector by reference
+             *
+             * @param moveVector, copyState
+             */
+            void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
+
+            /**
+             * @brief Performs move from current board state
+             *
+             * @param move
+             */
+            void doMove(const Move &move);
+            /**
+             * @brief Takes back the last  move from current board state
+             *
+             * @param move
+             */
+            void undoMove(const Move &move, const BoardState &state);
+            /**
+             * @brief returns whether specific player is in check from the current board state
+             *
+             * @param player
+             * @return bool
+             */
+            [[nodiscard]] bool inCheck(Color player) const;
+
+            /**
+             * @brief returns whether active player is in check from the current board state
+             *
+             * @return bool
+             */
+            [[nodiscard]] bool inCheck() const;
+
+            /**
+             * @brief Logs current board state to logger in ASCII chessboard
+             */
+            void logBoard(LogLevel logLevel) const;
+
+            /**
+             * @brief Logs all Bitboard members to logger
+             */
+            void logBitboards() const;
 
 
-        
-        /**
-         * @brief initialize the board from the FENstring provided.
-         *
-         * @param FENString
-         */
-        void initializeFromFEN(const char *FENString);
+            friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
-        /**
-         * @brief clears the board members and set boardState to default.
-         *
-         * @param
-         */
-        void clearBoard();
+            // useful functions for testing
+            void checkBoardConsistency() const;
+            bool checkInsufficientMaterial() const;
+            bool checkFiftyMoveRule() const;
+            bool checkThreeFoldRepetition() const;
 
-        /**
-         * @brief Computes and inserts all possible moves from current board state
-         *        in the moves vector by reference
-         *
-         * @param moveVector, copyState
-         */
-        void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
-
-        /**
-         * @brief Performs move from current board state
-         *
-         * @param move
-         */
-        void doMove(const Move &move);
-        /**
-         * @brief Takes back the last  move from current board state
-         *
-         * @param move
-         */
-        void undoMove(const Move &move, const BoardState &state);
-        /**
-         * @brief returns whether specific player is in check from the current board state
-         *
-         * @param player
-         * @return bool
-         */
-        [[nodiscard]] bool inCheck(Color player) const;
-
-        /**
-         * @brief returns whether active player is in check from the current board state
-         *
-         * @return bool
-         */
-        [[nodiscard]] bool inCheck() const;
-
-        /**
-         * @brief Logs current board state to logger in ASCII chessboard
-         */
-        void logBoard(LogLevel logLevel) const;
-
-        /**
-         * @brief Logs all Bitboard members to logger
-         */
-        void logBitboards() const;
-
-
-        friend std::ostream& operator<<(std::ostream &os, const Board &board);
-
-        // useful functions for testing
-        void checkBoardConsistency() const;
-        bool checkInsufficientMaterial() const;
-        bool checkFiftyMoveRule() const;
-        bool checkThreeFoldRepetition() const;
-
-        /* Setters & Getters */
-        void setLogLevel(LogLevel logLevel) { logger.setLogLevel(logLevel); }
-        
-        [[nodiscard]] const auto &getActivePlayer() const { return boardState.activePlayer; }
-        [[nodiscard]] const auto &getPieceMap(Color color) const { return pieceMaps[color]; }
-        [[nodiscard]] GameResult getGameResult(bool noLegalMoves) const;
-    
+            /* Setters & Getters */
+            void setLogLevel(LogLevel logLevel) { logger.setLogLevel(logLevel); }
+            
+            // Expose getters and setters for gui
+            [[nodiscard]] Color getActivePlayer() const;
+            [[nodiscard]] GameResult getGameResult(bool noLegalMoves) const;
+            [[nodiscard]] const BoardState getBoardState() const;
+            [[nodiscard]] const std::unordered_map<Square, Piecetype> getPieceMap(Color color) const;
+            [[nodiscard]] const std::array<Bitboard, NrPiecetypes> getPiecetypeBitboards() const;
+            [[nodiscard]] const std::array<Bitboard, NrColors> getColorBitboards() const;
+            
+            void setBoardState(const BoardState &copyState);
+            void getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards);
+            void getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards );
+            void setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>, NrColors> &copyMaps);
     private:
         /* Methods*/
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
