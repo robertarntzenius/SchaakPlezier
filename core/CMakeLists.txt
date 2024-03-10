@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 # add_compile_options(-Wshadow)
 # add_compile_options(-Wconversion)
-add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3)
+add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3 -fopenmp)
+
+find_package(OpenMP REQUIRED)
 
 # Find Clang-Tidy
 # find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
@@ -27,16 +29,18 @@ elseif(BUILD_TYPE STREQUAL "Release")
 elseif(BUILD_TYPE STREQUAL "Debug")
     # Add this -DDEBUG which essentially has adds #define DEBUG to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    set(BUILD_TYPE_FLAGS "-DDEBUG" CACHE STRING "Compile flags added to this target")
-    enable_testing()
+    set(BOARD_BUILD_TYPE_FLAGS "-DDEBUG" CACHE STRING "Compile flags added to this target")
+    set(GAME_BUILD_TYPE_FLAGS "-DDEBUG" CACHE STRING "Compile flags added to this target")
 elseif(BUILD_TYPE STREQUAL "Verbose")
     # Add this -DVERBOSE which essentially has adds #define VERBOSE to the files of its target
     message(STATUS "Build configuration: ${BUILD_TYPE}")
-    set(BUILD_TYPE_FLAGS "-DVERBOSE" CACHE STRING "Compile flags added to this target")
-    enable_testing()
+    set(BOARD_BUILD_TYPE_FLAGS "-DVERBOSE" CACHE STRING "Compile flags added to this target")
+    set(GAME_BUILD_TYPE_FLAGS "-DVERBOSE" CACHE STRING "Compile flags added to this target")
 else()
     message(FATAL_ERROR "Invalid Build configuration: ${BUILD_TYPE} (Use Release, Debug or Verbose)")
 endif()
+
+enable_testing()
 
 # Profiler
 if(PROFILER STREQUAL "ON")

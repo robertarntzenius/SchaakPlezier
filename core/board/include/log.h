@@ -97,7 +97,7 @@ public:
     }
 
     void logHeader(std::string headerName) {
-        if (logLevel < LEVEL_DEBUG) return;
+        if (logLevel < LEVEL_VERBOSE) return;
         logHeader(std::move(headerName), "");
     }
 

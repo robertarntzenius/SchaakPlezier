@@ -1,9 +1,10 @@
 #include "player.h"
+#include <omp.h>
 
 
 class MonteCarloPlayer : public Player {
     public:
-        explicit MonteCarloPlayer (int nrIterations = 100)
+        explicit MonteCarloPlayer (int nrIterations = 50)
             : Player(),
               nrIterations(nrIterations),
               randomDevice(),
@@ -19,12 +20,13 @@ class MonteCarloPlayer : public Player {
 
             for (; moveIndex < moves.size(); moveIndex++) {
                 currentEval = 0;
-
+                #pragma omp parallel for
                 for (size_t i = 0; i < nrIterations; i++) {
                     GameResult result = simulateGame(board);
                     
                     if ((board.getActivePlayer() == White && result == WHITE_WIN_BY_CHECKMATE) ||
                         (board.getActivePlayer() == Black && result == BLACK_WIN_BY_CHECKMATE)) {
+                        #pragma omp atomic
                         currentEval++;
                     }                                    
                 }
@@ -54,7 +56,7 @@ private:
                     return (evaluate(board) >= 0)? WHITE_WIN_BY_CHECKMATE : BLACK_WIN_BY_CHECKMATE;
                 }
 
-                std::uniform_int_distribution<> dist(0, moves.size());
+                std::uniform_int_distribution<> dist(0, moves.size() - 1);
                 int randomMove = dist(gen);
                 board.doMove(moves[randomMove]);
                 board.getPossibleMoves(moves);
@@ -85,4 +87,5 @@ private:
 
         std::random_device randomDevice;
         std::mt19937 gen;
+
 };

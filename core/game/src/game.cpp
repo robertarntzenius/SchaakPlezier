@@ -56,7 +56,7 @@ GameResult Game::start(bool print)
         
         move = moves[playerChoice];
 
-	logger.essential(playerChoice, ": ", move);
+	logger.debug(playerChoice, ": ", move);
 
 	board.doMove(move);
     
@@ -71,8 +71,8 @@ GameResult Game::start(bool print)
     if (print) {
         std::cout << board;
         std::cout << board.getGameResult(moves.empty()) << std::endl;
+        logger.essential(board.getGameResult(moves.empty()));
     }
-
     return board.getGameResult(moves.empty());
 }
 
