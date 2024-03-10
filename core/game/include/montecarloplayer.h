@@ -11,7 +11,7 @@ class MonteCarloPlayer : public Player {
         {
         }
 
-        [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves, const BoardState &copyState) override {
+        [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves) override {
             size_t bestMove = 0;
             size_t currentEval = 0;
             size_t bestEval = 0;
@@ -43,9 +43,8 @@ class MonteCarloPlayer : public Player {
 private:
         [[nodiscard]] GameResult simulateGame(Board board) {
             std::vector<Move> moves;
-            BoardState copyState{};
 
-            board.getPossibleMoves(moves, copyState);
+            board.getPossibleMoves(moves);
             
             int depth = 0;
             static const int limit = 50;
@@ -58,7 +57,7 @@ private:
                 std::uniform_int_distribution<> dist(0, moves.size());
                 int randomMove = dist(gen);
                 board.doMove(moves[randomMove]);
-                board.getPossibleMoves(moves, copyState);
+                board.getPossibleMoves(moves);
                 depth++;
             }
             

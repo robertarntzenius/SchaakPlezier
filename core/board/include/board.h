@@ -6,14 +6,13 @@
 #include "log.h"
 
 #include <algorithm>
+#include <stack>
 
 
 class Board {
     public:
         ~Board() = default;
         Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
-
-
         
         /**
          * @brief initialize the board from the FENstring provided.
@@ -33,9 +32,9 @@ class Board {
          * @brief Computes and inserts all possible moves from current board state
          *        in the moves vector by reference
          *
-         * @param moveVector, copyState
+         * @param moveVector
          */
-        void getPossibleMoves(std::vector<Move> &moveVector, BoardState &copyState);
+        void getPossibleMoves(std::vector<Move> &moveVector);
 
         /**
          * @brief Performs move from current board state
@@ -48,7 +47,7 @@ class Board {
          *
          * @param move
          */
-        void undoMove(const Move &move, const BoardState &state);
+        void undoMove();
         /**
          * @brief returns whether specific player is in check from the current board state
          *
@@ -111,6 +110,7 @@ class Board {
         /* Member variables */
         ChessLogger& logger;
         BoardState boardState;
+        std::stack<MoveCommand> history;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;
