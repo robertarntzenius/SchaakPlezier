@@ -231,7 +231,32 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
     
     boardClass.def("getGameResult", &Board::getGameResult, py::arg("noLegalMoves"));
     boardClass.def("getBoardState", &Board::getBoardState);
-    // ... more getters ...
+
+    boardClass.def("getPossibleMoves", [](Board& board) {
+        std::vector<Move> moves;
+        board.getPossibleMoves(moves);
+        return moves;
+    }, "getPossibleMoves");
+    
+    boardClass.def("doMove", [](Board& board, Square fromSquare, Square targetSquare) {
+        std::vector<Move> moves;
+        board.getPossibleMoves(moves);
+        for (const auto& move : moves) {
+            if ((move.fromSquare == fromSquare) && (move.targetSquare == targetSquare)) {
+                if (move.isPromotion) {
+                    // TODO ask for ptype
+                }
+                board.doMove(move);
+                break;
+            }
+        }
+    }, "doMove");
+
+    boardClass.def("undoMove", [](Board& board) {
+        board.undoMove();
+    }, "undoMove");
+
+
 }
 
 void bindBoard(py::module& m) {

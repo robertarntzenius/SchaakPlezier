@@ -136,7 +136,6 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
             moveVector.emplace_back(move);
         }
         undoMove();
-        // checkBoardConsistency();
     }
 }
 

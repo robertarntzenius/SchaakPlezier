@@ -34,6 +34,11 @@
 # Log files
 *.log
 
+# Cython files
+__pycache__
+*.pyc
+
+
 build
 cmake-build-debug
 .idea
