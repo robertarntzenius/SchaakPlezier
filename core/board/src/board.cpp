@@ -188,6 +188,10 @@ const std::array<Bitboard, NrColors> Board::getColorBitboards() const {
     return colorBitboards;
 }
 
+const std::stack<MoveCommand> Board::getHistory() const {
+    return history;
+}
+
 void Board::setBoardState(const BoardState &copyState) {
     boardState = copyState;
 }

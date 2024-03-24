@@ -1,15 +1,13 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QTextEdit, QAction, QSizePolicy
-from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QAction, QSizePolicy
 
-from chessboard import ChessBoard
-
+from objects import Chessboard
+from components import ChessboardView, FenInputDialog, ErrorDialog, HistoryBox
 
 class SchaakPlezierApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('SchaakPlezier')
 
+        self.setWindowTitle('SchaakPlezier')
         self.initUI()
 
     def initUI(self):
@@ -18,30 +16,43 @@ class SchaakPlezierApp(QMainWindow):
 
         # Create layout
         main_layout = QGridLayout(central_widget)
-
-        # Create left panel with moves and evaluation
-        moves_label = QLabel("Moves and Evaluation")
-        # moves_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(moves_label, 0, 0, 1, 5)
-
-        moves_text_edit = QTextEdit()
-        main_layout.addWidget(moves_text_edit, 1, 0, 4, 1)
-
-        # Create chessboard in the middle
         
-        chessboard = ChessBoard(self)
-        chessboard.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        main_layout.addWidget(chessboard, 1, 1, 3, 3)
+        # Create observables
+        self.chessboard = Chessboard()
 
-        # Create buttons on the right
+        # Create observers
+        self.history_box = HistoryBox(self.chessboard, self)
+        main_layout.addWidget(self.history_box, 0, 0, 3, 1)
+
+        self.chessboard_view = ChessboardView(self.chessboard, self)
+        self.chessboard_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        main_layout.addWidget(self.chessboard_view, 0, 1, 5, 5)
+
+        # Create buttons on the bottom
         start_button = QPushButton("Start Game")
+        start_button.clicked.connect(lambda: self.chessboard_view.start_game())
+
         edit_players_button = QPushButton("Edit Players")
+        edit_players_button.clicked.connect(lambda: self.chessboard_view.edit_players())
+
+        edit_fen_button = QPushButton("Edit FEN")
+        edit_fen_button.clicked.connect(lambda: self.chessboard_view.edit_fen_dialog())
+
         edit_board_button = QPushButton("Edit Board")
-        quit_button = QPushButton("Quit")
-        main_layout.addWidget(start_button, 1, 4)
-        main_layout.addWidget(edit_players_button, 2, 4)
-        main_layout.addWidget(edit_board_button, 3, 4)
-        main_layout.addWidget(quit_button, 4, 4)
+        edit_board_button.clicked.connect(lambda: self.chessboard_view.edit_board())
+
+        undo_board_button = QPushButton("Undo")
+        undo_board_button.clicked.connect(lambda: self.chessboard.undo_move())
+
+        quit_button = QPushButton("Resign")
+        quit_button.clicked.connect(lambda: self.chessboard_view.resign())
+
+        main_layout.addWidget(start_button, 5, 1)
+        main_layout.addWidget(edit_fen_button, 5, 2)
+        main_layout.addWidget(edit_players_button, 5, 3)
+        main_layout.addWidget(edit_board_button, 5, 4)
+        main_layout.addWidget(undo_board_button, 5, 5)
+        main_layout.addWidget(quit_button, 5, 6)
 
         # Create menu bar
         menu_bar = self.menuBar()

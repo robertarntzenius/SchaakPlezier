@@ -1,8 +1,7 @@
 from PyQt5.QtGui import  QImage, QPainter
 from PyQt5.QtCore import Qt, QSize
 
-import wrappers
-from wrapper_types import Square, Piecetype, Color
+from .wrapper_types import Square, Piecetype, Color
 
 class Piece:
     square: Square
@@ -18,9 +17,9 @@ class Piece:
 
 
     def load_image(self):
-        color_char = 'w' if self.color == wrappers.Color.White else 'b'
+        color_char = 'w' if self.color == Color('White') else 'b'
         piece_type_char = self.piece_type.name[0].lower()
-        if self.piece_type == wrappers.Piecetype.Knight:
+        if self.piece_type == Piecetype('Knight'):
             piece_type_char = 'n'
 
         filename = f"assets/{color_char}{piece_type_char}.png"

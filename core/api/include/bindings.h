@@ -3,6 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "board.h"
+#include "game.h"
 
 namespace py = pybind11;
 
@@ -205,7 +206,6 @@ void bindStructs(py::module& m) {
         .def_readwrite("enPassantSquare", &BoardState::enPassantSquare)
         .def_readwrite("fullMoveNumber", &BoardState::fullMoveNumber)
         .def_readwrite("halfMoveClock", &BoardState::halfMoveClock);
-
 }
 
 void bindBoardGetters(py::class_<Board>& boardClass) {
@@ -231,6 +231,8 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
     
     boardClass.def("getGameResult", &Board::getGameResult, py::arg("noLegalMoves"));
     boardClass.def("getBoardState", &Board::getBoardState);
+    boardClass.def("clearBoard", &Board::clearBoard);
+    boardClass.def("initializeFromFEN", &Board::initializeFromFEN, py::arg("fen_string"));
 
     boardClass.def("getPossibleMoves", [](Board& board) {
         std::vector<Move> moves;
@@ -256,6 +258,20 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         board.undoMove();
     }, "undoMove");
 
+    boardClass.def("getHistory", [](Board& board) {
+        std::stack<MoveCommand> originalHistory = board.getHistory();
+        
+        std::vector<Move> _history;
+        while (!originalHistory.empty()) {
+            _history.push_back(originalHistory.top().move);
+            originalHistory.pop();
+        }
+        
+        std::reverse(_history.begin(), _history.end());
+        
+        return _history;
+    }, "getHistory");
+
 
 }
 
@@ -263,4 +279,17 @@ void bindBoard(py::module& m) {
     py::class_<Board> myBoard(m, "Board");
     myBoard.def(py::init<const char *, std::string &>());
     bindBoardGetters(myBoard);
+}
+
+void bindGameFunctions(py::class_<Game>& gameClass) {
+    gameClass.def("start", &Game::start);
+    gameClass.def("setFEN", &Game::setFEN, py::arg("FENString"));
+    gameClass.def("resetBoard", &Game::resetBoard);
+    gameClass.def("setPlayer", &Game::setPlayer, py::arg("color"), py::arg("player"));
+}
+
+void bindGame(py::module& m) {
+    py::class_<Game> myGame(m, "Game");
+    myGame.def(py::init<const std::string&, const std::string&, const char*>(), py::arg("whitePlayer"), py::arg("blackPlayer"), py::arg("FENString"));
+    bindGameFunctions(myGame);
 }

@@ -6,6 +6,7 @@ pybind11_add_module(wrappers
 )
 
 target_link_libraries(wrappers PRIVATE Board pybind11::module)
+target_link_libraries(wrappers PRIVATE Game pybind11::module)
 
 target_compile_definitions(wrappers PRIVATE ${BUILD_TYPE_FLAGS})
 

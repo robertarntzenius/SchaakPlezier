@@ -92,6 +92,7 @@ class Board {
             [[nodiscard]] const std::unordered_map<Square, Piecetype> getPieceMap(Color color) const;
             [[nodiscard]] const std::array<Bitboard, NrPiecetypes> getPiecetypeBitboards() const;
             [[nodiscard]] const std::array<Bitboard, NrColors> getColorBitboards() const;
+            [[nodiscard]] const std::stack<MoveCommand> getHistory() const;
             
             void setBoardState(const BoardState &copyState);
             void getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards);

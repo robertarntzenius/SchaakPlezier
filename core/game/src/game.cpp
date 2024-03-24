@@ -5,7 +5,17 @@
 
 
 Game::Game(std::unique_ptr<Player> whitePlayer, std::unique_ptr<Player> blackPlayer, const char *FENString)
-    : players{std::move(whitePlayer), std::move(blackPlayer)},
+    : playerFactory(),
+      players{std::move(whitePlayer), std::move(blackPlayer)},
+      logger(ChessLogger::getInstance()),
+      FENString(FENString),
+      board(Board(FENString))
+{
+}
+
+Game::Game(const std::string &whitePlayer, const std::string &blackPlayer, const char *FENString)
+    : playerFactory(),
+      players{playerFactory.makePlayer(whitePlayer), playerFactory.makePlayer(blackPlayer)},
       logger(ChessLogger::getInstance()),
       FENString(FENString),
       board(Board(FENString))
@@ -87,7 +97,7 @@ void Game::resetBoard()
     board.initializeFromFEN(FENString.c_str());
 }
 
-void Game::setPlayer(Color color, std::unique_ptr<Player> player)
+void Game::setPlayer(Color color, const std::string &player)
 {
-    players[color] = std::move(player);
+    players[color] = playerFactory.makePlayer(player);
 }

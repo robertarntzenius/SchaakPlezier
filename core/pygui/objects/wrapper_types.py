@@ -5,14 +5,17 @@ from enum import Enum
 squares = wrappers.Square.__members__.values()
 _Square = Enum('Square', {square.name: square.value for square in squares})
 _square_to_string = {square.value: square.name for square in squares}
+_string_to_square = {square.name: square.value for square in squares}
 
 piecetypes = wrappers.Piecetype.__members__.values()
 _Piecetype = Enum('Piecetype', {piecetype.name: piecetype.value for piecetype in piecetypes})
 _piecetype_to_string = {piecetype.value: piecetype.name for piecetype in piecetypes}
+_string_to_piecetype = {piecetype.name: piecetype.value for piecetype in piecetypes}
 
 colors = wrappers.Color.__members__.values()
 _Color = Enum('Color', {color.name: color.value for color in colors})
 _color_to_string = {color.value: color.name for color in colors}
+_string_to_color = {color.name: color.value for color in colors}
 
 
 class Move():
@@ -74,18 +77,23 @@ class Move():
     def __repr__(self):
         return f"{self.fromSquare.name}{self.targetSquare.name} - {self.playerPiece.name}"
 
+
 class Square():
     value: int
     name: str
-    
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
-    
-    def __init__(self, value: int):
-        assert value in _square_to_string, "Square invalid"
-        self.name = _square_to_string[value]
-        self.value = value
+
+    def __init__(self, value_or_name):
+        if isinstance(value_or_name, str):
+            self.name = value_or_name
+            self.value = self.name_to_value(value_or_name)
+        elif isinstance(value_or_name, int):
+            self.value = value_or_name
+            self.name = self.value_to_name(value_or_name)
+        elif isinstance(value_or_name, wrappers.Square):
+            self.name = value_or_name.name
+            self.value = value_or_name.value
+        else:
+            raise ValueError("Invalid input for Square")
 
     def __eq__(self, other) -> bool:
         if isinstance(other, int):
@@ -96,19 +104,37 @@ class Square():
 
     def __repr__(self) -> str:
         return self.name
+
+    @staticmethod
+    def value_to_name(value: int):
+        if value not in _square_to_string:
+            raise ValueError(f"Invalid square value: {value}")
+        return _square_to_string[value]
+    
+    @staticmethod
+    def name_to_value(name: str):
+        if name not in _string_to_square:
+            raise ValueError(f"Invalid square name: {name}")
+        return _string_to_square[name]
+    
     
 class Piecetype:
     name: str
     value: int
 
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
+    def __init__(self, value_or_name):
+        if isinstance(value_or_name, str):
+            self.name = value_or_name
+            self.value = self.name_to_value(value_or_name)
+        elif isinstance(value_or_name, int):
+            self.value = value_or_name
+            self.name = self.value_to_name(value_or_name)
+        elif isinstance(value_or_name, wrappers.Piecetype): 
+            self.value = value_or_name.value
+            self.name = value_or_name.name
+        else:
+            raise ValueError("Invalid input for Piecetype")
     
-    def __init__(self, piecetype: wrappers.Piecetype):
-        self.value = piecetype.value
-        self.name = piecetype.name
-
     def __eq__(self, other) -> bool:
         if isinstance(other, int):
             return self.value == other
@@ -119,23 +145,54 @@ class Piecetype:
     def __repr__(self) -> str:
         return self.name
 
+    @staticmethod
+    def value_to_name(value: int):
+        if value not in _piecetype_to_string:
+            raise ValueError(f"Invalid piecetype value: {value}")
+        return _piecetype_to_string[value]
+    
+    @staticmethod
+    def name_to_value(name: str):
+        if name not in _string_to_piecetype:
+            raise ValueError(f"Invalid piecetype name: {name}")
+        return _string_to_piecetype[name]
+    
+
 class Color:
     name: str
     value: int
-
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
     
-    def __init__(self, color: wrappers.Color):
-        self.value = color.value
-        self.name = color.name
+    def __init__(self, value_or_name):
+        if isinstance(value_or_name, str):
+            self.name = value_or_name
+            self.value = self.name_to_value(value_or_name)
+        elif isinstance(value_or_name, int):
+            self.value = value_or_name
+            self.name = self.value_to_name(value_or_name)
+        elif isinstance(value_or_name, wrappers.Color):
+            self.name = value_or_name.name
+            self.value = value_or_name.value
+        else:
+            raise ValueError("Invalid input for Color")
     
     def __eq__(self, other) -> bool:
-        if not isinstance(other, Color):
-            raise NotImplementedError
+        if isinstance(other, int):
+            return self.value == other
+        elif not isinstance(other, Color):
+            raise NotImplementedError(f"Dont compare {type(self)} with {type(other)}")
         return self.value == other.value
 
     def __repr__(self) -> str:
         return self.name
 
+    @staticmethod
+    def value_to_name(value: int):
+        if value not in _color_to_string:
+            raise ValueError(f"Invalid color value: {value}")
+        return _color_to_string[value]
+    
+    @staticmethod
+    def name_to_value(name: str):
+        if name not in _string_to_color:
+            raise ValueError(f"Invalid color name: {name}")
+        return _string_to_color[name]
