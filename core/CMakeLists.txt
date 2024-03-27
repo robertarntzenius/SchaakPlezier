@@ -10,6 +10,13 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-
 
 find_package(OpenMP REQUIRED)
 
+# GUI stuff
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+find_package(pybind11 REQUIRED)
+add_compile_options(-fPIC)
+
 # Find Clang-Tidy
 # find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
 # if(CLANG_TIDY_EXE)
@@ -61,3 +68,4 @@ target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
 
 add_subdirectory(board)
 add_subdirectory(game)
+add_subdirectory(api)

@@ -81,7 +81,7 @@ enum DirectionalOffset : int8_t {
     NO_OFFSET = 0
 };
 
-enum GameResult {
+enum GameResult : uint8_t {
     NOT_OVER,
     WHITE_WIN_BY_CHECKMATE,
     BLACK_WIN_BY_CHECKMATE,
@@ -202,6 +202,15 @@ const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {Queen,  "queen"},
     {King,   "king"},
     {NoType, "NoType"}
+};
+
+const std::unordered_map<std::string, Piecetype> stringPiecetypeMap = {
+    {"pawn", Pawn},
+    {"knight", Knight},
+    {"bishop", Bishop},
+    {"rook", Rook},
+    {"queen", Queen},
+    {"king", King},
 };
 
 const std::unordered_map<Direction, std::string> directionStringMap = {
