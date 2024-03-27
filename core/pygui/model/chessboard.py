@@ -9,21 +9,13 @@ from .definitions import *
 
 class Chessboard(Observable):
     _board: wrappers.Board
-    _wpieces: list[Piece]
-    _bpieces: list[Piece]
-    _legal_moves: list[Move]
-
 
     def __init__(self, fen_string = DEFAULT_FEN, log_file = DEFAULT_LOG_FILE):
         super().__init__()
         self._board = wrappers.Board(fen_string, log_file)
-        self._wpieces = self._board.getPieceMaps()[0]
-        self._bpieces = self._board.getPieceMaps()[1]
-        self._legal_moves = [Move(move) for move in self._board.getPossibleMoves()]
-        self._history = []
 
     def do_move(self, move: Move):
-        self._board.doMove(move.fromSquare, move.targetSquare)
+        self._board.doMove(move.fromSquare, move.targetSquare, move.promotionPiece)
         self.notify_observers()
 
     def undo_move(self):
@@ -60,9 +52,3 @@ class Chessboard(Observable):
     def active_player(self):
         return self._board.getBoardState().activePlayer.name
     
-
-
-
-
-
-

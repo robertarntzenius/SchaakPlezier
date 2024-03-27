@@ -204,6 +204,15 @@ const std::unordered_map<Piecetype, std::string> piecetypeStringMap = {
     {NoType, "NoType"}
 };
 
+const std::unordered_map<std::string, Piecetype> stringPiecetypeMap = {
+    {"pawn", Pawn},
+    {"knight", Knight},
+    {"bishop", Bishop},
+    {"rook", Rook},
+    {"queen", Queen},
+    {"king", King},
+};
+
 const std::unordered_map<Direction, std::string> directionStringMap = {
     {North, "North"},
     {South, "South"},

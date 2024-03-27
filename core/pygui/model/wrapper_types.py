@@ -18,6 +18,7 @@ _color_to_string = {color.value: color.name for color in colors}
 _string_to_color = {color.name: color.value for color in colors}
 
 
+
 class Move():
     playerPiece: wrappers.Piecetype
     fromSquare: wrappers.Square
@@ -135,6 +136,9 @@ class Piecetype:
         else:
             raise ValueError("Invalid input for Piecetype")
     
+    def to_cpp_object(self):
+        return wrappers.string_piecetype_map()[self.name.lower()]
+
     def __eq__(self, other) -> bool:
         if isinstance(other, int):
             return self.value == other

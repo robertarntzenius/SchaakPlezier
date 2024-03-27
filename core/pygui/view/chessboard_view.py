@@ -1,12 +1,13 @@
-from PyQt5.QtWidgets import QWidget, QSizePolicy, QMessageBox, QDialog
+from PyQt5.QtWidgets import QWidget, QSizePolicy, QMessageBox, QDialog, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt
 
-from objects.wrapper_types import Square, Piecetype, Color
-from objects.chessboard import Chessboard
-from objects.piece import Piece
+from model.wrapper_types import Square, Piecetype, Color
+from model.chessboard import Chessboard
+from model.piece import Piece
 
 from .observer import ObserverWidget
+from .edit_players_dialog import PlayerSelectDialog
 from .edit_fen_dialog import FenInputDialog
 from .errordialog import ErrorDialog
 
@@ -17,6 +18,12 @@ class ChessboardView(ObserverWidget):
         self.setMinimumSize(500, 500)
         self.setMaximumSize(1000, 1000)
         self.board = board
+
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(10)
+        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setOffset(3, 3)
+        self.setGraphicsEffect(shadow)
 
         self.board_size = min(self.width(), self.height())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -61,10 +68,11 @@ class ChessboardView(ObserverWidget):
         for row in range(8):
             for col in range(8):
                 if (row + col) % 2 == 0:
-                    color = Qt.white
+                    color = QColor("#f0d9b5")
                 else:
-                    color = Qt.darkGray
+                    color = QColor("#946f51")
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
+        
 
     def drawPieces(self, qp):        
         for piece_entry in self.wpieces:
@@ -116,7 +124,7 @@ class ChessboardView(ObserverWidget):
                     if move.targetSquare == clicked_square:
                         if move.isPromotion:
                             # TODO implement
-                            move.promotionPiece = Piecetype.Queen
+                            move.promotionPiece = Piecetype('Queen').to_cpp_object()
                         self.board.do_move(move)
                         self.selected_square = None
                         self.update()
@@ -182,5 +190,15 @@ class ChessboardView(ObserverWidget):
                 break
         
     def edit_players(self):
-        pass
-        # TODO allow user to set players to human, random, minmax, etc
+        if self.playing:
+            error_dialog = ErrorDialog("Cannot edit the players while game is ongoing.", self)
+            error_dialog.exec_()
+            return
+        while True:
+            dialog = PlayerSelectDialog(self)
+            if dialog.exec_() == QDialog.Accepted:
+                white_player, black_player = dialog.get_player_types()
+                print(white_player, black_player)
+                break
+            else: # Cancel
+                break

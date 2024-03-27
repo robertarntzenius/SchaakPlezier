@@ -1,8 +1,8 @@
-from objects.chessboard	import Chessboard
+from model.chessboard	import Chessboard
 from .observer import ObserverWidget
-from objects.wrapper_types import Move
+from model.wrapper_types import Move
 
-from PyQt5.QtWidgets import QListView, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QListView, QVBoxLayout, QLabel, QSizePolicy
 from PyQt5.QtCore import QStringListModel
 
 class HistoryBox(ObserverWidget):
@@ -20,6 +20,7 @@ class HistoryBox(ObserverWidget):
         self.model = QStringListModel()
         self.list_view.setModel(self.model)
         self.layout.addWidget(self.list_view)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self.setLayout(self.layout)
 

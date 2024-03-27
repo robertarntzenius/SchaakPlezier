@@ -5,6 +5,7 @@
 #include "board.h"
 #include "game.h"
 
+
 namespace py = pybind11;
 
 void bindEnums(py::module& m) {
@@ -102,6 +103,8 @@ void bindEnums(py::module& m) {
         .value("NrPiecetypes", Piecetype::NrPiecetypes)
         .value("NrPromotiontypes", Piecetype::NrPromotiontypes)
         .value("NoType", Piecetype::NoType);
+    
+
 
     // Bind File enum
     py::enum_<File>(m, "File")
@@ -208,6 +211,16 @@ void bindStructs(py::module& m) {
         .def_readwrite("halfMoveClock", &BoardState::halfMoveClock);
 }
 
+void bindMaps(py::module& m) {
+    m.def("string_piecetype_map", []() {
+        py::dict map;
+        for (const auto& pair : stringPiecetypeMap) {
+            map[py::str(pair.first)] = pair.second;
+        }
+        return map;
+    });
+}
+
 void bindBoardGetters(py::class_<Board>& boardClass) {
     boardClass.def("getPieceMaps", [](Board& board) {
         auto whitePieceMap = board.getPieceMap(Color::White);
@@ -240,14 +253,11 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         return moves;
     }, "getPossibleMoves");
     
-    boardClass.def("doMove", [](Board& board, Square fromSquare, Square targetSquare) {
+    boardClass.def("doMove", [](Board& board, Square fromSquare, Square targetSquare, Piecetype promotionPiece = Piecetype::NoType) {
         std::vector<Move> moves;
         board.getPossibleMoves(moves);
         for (const auto& move : moves) {
-            if ((move.fromSquare == fromSquare) && (move.targetSquare == targetSquare)) {
-                if (move.isPromotion) {
-                    // TODO ask for ptype
-                }
+            if ((move.fromSquare == fromSquare) && (move.targetSquare == targetSquare) && (move.promotionPiece == promotionPiece)) {
                 board.doMove(move);
                 break;
             }
