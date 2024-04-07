@@ -29,10 +29,11 @@ class Controller():
             current_player = self.get_current_player()
             player_move = current_player.decide_on_move(self.board)
             self.board.do_move(player_move)
-            logging.debug(f"player_choice: {player_move}")
+            logging.debug(f"{current_player.player_type}: {player_move}")
         
         logging.debug(f"Game over: {self.board.game_result}")
         self.playing = False
+
         return self.board.game_result
 
     def get_current_player(self) -> IPlayer:
@@ -43,7 +44,8 @@ class Controller():
         self.black_player: IPlayer = Player(black) if black.lower() != 'human' else HumanPlayer(self.view.chessboard_view)
 
     def resign(self) -> Color:
-        # do other stuff after resigning?
+        if not self.playing:
+            raise ValueError('Cannot resign when game is not active')
         self.playing = False
         return self.board.active_player
 
