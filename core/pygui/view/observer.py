@@ -19,5 +19,5 @@ class ObserverWidget(QWidget, TcWidget):
         observable.register_observer(self)
 
     @abstractmethod
-    def notify(self):
+    def notify(self, **kwargs):
         ...

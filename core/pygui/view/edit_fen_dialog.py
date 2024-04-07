@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QDialog, QDialogButtonBox, QLabel
 
-class FenInputDialog(QDialog):
+class EditFenDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit FEN")

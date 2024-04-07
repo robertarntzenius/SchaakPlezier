@@ -1,18 +1,14 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from core.pygui.view.view import View
-from model import Chessboard
-from controller import Controller
+from controller.controller import Controller
+from controller.config import load_config
 
 def main():
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)    
     
-    board = Chessboard()
+    config = load_config()
+    controller = Controller(config)
     
-    view = View(board)
-
-    controller = Controller(board, view)
-
     sys.exit(app.exec_())
 
 

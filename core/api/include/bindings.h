@@ -291,15 +291,33 @@ void bindBoard(py::module& m) {
     bindBoardGetters(myBoard);
 }
 
-void bindGameFunctions(py::class_<Game>& gameClass) {
-    gameClass.def("start", &Game::start);
-    gameClass.def("setFEN", &Game::setFEN, py::arg("FENString"));
-    gameClass.def("resetBoard", &Game::resetBoard);
-    gameClass.def("setPlayer", &Game::setPlayer, py::arg("color"), py::arg("player"));
-}
+// void bindGameFunctions(py::class_<Game>& gameClass) {
+//     gameClass.def("start", &Game::start);
+//     gameClass.def("setFEN", &Game::setFEN, py::arg("FENString"));
+//     gameClass.def("resetBoard", &Game::resetBoard);
+//     gameClass.def("setPlayer", &Game::setPlayer, py::arg("color"), py::arg("player"));
+// }
 
 void bindGame(py::module& m) {
     py::class_<Game> myGame(m, "Game");
     myGame.def(py::init<const std::string&, const std::string&, const char*>(), py::arg("whitePlayer"), py::arg("blackPlayer"), py::arg("FENString"));
-    bindGameFunctions(myGame);
+    // bindGameFunctions(myGame);
+}
+
+void bindPlayer(py::module& m) {
+    py::class_<Player, std::unique_ptr<Player>> myPlayer(m, "Player");
+    
+    myPlayer.def("decideOnMove", &Player::decideOnMove);
+    myPlayer.def("getPlayerType", &Player::getPlayerType);
+
+    m.def("makePlayer", &PlayerFactory::makePlayer);
+
+    py::enum_<PlayerType>(m, "PlayerType")
+        .value("Human", PlayerType::Human)
+        .value("Random", PlayerType::Random)
+        .value("MinMax", PlayerType::MinMax)
+        .value("MonteCarlo", PlayerType::MonteCarlo);
+
+    // m.attr("player_type_map") = py::dict(stringPlayerTypeMap);
+    // m.attr("player_type_str_map") = py::dict(playerTypeStringMap);
 }

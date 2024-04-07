@@ -8,4 +8,5 @@ PYBIND11_MODULE(wrappers, module) {
     bindMaps(module);
     bindBoard(module);
     bindGame(module);
+    bindPlayer(module);
 }

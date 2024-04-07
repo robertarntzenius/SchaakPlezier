@@ -1,6 +1,7 @@
-from model.chessboard	import Chessboard
-from .observer import ObserverWidget
+from model.chessboard import Chessboard
 from model.wrapper_types import Move
+
+from .observer import ObserverWidget
 
 from PyQt5.QtWidgets import QListView, QVBoxLayout, QLabel, QSizePolicy
 from PyQt5.QtCore import QStringListModel
@@ -24,8 +25,9 @@ class HistoryBox(ObserverWidget):
 
         self.setLayout(self.layout)
 
-    def notify(self):
-        self.update_history_list()
+    def notify(self, board = None):
+        if board is not None:
+            self.update_history_list()
 
     def update_history_list(self):
         history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(self.board.history)]

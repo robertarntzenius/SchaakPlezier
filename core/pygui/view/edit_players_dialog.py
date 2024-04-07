@@ -1,17 +1,17 @@
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QDialog, QDialogButtonBox, QLabel, QComboBox
+from PyQt5.QtWidgets import QVBoxLayout, QDialog, QDialogButtonBox, QLabel, QComboBox
 
-class PlayerSelectDialog(QDialog):
+class EditPlayersDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit players")
 
         layout = QVBoxLayout()
 
-        player1_label = QLabel("Player 1 type:")
+        player1_label = QLabel("White player:")
         self.player1_combo = QComboBox()
         self.player1_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random"])
 
-        player2_label = QLabel("Player 2 type:")
+        player2_label = QLabel("Black player:")
         self.player2_combo = QComboBox()
         self.player2_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random"])
 
@@ -30,6 +30,6 @@ class PlayerSelectDialog(QDialog):
         self.setLayout(layout)
 
     def get_player_types(self):
-        player1_type = self.player1_combo.currentText()
-        player2_type = self.player2_combo.currentText()
-        return player1_type, player2_type
+        white = self.player1_combo.currentText()
+        black = self.player2_combo.currentText()
+        return white, black

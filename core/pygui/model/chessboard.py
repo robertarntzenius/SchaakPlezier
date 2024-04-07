@@ -1,26 +1,28 @@
+import logging
 import wrappers
-from .piece import Piece
-
-from .wrapper_types import Square, Move, Piecetype, Color
-
+from .wrapper_types import Move, Square, GameResult, Color
 from .observable import Observable
-from .definitions import *
-
+from .piece import Piece
 
 class Chessboard(Observable):
     _board: wrappers.Board
 
-    def __init__(self, fen_string = DEFAULT_FEN, log_file = DEFAULT_LOG_FILE):
+    def __init__(self, config: dict):
         super().__init__()
-        self._board = wrappers.Board(fen_string, log_file)
+        self.config = config
+        self._board = wrappers.Board(self.config.defaults.fen_string, self.config.defaults.log_file)
+        self.notify_observers(board=self)
+        logging.info('Created chessboard')
+
 
     def do_move(self, move: Move):
         self._board.doMove(move.fromSquare, move.targetSquare, move.promotionPiece)
-        self.notify_observers()
+        self.notify_observers(board=self)
 
     def undo_move(self):
-        self._board.undoMove()
-        self.notify_observers()
+        if len(self.history) > 0:
+            self._board.undoMove()
+            self.notify_observers(board=self)
     
     def initialize_from_fen(self, fen_string):
         try:
@@ -30,25 +32,33 @@ class Chessboard(Observable):
 
         self._board.clearBoard()
         self._board.initializeFromFEN(fen_string)
-        self.notify_observers()
+        self.notify_observers(board=self)
 
+    def _getPossibleMoves(self):
+        return self._board.getPossibleMoves()
+    
     @property
-    def possible_moves(self):
+    def possible_moves(self) -> list[Move]:
         return [Move(move) for move in self._board.getPossibleMoves()]
 
     @property
-    def wpieces(self):
+    def wpieces(self) -> list[Piece]:
         return self._board.getPieceMaps()[0]
     
     @property
-    def bpieces(self):
+    def bpieces(self) -> list[Piece]:
         return self._board.getPieceMaps()[1]
 
     @property   
-    def history(self):
+    def history(self) -> list[Move]:
         return self._board.getHistory()
     
     @property
-    def active_player(self):
-        return self._board.getBoardState().activePlayer.name
+    def active_player(self) -> Color:
+        return Color(self._board.getBoardState().activePlayer)
+    
+    @property
+    def game_result(self) -> GameResult:
+        no_legal_moves = len(self.possible_moves) == 0
+        return GameResult(self._board.getGameResult(no_legal_moves))
     
