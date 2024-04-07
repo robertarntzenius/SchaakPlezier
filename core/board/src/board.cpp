@@ -89,6 +89,7 @@ void Board::clearBoard() {
     for (auto &bitboard : colorBitboards) {
         bitboard.reset();
     }
+    history = std::stack<MoveCommand>();
     boardState = defaultBoardState;
 }
 

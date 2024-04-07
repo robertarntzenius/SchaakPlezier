@@ -268,6 +268,10 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         board.undoMove();
     }, "undoMove");
 
+    boardClass.def("inCheck", [](Board& board) {
+        return board.inCheck();
+    }, "inCheck");
+
     boardClass.def("getHistory", [](Board& board) {
         std::stack<MoveCommand> originalHistory = board.getHistory();
         

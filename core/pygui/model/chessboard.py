@@ -14,7 +14,6 @@ class Chessboard(Observable):
         self.notify_observers(board=self)
         logging.info('Created chessboard')
 
-
     def do_move(self, move: Move):
         self._board.doMove(move.fromSquare, move.targetSquare, move.promotionPiece)
         self.notify_observers(board=self)
@@ -29,7 +28,6 @@ class Chessboard(Observable):
             cpy_board = wrappers.Board(fen_string, 'tmp.log')
         except Exception as e:
             raise ValueError(f"Invalid FEN string: {fen_string}")
-
         self._board.clearBoard()
         self._board.initializeFromFEN(fen_string)
         self.notify_observers(board=self)
@@ -56,6 +54,10 @@ class Chessboard(Observable):
     @property
     def active_player(self) -> Color:
         return Color(self._board.getBoardState().activePlayer)
+    
+    @property
+    def in_check(self) -> bool:
+        return self._board.inCheck()
     
     @property
     def game_result(self) -> GameResult:

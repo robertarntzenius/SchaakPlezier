@@ -7,10 +7,8 @@ from PyQt5.QtWidgets import QListView, QVBoxLayout, QLabel, QSizePolicy
 from PyQt5.QtCore import QStringListModel
 
 class HistoryBox(ObserverWidget):
-    history: list[Move]
-
     def __init__(self, board: Chessboard, parent=None):
-        super().__init__(board, parent=parent)
+        super().__init__(observable=board, parent=parent)
         self.board = board
         self.layout = QVBoxLayout()
 
@@ -30,5 +28,7 @@ class HistoryBox(ObserverWidget):
             self.update_history_list()
 
     def update_history_list(self):
-        history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(self.board.history)]
-        self.model.setStringList(history_list)
+        self.model.setStringList([])
+        if self.board.history:
+            history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(self.board.history)]
+            self.model.setStringList(history_list)

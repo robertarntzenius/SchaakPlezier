@@ -38,16 +38,17 @@ class HumanPlayer(IPlayer):
         self.chessboard_view = chessboard_view
         self.chessboard_view.validMoveClicked.connect(self.handle_valid_move_clicked)
         self.clicked_move = None
-        self.event_loop = QEventLoop()
 
     def decide_on_move(self, board: Chessboard) -> Move:
         # This func gets called by controller
         # Wait for the signal emitted by chessboard view: self.validMoveClicked.emit(move) (e.g. human decided on a move)
         # use the value of the signal to make the move.
-        self.event_loop.exec_()
+        local_event_loop = QEventLoop()
+        self.chessboard_view.validMoveClicked.connect(local_event_loop.quit)
+        local_event_loop.exec_()
+
         return self.clicked_move
     
     def handle_valid_move_clicked(self, move: Move) -> None:
         self.clicked_move = move
-        self.event_loop.quit()
 

@@ -22,7 +22,7 @@ class Piece:
         if self.piece_type == Piecetype('Knight'):
             piece_type_char = 'n'
 
-        filename = f"assets/{color_char}{piece_type_char}.png"
+        filename = f"assets/images/{color_char}{piece_type_char}.png"
         image = QImage(filename)
         return image
 
