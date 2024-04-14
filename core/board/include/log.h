@@ -103,7 +103,7 @@ public:
 
     template<typename T>
     void logHeader(std::string headerName, T arg) {
-        if (logLevel < LEVEL_DEBUG) return;
+        if (logLevel < LEVEL_VERBOSE) return;
         const std::size_t headerSize = 50;
         std::stringstream ss;
 

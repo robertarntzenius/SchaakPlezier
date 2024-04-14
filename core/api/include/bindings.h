@@ -314,7 +314,7 @@ void bindPlayer(py::module& m) {
     myPlayer.def("decideOnMove", &Player::decideOnMove);
     myPlayer.def("getPlayerType", &Player::getPlayerType);
 
-    m.def("makePlayer", &PlayerFactory::makePlayer);
+    m.def("makePlayer", [](const std::string& playerTypeString) { return PlayerFactory::makePlayer(playerTypeString); });
 
     py::enum_<PlayerType>(m, "PlayerType")
         .value("Human", PlayerType::Human)

@@ -95,7 +95,7 @@ void Board::clearBoard() {
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     logger.logHeader("getPossibleMoves");
-    logBoard(LEVEL_DEBUG);
+    logBoard(LEVEL_VERBOSE);
 
     moveVector.clear();
 

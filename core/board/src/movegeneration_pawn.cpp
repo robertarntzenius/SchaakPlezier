@@ -27,7 +27,7 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                     .setEnPassant(newEnPassantSquare)
                     .build()
             );
-            logger.debug(moveVector.back());
+            logger.verbose(moveVector.back());
 
         }
 
@@ -41,7 +41,7 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                             .setPromotion(promotionType)
                             .build()
                     );
-                    logger.debug(moveVector.back());
+                    logger.verbose(moveVector.back());
                 }
             }
             else {
@@ -50,7 +50,7 @@ void Board::generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare)
                         .setTarget(toSquare)
                         .build()
                 );
-                logger.debug(moveVector.back());
+                logger.verbose(moveVector.back());
             }
         }
     }
@@ -72,7 +72,7 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                         .setPromotion(promotionType)
                         .build()
                 );
-                logger.debug(moveVector.back());
+                logger.verbose(moveVector.back());
 
             }
 
@@ -84,7 +84,7 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                     .setCapture(capturePiecetype, toSquare)
                     .build()
             );
-            logger.debug(moveVector.back());
+            logger.verbose(moveVector.back());
 
 
         }
@@ -100,7 +100,7 @@ void Board::generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquar
                 .setCapture(capturePiecetype, captureSquare)
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
 
     }
 }

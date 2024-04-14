@@ -1,0 +1,28 @@
+{
+    "whitePlayer": {
+        "playerType": "MonteCarlo",
+        "nrGames": 10,
+        "movesPerGame": 40
+    },
+    "blackPlayer": {
+        "playerType": "Random"
+    },
+    "metrics": {
+        "duration (s)": 212,
+        "winRate (%)": 4.0,
+        "drawRate (%)": 94.0,
+        "nrGames (#)": 100
+    },
+    "gameresults": {
+        "Draw by repetition!": 0,
+        "Black won by forfeit!": 0,
+        "Black won by time out!": 0,
+        "White won by forfeit!": 0,
+        "White won by time out!": 0,
+        "Black won by checkmate!": 2,
+        "White won by checkmate!": 4,
+        "Draw by insufficient material!": 13,
+        "Draw by 50 move rule!": 63,
+        "Draw by stalemate!": 18
+    }
+}

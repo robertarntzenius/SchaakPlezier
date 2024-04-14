@@ -1,0 +1,27 @@
+{
+    "whitePlayer": {
+        "playerType": "MinMax",
+        "maxDepth": 1
+    },
+    "blackPlayer": {
+        "playerType": "Random"
+    },
+    "metrics": {
+        "duration (s)": 0,
+        "winRate (%)": 4.0,
+        "drawRate (%)": 96.0,
+        "nrGames (#)": 100
+    },
+    "gameresults": {
+        "Draw by repetition!": 0,
+        "Draw by insufficient material!": 0,
+        "Black won by forfeit!": 0,
+        "Black won by time out!": 0,
+        "Black won by checkmate!": 0,
+        "White won by forfeit!": 0,
+        "White won by time out!": 0,
+        "Draw by stalemate!": 7,
+        "Draw by 50 move rule!": 89,
+        "White won by checkmate!": 4
+    }
+}

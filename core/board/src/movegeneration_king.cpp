@@ -14,7 +14,7 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
                 .setCapture(pieceMaps[~boardState.activePlayer].at(toSquare), toSquare)
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
 
     }
 
@@ -27,7 +27,7 @@ void Board::generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) 
                 .setTarget(toSquare)
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
     }
 
     // Castling
@@ -74,7 +74,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
                 .setCastling()
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
         break;
     case wQueenside:
         if ((opponentAttacks.test(c1) || opponentAttacks.test(d1) || opponentAttacks.test(e1))) {
@@ -91,7 +91,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
                 .setCastling()
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
         break;
     case bKingside:
         if ((opponentAttacks.test(e8) ||opponentAttacks.test(f8) || opponentAttacks.test(g8))) {
@@ -108,7 +108,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
                 .setCastling()
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
         break;
     case bQueenside:
         if ((opponentAttacks.test(c8) || opponentAttacks.test(d8) || opponentAttacks.test(e8))) {
@@ -125,7 +125,7 @@ void Board::generateCastleMove(std::vector<Move> &moveVector, CastlingSide side)
                 .setCastling()
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
         break;
     default:
         break;

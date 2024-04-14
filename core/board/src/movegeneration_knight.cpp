@@ -14,7 +14,7 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
                 .setCapture(pieceMaps[~boardState.activePlayer].at(toSquare), toSquare)
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
     }
 
     // Knight moves
@@ -26,7 +26,7 @@ void Board::generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare
                 .setTarget(toSquare)
                 .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
 
     }
 }

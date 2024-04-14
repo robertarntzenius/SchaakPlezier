@@ -4,8 +4,7 @@
 
 class MinMaxPlayer : public Player {
 public:
-
-    MinMaxPlayer() = default;
+    MinMaxPlayer(PlayerSettings settings) : maxDepth(settings.MinMax_Depth) {}
 
     [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves) override {
         int sideFactor;
@@ -17,7 +16,6 @@ public:
         }
         double bestEval = MIN_EVAL * sideFactor;
 
-        const int maxDepth = 2;
         size_t bestMove = 0;
 
         for (size_t moveIndex = 0; moveIndex <  moves.size(); moveIndex++) {                        
@@ -96,5 +94,17 @@ public:
         return eval;
     }
 
-    PlayerType getPlayerType() override { return MinMax; };
+    [[nodiscard]] PlayerType getPlayerType() override { return MinMax; };
+
+    [[nodiscard]] json getSettings() override {
+        json settings = 
+        {
+            {"playerType", playerTypeStringMap.at(MinMax)},
+            {"maxDepth",  maxDepth}
+        };
+        return settings;
+    }
+    
+private:
+    int maxDepth;
 };

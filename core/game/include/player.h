@@ -3,6 +3,11 @@
 #include "board.h"
 #include "evaluation.h"
 
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::ordered_json;
+
 
 enum PlayerType {
     Human,
@@ -10,6 +15,18 @@ enum PlayerType {
     MinMax,
     MonteCarlo,
 };
+
+// TODO refactor?
+struct PlayerSettings {
+    int MonteCarlo_Depth = 10;
+    int MonteCarlo_Breadth = 10;
+    int MonteCarlo_Seed = 12;
+
+    int MinMax_Depth = 2;
+    
+    int Random_Seed = 6;
+};
+
 
 class Player {
     public:
@@ -19,6 +36,7 @@ class Player {
         // TODO add timestamp
         [[nodiscard]] virtual size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
         [[nodiscard]] virtual PlayerType getPlayerType() = 0;
+        [[nodiscard]] virtual json getSettings() = 0;
 };
 
 const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
@@ -37,7 +55,6 @@ const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
     {Random, "Random"},
     {MinMax, "MinMax"},
     {MonteCarlo, "MonteCarlo"},
-        
 };
 
 

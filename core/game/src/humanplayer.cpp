@@ -10,20 +10,28 @@ size_t HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::v
         std::cout << "Move: ";
         std::cin >> input;
         if (input == "quit") {
-            logger.debug("quit");
+            logger.verbose("quit");
             return SIZE_MAX;
         }
         if (input.starts_with('q') || input.starts_with('Q')) {
             std::cout << "Did you intend to quit the game? (y/n)\n";
             std::cin >> input;
             if (input == "y") {
-                logger.debug("quit");
+                logger.verbose("quit");
                 return SIZE_MAX;
             }
         }
     } while (!parseMove(moves, input, playerMoveIndex));
 
     return playerMoveIndex;
+}
+
+
+json HumanPlayer::getSettings() {
+    json settings = {
+        {"playerType", playerTypeStringMap.at(Human)}
+    };
+    return settings;
 }
 
 /* private: */

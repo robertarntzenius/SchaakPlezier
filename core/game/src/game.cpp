@@ -31,9 +31,9 @@ GameResult Game::start(bool print)
 
     Move move;
     if (print) {
-        logger.debug("Starting game with players:");
-        logger.debug(players[White]->getPlayerType());
-        logger.debug(players[Black]->getPlayerType());
+        logger.verbose("Starting game with players:");
+        logger.verbose(players[White]->getPlayerType());
+        logger.verbose(players[Black]->getPlayerType());
 
         // Clear screen
         std::cout << "\033[2J\033[H";
@@ -66,12 +66,12 @@ GameResult Game::start(bool print)
         
         move = moves[playerChoice];
 
-	logger.debug(playerChoice, ": ", move);
+	logger.verbose(playerChoice, ": ", move);
 
 	board.doMove(move);
     
         if (print) {
-            logger.debug(move);
+            logger.verbose(move);
             // Flush screen
             std::cout << "\033[2J\033[H";
         }
@@ -99,5 +99,11 @@ void Game::resetBoard()
 
 void Game::setPlayer(Color color, const std::string &player)
 {
-    players[color] = playerFactory.makePlayer(player);
+    PlayerSettings settings;
+    players[color] = playerFactory.makePlayer(player, settings);
+}
+
+json Game::getPlayerSettings(Color color)
+{
+    return players[color]->getSettings();
 }

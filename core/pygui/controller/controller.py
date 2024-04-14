@@ -33,8 +33,6 @@ class Controller(Observable):
         while self.board.game_result == GameResult('NOT_OVER'):
             current_player = self.get_current_player()
             player_move = current_player.decide_on_move(self.board)
-
-            self.board.do_move(player_move)
             self.do_move(player_move)
             logging.debug(f"{current_player.player_type}: {player_move}")
         

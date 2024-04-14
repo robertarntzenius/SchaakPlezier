@@ -62,7 +62,7 @@ void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare
                         .setCapture(capturePiece, nearestPieceLocation)
                         .build()
             );
-            logger.debug(moveVector.back());
+            logger.verbose(moveVector.back());
         }
     }
 
@@ -73,7 +73,7 @@ void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare
                     .setTarget(toSquare)
                     .build()
         );
-        logger.debug(moveVector.back());
+        logger.verbose(moveVector.back());
     }
 
 }
