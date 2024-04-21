@@ -93,14 +93,11 @@ void Board::clearBoard() {
     boardState = defaultBoardState;
 }
 
-void Board::getPossibleMoves(std::vector<Move> &moveVector) {
-    logger.logHeader("getPossibleMoves");
+
+void Board::getPsuedoLegalMoves(std::vector<Move> &psuedoLegalMoves) const {
+    logger.logHeader("getPsuedoLegalMoves");
     logBoard(LEVEL_VERBOSE);
-
-    moveVector.clear();
-
-    // for every piece
-    std::vector<Move> psuedoLegalMoves;
+    psuedoLegalMoves.clear();
 
     for (const auto &squarePiecetypePair: pieceMaps[boardState.activePlayer]) {
         const Square &fromSquare = squarePiecetypePair.first;
@@ -130,11 +127,43 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
                 break;
         }
     }
+}
+
+void Board::getPossibleMoves(std::vector<Move> &moveVector) {
+    logger.logHeader("getPossibleMoves");
+    logBoard(LEVEL_VERBOSE);
+
+    moveVector.clear();
+
+    std::vector<Move> psuedoLegalMoves;
+    psuedoLegalMoves.reserve(64);
+    getPsuedoLegalMoves(psuedoLegalMoves);
     
     for (const auto& move : psuedoLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
             moveVector.emplace_back(move);
+        }
+        undoMove();
+    }
+}
+
+void Board::getLoudMoves(std::vector<Move> &moveVector, bool &noLegalMoves) {
+    logger.logHeader("getLoudMoves");
+    logBoard(LEVEL_VERBOSE);
+
+    moveVector.clear();
+    std::vector<Move> psuedoLegalMoves;
+    psuedoLegalMoves.reserve(64);
+    getPsuedoLegalMoves(psuedoLegalMoves);
+    noLegalMoves = true;
+    for (const auto& move : psuedoLegalMoves) {
+        doMove(move);
+        if (!inCheck(~boardState.activePlayer)) {
+            noLegalMoves = false;
+            if (move.isCapture || inCheck(boardState.activePlayer)) {
+                moveVector.emplace_back(move);
+            }
         }
         undoMove();
     }
@@ -196,6 +225,7 @@ const std::stack<MoveCommand> Board::getHistory() const {
 void Board::setBoardState(const BoardState &copyState) {
     boardState = copyState;
 }
+
 void Board::getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards) {
     piecetypeBitboards = copyPiecetypeBitboards; 
 }

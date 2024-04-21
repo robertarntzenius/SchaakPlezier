@@ -4,7 +4,7 @@
 
 class MinMaxPlayer : public Player {
 public:
-    MinMaxPlayer(PlayerSettings settings) : maxDepth(settings.MinMax_Depth) {}
+    MinMaxPlayer(PlayerSettings settings) : maxDepth(settings.MinMax_Depth), evaluated(0) {}
 
     [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves) override {
         int sideFactor;
@@ -29,7 +29,7 @@ public:
                 bestMove = moveIndex;
             }
         }
-        
+        // std::cout << "evaluated: " << evaluated << std::endl;
         return bestMove;
     }
 
@@ -77,9 +77,9 @@ public:
         return bestEval;
     }
 
-    [[nodiscard]] static double evaluate(const Board &board) {
+    [[nodiscard]] double evaluate(const Board &board) {
         double eval = 0.0;
-
+        evaluated++;
         // White
         for (const auto &entry : board.getPieceMap(White)) {
             const Piecetype &pieceType = entry.second;
@@ -107,4 +107,5 @@ public:
     
 private:
     int maxDepth;
+    int evaluated;
 };

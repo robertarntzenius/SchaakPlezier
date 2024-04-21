@@ -30,11 +30,20 @@ class Board {
 
         /**
          * @brief Computes and inserts all possible moves from current board state
-         *        in the moves vector by reference
+         *        in the moves vector by reference. 
+         * @note It is recommended to reserve space in the moveVector before calling this function
          *
          * @param moveVector
          */
         void getPossibleMoves(std::vector<Move> &moveVector);
+        
+        /**
+         * @brief Computes and inserts all capture & check moves from current board state
+         *        in the moves vector by reference
+         *
+         * @param moveVector
+         */
+        void getLoudMoves(std::vector<Move> &moveVector, bool &noLegalMoves);
 
         /**
          * @brief Performs move from current board state
@@ -103,6 +112,8 @@ class Board {
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
 
         /* MoveGen */
+        void getPsuedoLegalMoves(std::vector<Move> &moveVector) const;
+
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateKingMoves(std::vector<Move> &moveVector, Square fromSquare) const;

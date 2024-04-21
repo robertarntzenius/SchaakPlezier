@@ -250,7 +250,7 @@ class PlayerType:
     _PlayerTypes = Enum('PlayerTypes', {player_type.name: player_type.value for player_type in playerTypes})
     _result_to_string = {player_type.value: player_type.name for player_type in playerTypes}
     _string_to_result = {player_type.name: player_type.value for player_type in playerTypes}
-
+    
     name: str
     value: int
     

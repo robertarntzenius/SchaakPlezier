@@ -152,10 +152,10 @@ void testRegressionMonteCarloBreadth(int maxBreadth) {
 }
 
 int main() {
-    // testRegressionMinMax(4);
+    testRegressionMinMax(5);
 
-    testRegressionMonteCarloDepth(100);
-    testRegressionMonteCarloBreadth(100);
+    // testRegressionMonteCarloDepth(100);
+    // testRegressionMonteCarloBreadth(100);
     
     return 0;
 }

@@ -39,7 +39,6 @@ class Controller(Observable):
         logging.debug(f"Game over: {self.board.game_result}")
         self.playing = False
         self.notify_observers(sound=Sound.game_end)
-    
 
         return self.board.game_result
 

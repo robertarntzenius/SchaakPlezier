@@ -18,6 +18,8 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
         return std::make_unique<RandomPlayer>(settings);
     case MinMax:
        return std::make_unique<MinMaxPlayer>(settings);
+    case AlphaBeta:
+        return std::make_unique<AlphaBetaPlayer>(settings);
     case MonteCarlo:
         return std::make_unique<MonteCarloPlayer>(settings);
     default:

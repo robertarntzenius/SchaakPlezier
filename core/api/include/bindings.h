@@ -320,7 +320,8 @@ void bindPlayer(py::module& m) {
         .value("Human", PlayerType::Human)
         .value("Random", PlayerType::Random)
         .value("MinMax", PlayerType::MinMax)
-        .value("MonteCarlo", PlayerType::MonteCarlo);
+        .value("MonteCarlo", PlayerType::MonteCarlo)
+        .value("AlphaBeta", PlayerType::AlphaBeta);
 
     // m.attr("player_type_map") = py::dict(stringPlayerTypeMap);
     // m.attr("player_type_str_map") = py::dict(playerTypeStringMap);

@@ -9,11 +9,11 @@ class EditPlayersDialog(QDialog):
 
         player1_label = QLabel("White player:")
         self.player1_combo = QComboBox()
-        self.player1_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random"])
+        self.player1_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random", "AlphaBeta"])
 
         player2_label = QLabel("Black player:")
         self.player2_combo = QComboBox()
-        self.player2_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random"])
+        self.player2_combo.addItems(["Human", "MinMax", "MonteCarlo", "Random", "AlphaBeta"])
 
         layout.addWidget(player1_label)
         layout.addWidget(self.player1_combo)

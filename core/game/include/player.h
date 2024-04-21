@@ -14,6 +14,7 @@ enum PlayerType {
     Random,
     MinMax,
     MonteCarlo,
+    AlphaBeta
 };
 
 // TODO refactor?
@@ -22,8 +23,10 @@ struct PlayerSettings {
     int MonteCarlo_Breadth = 10;
     int MonteCarlo_Seed = 12;
 
-    int MinMax_Depth = 2;
+    int MinMax_Depth = 4;
     
+    int AlphaBeta_Depth = 4;
+
     int Random_Seed = 6;
 };
 
@@ -48,6 +51,8 @@ const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
     {"minmax", MinMax}, 
     {"MonteCarlo", MonteCarlo},
     {"montecarlo", MonteCarlo},
+    {"AlphaBeta", AlphaBeta},
+    {"alphabeta", AlphaBeta}
 };
 
 const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
@@ -55,6 +60,7 @@ const std::unordered_map<PlayerType, std::string> playerTypeStringMap = {
     {Random, "Random"},
     {MinMax, "MinMax"},
     {MonteCarlo, "MonteCarlo"},
+    {AlphaBeta, "AlphaBeta"},
 };
 
 
