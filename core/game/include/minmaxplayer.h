@@ -6,7 +6,7 @@ class MinMaxPlayer : public Player {
 public:
     MinMaxPlayer(PlayerSettings settings) : maxDepth(settings.MinMax_Depth), evaluated(0) {}
 
-    [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves) override {
+    [[nodiscard]] Move decideOnMove(Board board, const std::vector<Move> &moves) override {
         int sideFactor;
 
         switch (board.getActivePlayer()) {
@@ -30,7 +30,7 @@ public:
             }
         }
         // std::cout << "evaluated: " << evaluated << std::endl;
-        return bestMove;
+        return moves[bestMove];
     }
 
     [[nodiscard]] double minMaxSearch(Board &board, int depth, int sideFactor) {

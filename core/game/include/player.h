@@ -37,7 +37,7 @@ class Player {
         virtual ~Player() = default;
 
         // TODO add timestamp
-        [[nodiscard]] virtual size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
+        [[nodiscard]] virtual Move decideOnMove (Board boardCopy, const std::vector<Move> &moves) = 0;
         [[nodiscard]] virtual PlayerType getPlayerType() = 0;
         [[nodiscard]] virtual json getSettings() = 0;
 };

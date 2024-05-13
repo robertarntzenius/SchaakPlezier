@@ -1,7 +1,6 @@
 #pragma once
 
 #include "player.h"
-#include <random>
 
 class RandomPlayer : public Player {
 public:
@@ -15,9 +14,9 @@ public:
     {
     }
 
-    [[nodiscard]] size_t decideOnMove(Board boardCopy, const std::vector<Move> &moves) override {
+    [[nodiscard]] Move decideOnMove(Board boardCopy, const std::vector<Move> &moves) override {
         std::uniform_int_distribution<> dist(0, moves.size() - 1);
-        return dist(gen);
+        return moves[dist(gen)];
     }
 
     [[nodiscard]] PlayerType getPlayerType() override { return Random; };
@@ -27,11 +26,6 @@ public:
         };
         return settings;
     };
-
-
-    void marie(Board boardCopy, const std::vector<Move> &moves) {
-        decideOnMove(boardCopy, moves);
-    }
 
 private:
     std::mt19937 gen;

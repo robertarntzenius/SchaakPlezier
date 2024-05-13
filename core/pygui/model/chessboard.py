@@ -29,7 +29,7 @@ class Chessboard(Observable):
         except Exception as e:
             raise ValueError(f"Invalid FEN string: {fen_string}")
         self._board.clearBoard()
-        self._board.initializeFromFEN(fen_string)
+        self._board.initFromFEN(fen_string)
         self.notify_observers(board=self)
 
     def _getPossibleMoves(self):

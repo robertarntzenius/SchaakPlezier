@@ -19,7 +19,7 @@ class Board {
          *
          * @param FENString
          */
-        void initializeFromFEN(const char *FENString);
+        void initFromFEN(const char *FENString);
 
         /**
          * @brief clears the board members and set boardState to default.
@@ -72,6 +72,9 @@ class Board {
          */
         [[nodiscard]] bool inCheck() const;
 
+
+        [[nodiscard]] uint64_t hash() const;
+
         /**
          * @brief Logs current board state to logger in ASCII chessboard
          */
@@ -111,8 +114,10 @@ class Board {
         /* Methods*/
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
 
+        void initZobristTables();
+
         /* MoveGen */
-        void getPsuedoLegalMoves(std::vector<Move> &moveVector) const;
+        void getPseudoLegalMoves(std::vector<Move> &moveVector) const;
 
         void generatePawnMoves(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateKnightMoves(std::vector<Move> &moveVector, Square fromSquare) const;
@@ -136,7 +141,12 @@ class Board {
         std::array<Bitboard, NrColors> colorBitboards;
 
         std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
-        
+
+        /* Zobrist hashing tables */
+        std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> zobristPieceTable;
+        std::array<uint64_t, NrCastlingRights> zobristCastlingTable;
+        uint64_t zobristActivePlayer;
+
         /* static lookup arrays*/
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
                 MaskGeneration::computePawnPushLookUp(White),
@@ -163,3 +173,25 @@ class Board {
         static constexpr Bitboard darkSquares = MaskGeneration::computeDarkSquares();
         static constexpr Bitboard lightSquares = ~MaskGeneration::computeDarkSquares();
 };
+
+//template <>
+//class std::hash<Board>
+//{
+//public:
+//    uint64_t operator()(const Board& board) const
+//    {
+//        uint64_t boardHash = 0;
+//        constexpr std::uint64_t prime{0x100000001B3};
+//        std::uint64_t result{0xcbf29ce484222325};
+//
+//        for (const auto& pieceMap : board.pieceMaps) {
+//            for (const auto& entry : pieceMap) {
+//                // Combine piece type and square information
+//                hashValue ^= static_cast<int>(entry.second) << (entry.first * 4);
+//            }
+//        }
+//
+//
+//        return boardHash;
+//    }
+//};

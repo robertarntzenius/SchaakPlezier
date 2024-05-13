@@ -245,7 +245,7 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
     boardClass.def("getGameResult", &Board::getGameResult, py::arg("noLegalMoves"));
     boardClass.def("getBoardState", &Board::getBoardState);
     boardClass.def("clearBoard", &Board::clearBoard);
-    boardClass.def("initializeFromFEN", &Board::initializeFromFEN, py::arg("fen_string"));
+    boardClass.def("initFromFEN", &Board::initFromFEN, py::arg("fen_string"));
 
     boardClass.def("getPossibleMoves", [](Board& board) {
         std::vector<Move> moves;
@@ -312,6 +312,7 @@ void bindPlayer(py::module& m) {
     py::class_<Player, std::unique_ptr<Player>> myPlayer(m, "Player");
     
     myPlayer.def("decideOnMove", &Player::decideOnMove);
+
     myPlayer.def("getPlayerType", &Player::getPlayerType);
 
     m.def("makePlayer", [](const std::string& playerTypeString) { return PlayerFactory::makePlayer(playerTypeString); });

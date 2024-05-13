@@ -1,5 +1,4 @@
-
-
+import logging
 from abc import abstractmethod
 from typing import Protocol
 from .observable import Observable
@@ -24,11 +23,9 @@ class Player(IPlayer):
         self._player = wrappers.makePlayer(player_type)
     
     def decide_on_move(self, board: Chessboard) -> Move:
-        moves = board.possible_moves
-        ind = self._player.decideOnMove(board._board, board._getPossibleMoves())
-        if ind > len(moves):
-            raise IndexError('Got invalid index from cpp obj')
-        return moves[ind]
+        move = Move(self._player.decideOnMove(board._board, board._getPossibleMoves()))
+
+        return move
 
 
 class HumanPlayer(IPlayer):

@@ -7,7 +7,10 @@ Board::Board(const char *FENString, const std::string &logFile)
       history(),
       piecetypeBitboards(),
       colorBitboards(),
-      pieceMaps()
+      pieceMaps(),
+      zobristPieceTable(),
+      zobristCastlingTable(),
+      zobristActivePlayer()
 {
     #if defined(DEBUG)
         logger.setLogLevel(LEVEL_DEBUG);
@@ -16,10 +19,11 @@ Board::Board(const char *FENString, const std::string &logFile)
     #endif
     logger.essential("New Board created!");
 
-    initializeFromFEN(FENString);
+    initFromFEN(FENString);
+    initZobristTables();
 }
 
-void Board::initializeFromFEN(const char *FENString)
+void Board::initFromFEN(const char *FENString)
 {
     std::string boardString;
     char activeColorChar = 0;
@@ -94,10 +98,10 @@ void Board::clearBoard() {
 }
 
 
-void Board::getPsuedoLegalMoves(std::vector<Move> &psuedoLegalMoves) const {
-    logger.logHeader("getPsuedoLegalMoves");
+void Board::getPseudoLegalMoves(std::vector<Move> &pseudoLegalMoves) const {
+    logger.logHeader("getPseudoLegalMoves");
     logBoard(LEVEL_VERBOSE);
-    psuedoLegalMoves.clear();
+    pseudoLegalMoves.clear();
 
     for (const auto &squarePiecetypePair: pieceMaps[boardState.activePlayer]) {
         const Square &fromSquare = squarePiecetypePair.first;
@@ -105,22 +109,22 @@ void Board::getPsuedoLegalMoves(std::vector<Move> &psuedoLegalMoves) const {
 
         switch (type) {
             case Pawn:
-                generatePawnMoves(psuedoLegalMoves, fromSquare);
+                generatePawnMoves(pseudoLegalMoves, fromSquare);
                 break;
             case Knight:
-                generateKnightMoves(psuedoLegalMoves, fromSquare);
+                generateKnightMoves(pseudoLegalMoves, fromSquare);
                 break;
            case Bishop:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Bishop);
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Bishop);
                 break;
             case Rook:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Rook);
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Rook);
                 break;
            case Queen:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Queen);
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Queen);
                 break;
            case King:
-                generateKingMoves(psuedoLegalMoves, fromSquare);
+                generateKingMoves(pseudoLegalMoves, fromSquare);
                 break;
            default:
                 // Not implemented / throw
@@ -135,11 +139,11 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
 
     moveVector.clear();
 
-    std::vector<Move> psuedoLegalMoves;
-    psuedoLegalMoves.reserve(64);
-    getPsuedoLegalMoves(psuedoLegalMoves);
+    std::vector<Move> pseudoLegalMoves;
+    pseudoLegalMoves.reserve(64);
+    getPseudoLegalMoves(pseudoLegalMoves);
     
-    for (const auto& move : psuedoLegalMoves) {
+    for (const auto& move : pseudoLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
             moveVector.emplace_back(move);
@@ -153,11 +157,11 @@ void Board::getLoudMoves(std::vector<Move> &moveVector, bool &noLegalMoves) {
     logBoard(LEVEL_VERBOSE);
 
     moveVector.clear();
-    std::vector<Move> psuedoLegalMoves;
-    psuedoLegalMoves.reserve(64);
-    getPsuedoLegalMoves(psuedoLegalMoves);
+    std::vector<Move> pseudoLegalMoves;
+    pseudoLegalMoves.reserve(64);
+    getPseudoLegalMoves(pseudoLegalMoves);
     noLegalMoves = true;
-    for (const auto& move : psuedoLegalMoves) {
+    for (const auto& move : pseudoLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
             noLegalMoves = false;
@@ -365,6 +369,35 @@ bool Board::inCheck() const
     return (!(opponentAttacks & playerKing).empty());
 }
 
+uint64_t Board::hash() const
+{
+    uint64_t hashValue = 0;
+
+    // Combine the hash values of all relevant components
+    for (int colorIndex = 0; colorIndex < NrColors; colorIndex++) {
+        for (const auto &piece : pieceMaps[colorIndex]) {
+            const auto &square = piece.first;
+            const auto &type = piece.second;
+
+            hashValue ^= zobristPieceTable[square][colorIndex][type];
+        }
+    }
+
+    hashValue = (boardState.wKC)? hashValue ^ zobristCastlingTable[wKingside]  : hashValue;
+    hashValue = (boardState.wQC)? hashValue ^ zobristCastlingTable[wQueenside] : hashValue;
+    hashValue = (boardState.bKC)? hashValue ^ zobristCastlingTable[bKingside]  : hashValue;
+    hashValue = (boardState.bQC)? hashValue ^ zobristCastlingTable[bQueenside] : hashValue;
+
+    // Combine the hash value with information about the active player
+    if (boardState.activePlayer == Black)
+    {
+        hashValue ^= zobristActivePlayer;
+    }
+
+    return hashValue;
+}
+
+
 void Board::logBitboards() const {
     for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
         const auto color = static_cast<Color>(colorInt);
@@ -409,6 +442,28 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
 
 
 /* private */
+void Board::initZobristTables() {
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> distribution;
+
+    for (auto &square : zobristPieceTable) {
+        for (auto &color : square) {
+            for (auto &value : color) {
+                value = distribution(gen);
+            }
+        }
+    }
+
+    for (auto &value : zobristCastlingTable)
+    {
+        value = distribution(gen);
+    }
+
+    zobristActivePlayer = distribution(gen);
+}
+
+
 void Board::checkBoardConsistency() const
 {
     #if defined(DEBUG) || defined(VERBOSE)

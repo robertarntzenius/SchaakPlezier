@@ -5,7 +5,7 @@
 class HumanPlayer : public Player {
 public:
     HumanPlayer(PlayerSettings settings) {};
-    [[nodiscard]] size_t decideOnMove (Board boardCopy, const std::vector<Move> &moves) override;
+    [[nodiscard]] Move decideOnMove (Board boardCopy, const std::vector<Move> &moves) override;
     [[nodiscard]] PlayerType getPlayerType() override { return Human; };
     
     [[nodiscard]] json getSettings() override;

@@ -12,7 +12,7 @@ public:
     {
     }
 
-    [[nodiscard]] size_t decideOnMove(Board board, const std::vector<Move> &moves) override {
+    [[nodiscard]] Move decideOnMove(Board board, const std::vector<Move> &moves) override {
         size_t bestMove = 0;
         size_t currentEval = 0;
         size_t bestEval = 0;
@@ -36,8 +36,8 @@ public:
                 bestMove = moveIndex;
             }            
         }
-        
-        return bestMove;
+
+        return moves[bestMove];
     }
 
     [[nodiscard]] PlayerType getPlayerType() override { return MonteCarlo; };

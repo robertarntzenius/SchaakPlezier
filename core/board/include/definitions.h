@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <array>
 #include <string>
+#include <random>
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 constexpr const char *testFEN1 = "r3k2r/p1pp1pb1/bn2Qnp1/2qPN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQkq - 3 2";
@@ -65,6 +66,31 @@ constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
 constexpr BoardState defaultBoardState = {
     White, false, false, false, false, NoSquare, 0, 0
 };
+
+[[nodiscard]] static uint64_t randomKeyGenerator () {
+    static std::random_device rd;
+    static std::mt19937_64 gen(rd());
+    static std::uniform_int_distribution<uint64_t> distribution;
+
+    return distribution(gen);
+};
+
+[[nodiscard]] static std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> initZobrist()
+{
+    std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> table{};
+
+    for (auto &square : table) {
+        for (auto &color : square) {
+            for (auto &value : color) {
+                // Generate a random uint64_t
+                value = randomKeyGenerator();
+            }
+        }
+    }
+    return table;
+}
+
+
 /**
  * Directional offsets based on L-shifts
  */
