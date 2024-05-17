@@ -5,6 +5,8 @@ Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
       boardState(defaultBoardState),
       history(),
+      hashHistory(),
+      hashValue(),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps(),
@@ -77,10 +79,11 @@ void Board::initFromFEN(const char *FENString)
     }
 
     boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
-
     #ifdef DEBUG
         checkBoardConsistency();
     #endif
+
+    hashValue = hash();
 }
 
 void Board::clearBoard() {
@@ -95,6 +98,7 @@ void Board::clearBoard() {
     }
     history = std::stack<MoveCommand>();
     boardState = defaultBoardState;
+    hashValue = hash();
 }
 
 
@@ -243,16 +247,24 @@ void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>,
 }
 
 void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
-    if (toSquare != NoSquare) {
+    if (toSquare == NoSquare && fromSquare != NoSquare ) {
+        currentHash ^= zobristPieceTable[fromSquare][player][pieceType];
+    }
+    else if (toSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(toSquare);
         pieceMaps[player][toSquare] = pieceType;
         colorBitboards[player].set(toSquare);
+        currentHash ^= zobristPieceTable[toSquare][player][pieceType];
     }
 
-    if (fromSquare != NoSquare) {
+    if (fromSquare == NoSquare && toSquare != NoSquare ) {
+        currentHash ^= zobristPieceTable[toSquare][player][pieceType];
+    }
+    else if (fromSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(fromSquare, false);
         colorBitboards[player].set(fromSquare, false);
         pieceMaps[player].erase(fromSquare);
+        currentHash ^= zobristPieceTable[fromSquare][player][pieceType];
     }
 }
 
@@ -272,9 +284,21 @@ void Board::doMove(const Move &move) {
         piecetypeBitboards[Pawn].set(move.targetSquare, false);
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
         pieceMaps[boardState.activePlayer][move.targetSquare] = move.promotionPiece;
+
+        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][Pawn];
+        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][move.promotionPiece];
     }
 
     if (move.isCastling) {
+        if (boardState.activePlayer == White) {
+            currentHash ^= zobristCastlingTable[wKingside];
+            currentHash ^= zobristCastlingTable[wQueenside];
+        }
+        else {
+            currentHash ^= zobristCastlingTable[bKingside];
+            currentHash ^= zobristCastlingTable[bQueenside];
+        }
+
         switch (move.targetSquare) {
         case g1:
             movePiece(boardState.activePlayer, Rook, h1, f1);
@@ -295,34 +319,54 @@ void Board::doMove(const Move &move) {
     
     auto removeCastlingRights = [this](Square square) {
         switch(square) {
-            case a1: boardState.wQC = false; break;
-            case h1: boardState.wKC = false; break;
-            case a8: boardState.bQC = false; break;
-            case h8: boardState.bKC = false; break;
-            case e1: boardState.wQC = false; boardState.wKC = false; break;
-            case e8: boardState.bQC = false; boardState.bKC = false; break;
-            default: break; 
+            case a1: if (boardState.wQC) { boardState.wQC = false; currentHash ^= zobristCastlingTable[wQueenside];} break;
+            case h1: if (boardState.wKC) { boardState.wKC = false; currentHash ^= zobristCastlingTable[wKingside] ;} break;
+            case a8: if (boardState.bQC) { boardState.bQC = false; currentHash ^= zobristCastlingTable[bQueenside];} break;
+            case h8: if (boardState.bKC) { boardState.bKC = false; currentHash ^= zobristCastlingTable[bKingside] ;} break;
+            case e1:
+                if (boardState.wQC) { boardState.wQC = false; currentHash ^= zobristCastlingTable[wQueenside];}
+                if (boardState.wKC) { boardState.wKC = false; currentHash ^= zobristCastlingTable[wKingside] ;} 
+                break;
+            case e8:
+                if (boardState.bKC) { boardState.bKC = false; currentHash ^= zobristCastlingTable[bKingside] ;}
+                if (boardState.bQC) { boardState.bQC = false; currentHash ^= zobristCastlingTable[bQueenside];}
+                break;
+            default:
+                break; 
         }
     };
 
     removeCastlingRights(move.fromSquare);
     removeCastlingRights(move.targetSquare);
-    
+
     boardState.halfMoveClock++;
 
     if (boardState.activePlayer == White) {
         boardState.fullMoveNumber++;
     }
     boardState.enPassantSquare = move.newEnPassant;
+    
     boardState.activePlayer = ~boardState.activePlayer;
+    currentHash ^= zobristActivePlayer;
 }
 
 void Board::undoMove() {
     MoveCommand moveCommand = history.top();
     Move move = moveCommand.move;
+    
+    //  This could mess up currentHash
     boardState = moveCommand.beforeState;
-
+    
     if (move.isCastling) {
+        if (boardState.activePlayer == White) {
+            currentHash ^= zobristCastlingTable[wKingside];
+            currentHash ^= zobristCastlingTable[wQueenside];
+        }
+        else {
+            currentHash ^= zobristCastlingTable[bKingside];
+            currentHash ^= zobristCastlingTable[bQueenside];
+        }
+
         switch (move.targetSquare) {
         case g1:
             movePiece(boardState.activePlayer, Rook, f1, h1);
@@ -345,6 +389,9 @@ void Board::undoMove() {
         piecetypeBitboards[Pawn].set(move.targetSquare, true);
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare, false);
         pieceMaps[boardState.activePlayer][move.targetSquare] = Pawn;
+        
+        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][Pawn];
+        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][move.promotionPiece];
     }
 
     movePiece(boardState.activePlayer, move.playerPiece, move.targetSquare, move.fromSquare);
@@ -369,6 +416,10 @@ bool Board::inCheck() const
     return (!(opponentAttacks & playerKing).empty());
 }
 
+uint64_t Board::getCurrentHash() const {
+    return currentHash;
+};
+
 uint64_t Board::hash() const
 {
     uint64_t hashValue = 0;
@@ -387,12 +438,7 @@ uint64_t Board::hash() const
     hashValue = (boardState.wQC)? hashValue ^ zobristCastlingTable[wQueenside] : hashValue;
     hashValue = (boardState.bKC)? hashValue ^ zobristCastlingTable[bKingside]  : hashValue;
     hashValue = (boardState.bQC)? hashValue ^ zobristCastlingTable[bQueenside] : hashValue;
-
-    // Combine the hash value with information about the active player
-    if (boardState.activePlayer == Black)
-    {
-        hashValue ^= zobristActivePlayer;
-    }
+    hashValue = (boardState.activePlayer == Black)? hashValue ^ zobristActivePlayer : hashValue;
 
     return hashValue;
 }

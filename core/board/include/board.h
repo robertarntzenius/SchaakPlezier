@@ -72,7 +72,7 @@ class Board {
          */
         [[nodiscard]] bool inCheck() const;
 
-
+        [[nodiscard]] uint64_t getCurrentHash() const;
         [[nodiscard]] uint64_t hash() const;
 
         /**
@@ -136,6 +136,8 @@ class Board {
         ChessLogger& logger;
         BoardState boardState;
         std::stack<MoveCommand> history;
+        std::stack<uint64_t> hashHistory;
+        uint64_t currentHash;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;
@@ -174,24 +176,12 @@ class Board {
         static constexpr Bitboard lightSquares = ~MaskGeneration::computeDarkSquares();
 };
 
-//template <>
-//class std::hash<Board>
-//{
-//public:
-//    uint64_t operator()(const Board& board) const
-//    {
-//        uint64_t boardHash = 0;
-//        constexpr std::uint64_t prime{0x100000001B3};
-//        std::uint64_t result{0xcbf29ce484222325};
-//
-//        for (const auto& pieceMap : board.pieceMaps) {
-//            for (const auto& entry : pieceMap) {
-//                // Combine piece type and square information
-//                hashValue ^= static_cast<int>(entry.second) << (entry.first * 4);
-//            }
-//        }
-//
-//
-//        return boardHash;
-//    }
-//};
+template <>
+class std::hash<Board>
+{
+public:
+   uint64_t operator()(const Board& board) const
+   {
+      return board.hash();
+   }
+};
