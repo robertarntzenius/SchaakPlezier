@@ -6,7 +6,6 @@ Board::Board(const char *FENString, const std::string &logFile)
       boardState(defaultBoardState),
       history(),
       hashHistory(),
-      hashValue(),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps(),
@@ -21,8 +20,8 @@ Board::Board(const char *FENString, const std::string &logFile)
     #endif
     logger.essential("New Board created!");
 
-    initFromFEN(FENString);
     initZobristTables();
+    initFromFEN(FENString);
 }
 
 void Board::initFromFEN(const char *FENString)
@@ -83,7 +82,7 @@ void Board::initFromFEN(const char *FENString)
         checkBoardConsistency();
     #endif
 
-    hashValue = hash();
+    boardState.hash = hash();
 }
 
 void Board::clearBoard() {
@@ -97,8 +96,9 @@ void Board::clearBoard() {
         bitboard.reset();
     }
     history = std::stack<MoveCommand>();
+    
     boardState = defaultBoardState;
-    hashValue = hash();
+    boardState.hash = hash();
 }
 
 
@@ -246,59 +246,94 @@ void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>,
     pieceMaps = copyMaps;
 }
 
-void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
-    if (toSquare == NoSquare && fromSquare != NoSquare ) {
-        currentHash ^= zobristPieceTable[fromSquare][player][pieceType];
+void Board::hashPiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {  
+    if (fromSquare != NoSquare) { // hash out old square
+        std::cout << "hash out: " << player << " " << pieceType << " at " << fromSquare << std::endl;
+        boardState.hash ^= zobristPieceTable[fromSquare][player][pieceType];
     }
-    else if (toSquare != NoSquare) {
-        piecetypeBitboards[pieceType].set(toSquare);
-        pieceMaps[player][toSquare] = pieceType;
-        colorBitboards[player].set(toSquare);
-        currentHash ^= zobristPieceTable[toSquare][player][pieceType];
-    }
-
-    if (fromSquare == NoSquare && toSquare != NoSquare ) {
-        currentHash ^= zobristPieceTable[toSquare][player][pieceType];
-    }
-    else if (fromSquare != NoSquare) {
-        piecetypeBitboards[pieceType].set(fromSquare, false);
-        colorBitboards[player].set(fromSquare, false);
-        pieceMaps[player].erase(fromSquare);
-        currentHash ^= zobristPieceTable[fromSquare][player][pieceType];
+    if (toSquare != NoSquare) { // hash in new square
+        std::cout << "hash in : " << player << " " << pieceType << " at " << toSquare << std::endl;
+        boardState.hash ^= zobristPieceTable[toSquare][player][pieceType];
     }
 }
 
+void Board::hashCastlingRight(CastlingSide side) {
+    switch (side)
+    {
+    case wKingside:
+        boardState.hash ^= zobristCastlingTable[wKingside];
+        std::cout << "hash CastleRight: " << wKingside << std::endl;
+        break;
+    case wQueenside:
+        boardState.hash ^= zobristCastlingTable[wQueenside];
+        std::cout << "hash CastleRight: " << wQueenside << std::endl;
+        break;
+    case bKingside:
+        boardState.hash ^= zobristCastlingTable[bKingside];
+        std::cout << "hash CastleRight: " << bKingside << std::endl;
+        break;
+    case bQueenside:
+        boardState.hash ^= zobristCastlingTable[bQueenside];
+        std::cout << "hash CastleRight: " << bQueenside << std::endl;
+        break;
+    default:
+        break;
+    }
+}
+
+void Board::hashActivePlayer() {
+    if (boardState.activePlayer == Black) {
+        boardState.hash ^= zobristActivePlayer;
+        std::cout << "hash activePlayer: " << boardState.activePlayer << std::endl;
+    }
+}
+
+void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare, bool updateHash) {
+    if (toSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(toSquare);
+        pieceMaps[player][toSquare] = pieceType;
+        colorBitboards[player].set(toSquare);
+    }
+
+    if (fromSquare != NoSquare) {
+        piecetypeBitboards[pieceType].set(fromSquare, false);
+        colorBitboards[player].set(fromSquare, false);
+        pieceMaps[player].erase(fromSquare);
+    }
+
+    if (updateHash) {
+        hashPiece(player, pieceType, fromSquare, toSquare);
+    }
+}
+
+
+
 void Board::doMove(const Move &move) {
+    std::cout << *this << std::endl;
+    std::cout << "domove: " <<  move << std::endl;
+
     history.emplace(MoveCommand(move, boardState));
+
     if (move.isCapture) {
-        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare);
+        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare);// capturePiece out@captureSquare
         boardState.halfMoveClock = 0;
     }
     if (move.playerPiece == Pawn) {
         boardState.halfMoveClock = 0;
     }
 
-    movePiece(boardState.activePlayer, move.playerPiece, move.fromSquare, move.targetSquare);
+    movePiece(boardState.activePlayer, move.playerPiece, move.fromSquare, move.targetSquare); // playerPiece out@fromSquare & in@targetSquare
 
     if (move.isPromotion) {
         piecetypeBitboards[Pawn].set(move.targetSquare, false);
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
         pieceMaps[boardState.activePlayer][move.targetSquare] = move.promotionPiece;
 
-        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][Pawn];
-        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][move.promotionPiece];
+        hashPiece(boardState.activePlayer, Pawn, move.targetSquare, NoSquare); // Pawn out@targetSquare 
+        hashPiece(boardState.activePlayer, move.promotionPiece, NoSquare, move.targetSquare); // promotionPiece in@targetSquare
     }
 
     if (move.isCastling) {
-        if (boardState.activePlayer == White) {
-            currentHash ^= zobristCastlingTable[wKingside];
-            currentHash ^= zobristCastlingTable[wQueenside];
-        }
-        else {
-            currentHash ^= zobristCastlingTable[bKingside];
-            currentHash ^= zobristCastlingTable[bQueenside];
-        }
-
         switch (move.targetSquare) {
         case g1:
             movePiece(boardState.activePlayer, Rook, h1, f1);
@@ -319,20 +354,20 @@ void Board::doMove(const Move &move) {
     
     auto removeCastlingRights = [this](Square square) {
         switch(square) {
-            case a1: if (boardState.wQC) { boardState.wQC = false; currentHash ^= zobristCastlingTable[wQueenside];} break;
-            case h1: if (boardState.wKC) { boardState.wKC = false; currentHash ^= zobristCastlingTable[wKingside] ;} break;
-            case a8: if (boardState.bQC) { boardState.bQC = false; currentHash ^= zobristCastlingTable[bQueenside];} break;
-            case h8: if (boardState.bKC) { boardState.bKC = false; currentHash ^= zobristCastlingTable[bKingside] ;} break;
+            case a1: if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; } break;
+            case h1: if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } break;
+            case a8: if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; } break;
+            case h8: if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; } break;
             case e1:
-                if (boardState.wQC) { boardState.wQC = false; currentHash ^= zobristCastlingTable[wQueenside];}
-                if (boardState.wKC) { boardState.wKC = false; currentHash ^= zobristCastlingTable[wKingside] ;} 
+                if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; }
+                if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } 
                 break;
             case e8:
-                if (boardState.bKC) { boardState.bKC = false; currentHash ^= zobristCastlingTable[bKingside] ;}
-                if (boardState.bQC) { boardState.bQC = false; currentHash ^= zobristCastlingTable[bQueenside];}
+                if (boardState.bKC) { hashCastlingRight(bQueenside); boardState.bKC = false; }
+                if (boardState.bQC) { hashCastlingRight(bKingside);  boardState.bQC = false; }
                 break;
             default:
-                break; 
+                break;
         }
     };
 
@@ -345,40 +380,29 @@ void Board::doMove(const Move &move) {
         boardState.fullMoveNumber++;
     }
     boardState.enPassantSquare = move.newEnPassant;
-    
+    hashActivePlayer();
     boardState.activePlayer = ~boardState.activePlayer;
-    currentHash ^= zobristActivePlayer;
 }
 
 void Board::undoMove() {
     MoveCommand moveCommand = history.top();
     Move move = moveCommand.move;
-    
-    //  This could mess up currentHash
+
     boardState = moveCommand.beforeState;
     
     if (move.isCastling) {
-        if (boardState.activePlayer == White) {
-            currentHash ^= zobristCastlingTable[wKingside];
-            currentHash ^= zobristCastlingTable[wQueenside];
-        }
-        else {
-            currentHash ^= zobristCastlingTable[bKingside];
-            currentHash ^= zobristCastlingTable[bQueenside];
-        }
-
         switch (move.targetSquare) {
         case g1:
-            movePiece(boardState.activePlayer, Rook, f1, h1);
+            movePiece(boardState.activePlayer, Rook, f1, h1, false);
             break;
         case c1:
-            movePiece(boardState.activePlayer, Rook, d1, a1);
+            movePiece(boardState.activePlayer, Rook, d1, a1, false);
             break;
         case g8:
-            movePiece(boardState.activePlayer, Rook, f8, h8);
+            movePiece(boardState.activePlayer, Rook, f8, h8, false);
             break;
         case c8:
-            movePiece(boardState.activePlayer, Rook, d8, a8);
+            movePiece(boardState.activePlayer, Rook, d8, a8, false);
             break;
         default:
             throw std::invalid_argument("Non valid Castle move");
@@ -389,15 +413,12 @@ void Board::undoMove() {
         piecetypeBitboards[Pawn].set(move.targetSquare, true);
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare, false);
         pieceMaps[boardState.activePlayer][move.targetSquare] = Pawn;
-        
-        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][Pawn];
-        currentHash ^= zobristPieceTable[move.targetSquare][boardState.activePlayer][move.promotionPiece];
     }
 
-    movePiece(boardState.activePlayer, move.playerPiece, move.targetSquare, move.fromSquare);
+    movePiece(boardState.activePlayer, move.playerPiece, move.targetSquare, move.fromSquare, false);
 
     if (move.isCapture) {
-        movePiece(~boardState.activePlayer, move.capturePiece, NoSquare, move.captureSquare);
+        movePiece(~boardState.activePlayer, move.capturePiece, NoSquare, move.captureSquare, false);
     }
     history.pop();
 }
@@ -416,10 +437,6 @@ bool Board::inCheck() const
     return (!(opponentAttacks & playerKing).empty());
 }
 
-uint64_t Board::getCurrentHash() const {
-    return currentHash;
-};
-
 uint64_t Board::hash() const
 {
     uint64_t hashValue = 0;
@@ -429,7 +446,6 @@ uint64_t Board::hash() const
         for (const auto &piece : pieceMaps[colorIndex]) {
             const auto &square = piece.first;
             const auto &type = piece.second;
-
             hashValue ^= zobristPieceTable[square][colorIndex][type];
         }
     }
@@ -438,6 +454,7 @@ uint64_t Board::hash() const
     hashValue = (boardState.wQC)? hashValue ^ zobristCastlingTable[wQueenside] : hashValue;
     hashValue = (boardState.bKC)? hashValue ^ zobristCastlingTable[bKingside]  : hashValue;
     hashValue = (boardState.bQC)? hashValue ^ zobristCastlingTable[bQueenside] : hashValue;
+
     hashValue = (boardState.activePlayer == Black)? hashValue ^ zobristActivePlayer : hashValue;
 
     return hashValue;
@@ -482,7 +499,8 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
         os  << std::endl;
     }
     os << "\n   a b c d e f g h\n";
-
+    
+    os << "\n" << board.getBoardState() << std::endl;
     return os;
 }
 

@@ -116,6 +116,7 @@ struct BoardState {
     bool wKC, wQC, bKC, bQC; //4 
     Square enPassantSquare; //1
     uint16_t fullMoveNumber, halfMoveClock; // 4
+    uint64_t hash; // 16
 };
 
 struct MoveCommand {

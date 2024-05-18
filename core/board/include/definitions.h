@@ -64,7 +64,7 @@ constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
 };
 
 constexpr BoardState defaultBoardState = {
-    White, false, false, false, false, NoSquare, 0, 0
+    White, false, false, false, false, NoSquare, 0, 0, 0
 };
 
 [[nodiscard]] static uint64_t randomKeyGenerator () {
@@ -323,5 +323,13 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
         // os << ...;
     }
 
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const BoardState &boardState) {
+    os << boardState.activePlayer << " to move" << std::endl;
+    os << "wKC: " << boardState.wKC <<", wQC: "<< boardState.wQC <<", bKC: "<< boardState.bKC <<", bQC: "<< boardState.bQC << std::endl;
+    os << "enPassant: " << boardState.enPassantSquare <<std::endl;
+    os << "hash: " << boardState.hash <<std::endl;
     return os;
 }

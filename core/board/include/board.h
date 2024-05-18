@@ -72,7 +72,6 @@ class Board {
          */
         [[nodiscard]] bool inCheck() const;
 
-        [[nodiscard]] uint64_t getCurrentHash() const;
         [[nodiscard]] uint64_t hash() const;
 
         /**
@@ -110,9 +109,15 @@ class Board {
         void getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards);
         void getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards );
         void setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>, NrColors> &copyMaps);
+
+
     private:
         /* Methods*/
-        void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
+        void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare, bool updateHash = true);
+
+        void hashPiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
+        void hashCastlingRight(CastlingSide side);
+        void hashActivePlayer();
 
         void initZobristTables();
 
@@ -137,7 +142,6 @@ class Board {
         BoardState boardState;
         std::stack<MoveCommand> history;
         std::stack<uint64_t> hashHistory;
-        uint64_t currentHash;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;
