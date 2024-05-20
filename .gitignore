@@ -43,5 +43,6 @@ build
 cmake-build-debug
 .idea
 .vscode
+testFENS.txt
 
 venv

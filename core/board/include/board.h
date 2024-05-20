@@ -72,7 +72,12 @@ class Board {
          */
         [[nodiscard]] bool inCheck() const;
 
-        [[nodiscard]] uint64_t hash() const;
+        /**
+         * @brief returns the hash of the current boardState by constructing it from 0.
+         *
+         * @return bool
+         */
+        [[nodiscard]] uint64_t computeHashFromScratch();
 
         /**
          * @brief Logs current board state to logger in ASCII chessboard
@@ -84,11 +89,10 @@ class Board {
          */
         void logBitboards() const;
 
-
         friend std::ostream& operator<<(std::ostream &os, const Board &board);
 
         // useful functions for testing
-        void checkBoardConsistency() const;
+        void validate() const;
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
         bool checkThreeFoldRepetition() const;
@@ -110,17 +114,11 @@ class Board {
         void getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards );
         void setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>, NrColors> &copyMaps);
 
-
     private:
         /* Methods*/
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare, bool updateHash = true);
-
-        void hashPiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare);
-        void hashCastlingRight(CastlingSide side);
-        void hashActivePlayer();
-
-        void initZobristTables();
-
+        void removeCastlingRights(Square square);
+        
         /* MoveGen */
         void getPseudoLegalMoves(std::vector<Move> &moveVector) const;
 
@@ -147,11 +145,16 @@ class Board {
         std::array<Bitboard, NrColors> colorBitboards;
 
         std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
-
-        /* Zobrist hashing tables */
+        
+        /* Hashing */
         std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> zobristPieceTable;
         std::array<uint64_t, NrCastlingRights> zobristCastlingTable;
         uint64_t zobristActivePlayer;
+        
+        void initZobristTables();
+        void hashPiece(Color player, Piecetype pieceType, Square square);
+        void hashCastlingRight(CastlingSide side);
+        void hashActivePlayer();
 
         /* static lookup arrays*/
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrColors> pawnPushLookUp = {
@@ -186,6 +189,6 @@ class std::hash<Board>
 public:
    uint64_t operator()(const Board& board) const
    {
-      return board.hash();
+      return board.getBoardState().hash;
    }
 };

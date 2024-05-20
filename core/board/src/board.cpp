@@ -26,6 +26,8 @@ Board::Board(const char *FENString, const std::string &logFile)
 
 void Board::initFromFEN(const char *FENString)
 {
+    clearBoard();
+
     std::string boardString;
     char activeColorChar = 0;
     std::string castlingRightsString;
@@ -53,9 +55,11 @@ void Board::initFromFEN(const char *FENString)
                 if (isupper(c) != 0) {
                     colorBitboards[White].set(square);
                     pieceMaps[White][square] = type;
+                    hashPiece(White, type, square);
                 } else {
                     colorBitboards[Black].set(square);
                     pieceMaps[Black][square] = type;
+                    hashPiece(Black, type, square);
                 }
 
                 squareInt++;
@@ -64,13 +68,16 @@ void Board::initFromFEN(const char *FENString)
     }
 
     boardState.activePlayer = charColorMap.at(activeColorChar);
+    if (boardState.activePlayer == Black) {
+        hashActivePlayer();
+    }
 
     for (const char &c : castlingRightsString) {
         switch(c) {
-            case 'K': boardState.wKC = true; break;
-            case 'Q': boardState.wQC = true; break;
-            case 'k': boardState.bKC = true; break;
-            case 'q': boardState.bQC = true; break;
+            case 'K': {hashCastlingRight(wKingside) ; boardState.wKC = true;} break;
+            case 'Q': {hashCastlingRight(wQueenside); boardState.wQC = true;} break;
+            case 'k': {hashCastlingRight(bKingside) ; boardState.bKC = true;} break;
+            case 'q': {hashCastlingRight(bQueenside); boardState.bQC = true;} break;
             case '-': break;
             default:
                 throw std::invalid_argument("Invalid char found in FEN parser during initialization of castling rights: " + std::to_string(c));
@@ -78,11 +85,7 @@ void Board::initFromFEN(const char *FENString)
     }
 
     boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
-    #ifdef DEBUG
-        checkBoardConsistency();
-    #endif
-
-    boardState.hash = hash();
+    validate();
 }
 
 void Board::clearBoard() {
@@ -96,11 +99,8 @@ void Board::clearBoard() {
         bitboard.reset();
     }
     history = std::stack<MoveCommand>();
-    
     boardState = defaultBoardState;
-    boardState.hash = hash();
 }
-
 
 void Board::getPseudoLegalMoves(std::vector<Move> &pseudoLegalMoves) const {
     logger.logHeader("getPseudoLegalMoves");
@@ -246,45 +246,34 @@ void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>,
     pieceMaps = copyMaps;
 }
 
-void Board::hashPiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {  
-    if (fromSquare != NoSquare) { // hash out old square
-        std::cout << "hash out: " << player << " " << pieceType << " at " << fromSquare << std::endl;
-        boardState.hash ^= zobristPieceTable[fromSquare][player][pieceType];
-    }
-    if (toSquare != NoSquare) { // hash in new square
-        std::cout << "hash in : " << player << " " << pieceType << " at " << toSquare << std::endl;
-        boardState.hash ^= zobristPieceTable[toSquare][player][pieceType];
-    }
+void Board::hashPiece(Color player, Piecetype pieceType, Square square) {
+    boardState.hash ^= zobristPieceTable[square][player][pieceType];
 }
 
 void Board::hashCastlingRight(CastlingSide side) {
-    switch (side)
-    {
-    case wKingside:
-        boardState.hash ^= zobristCastlingTable[wKingside];
-        std::cout << "hash CastleRight: " << wKingside << std::endl;
-        break;
-    case wQueenside:
-        boardState.hash ^= zobristCastlingTable[wQueenside];
-        std::cout << "hash CastleRight: " << wQueenside << std::endl;
-        break;
-    case bKingside:
-        boardState.hash ^= zobristCastlingTable[bKingside];
-        std::cout << "hash CastleRight: " << bKingside << std::endl;
-        break;
-    case bQueenside:
-        boardState.hash ^= zobristCastlingTable[bQueenside];
-        std::cout << "hash CastleRight: " << bQueenside << std::endl;
-        break;
-    default:
-        break;
-    }
+    boardState.hash ^= zobristCastlingTable[side];
 }
 
 void Board::hashActivePlayer() {
-    if (boardState.activePlayer == Black) {
-        boardState.hash ^= zobristActivePlayer;
-        std::cout << "hash activePlayer: " << boardState.activePlayer << std::endl;
+    boardState.hash ^= zobristActivePlayer;
+}
+
+void Board::removeCastlingRights(Square square) {
+    switch(square) {
+        case a1: if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; } break;
+        case h1: if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } break;
+        case a8: if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; } break;
+        case h8: if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; } break;
+        case e1:
+            if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; }
+            if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } 
+            break;
+        case e8:
+            if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; }
+            if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; }
+            break;
+        default:
+            break;
     }
 }
 
@@ -293,29 +282,26 @@ void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Squa
         piecetypeBitboards[pieceType].set(toSquare);
         pieceMaps[player][toSquare] = pieceType;
         colorBitboards[player].set(toSquare);
+        if (updateHash) {
+            hashPiece(player, pieceType, toSquare);
+        }
     }
 
     if (fromSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(fromSquare, false);
         colorBitboards[player].set(fromSquare, false);
         pieceMaps[player].erase(fromSquare);
-    }
-
-    if (updateHash) {
-        hashPiece(player, pieceType, fromSquare, toSquare);
+        if (updateHash) {
+            hashPiece(player, pieceType, fromSquare);
+        }
     }
 }
 
-
-
 void Board::doMove(const Move &move) {
-    std::cout << *this << std::endl;
-    std::cout << "domove: " <<  move << std::endl;
-
     history.emplace(MoveCommand(move, boardState));
 
     if (move.isCapture) {
-        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare);// capturePiece out@captureSquare
+        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare); // capturePiece out@captureSquare
         boardState.halfMoveClock = 0;
     }
     if (move.playerPiece == Pawn) {
@@ -329,8 +315,8 @@ void Board::doMove(const Move &move) {
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
         pieceMaps[boardState.activePlayer][move.targetSquare] = move.promotionPiece;
 
-        hashPiece(boardState.activePlayer, Pawn, move.targetSquare, NoSquare); // Pawn out@targetSquare 
-        hashPiece(boardState.activePlayer, move.promotionPiece, NoSquare, move.targetSquare); // promotionPiece in@targetSquare
+        hashPiece(boardState.activePlayer, Pawn, move.targetSquare); // Pawn out@targetSquare 
+        hashPiece(boardState.activePlayer, move.promotionPiece, move.targetSquare); // promotionPiece in@targetSquare
     }
 
     if (move.isCastling) {
@@ -352,25 +338,6 @@ void Board::doMove(const Move &move) {
         }
     }
     
-    auto removeCastlingRights = [this](Square square) {
-        switch(square) {
-            case a1: if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; } break;
-            case h1: if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } break;
-            case a8: if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; } break;
-            case h8: if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; } break;
-            case e1:
-                if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; }
-                if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } 
-                break;
-            case e8:
-                if (boardState.bKC) { hashCastlingRight(bQueenside); boardState.bKC = false; }
-                if (boardState.bQC) { hashCastlingRight(bKingside);  boardState.bQC = false; }
-                break;
-            default:
-                break;
-        }
-    };
-
     removeCastlingRights(move.fromSquare);
     removeCastlingRights(move.targetSquare);
 
@@ -380,8 +347,8 @@ void Board::doMove(const Move &move) {
         boardState.fullMoveNumber++;
     }
     boardState.enPassantSquare = move.newEnPassant;
-    hashActivePlayer();
     boardState.activePlayer = ~boardState.activePlayer;
+    hashActivePlayer();
 }
 
 void Board::undoMove() {
@@ -389,7 +356,7 @@ void Board::undoMove() {
     Move move = moveCommand.move;
 
     boardState = moveCommand.beforeState;
-    
+
     if (move.isCastling) {
         switch (move.targetSquare) {
         case g1:
@@ -437,11 +404,10 @@ bool Board::inCheck() const
     return (!(opponentAttacks & playerKing).empty());
 }
 
-uint64_t Board::hash() const
+uint64_t Board::computeHashFromScratch()
 {
     uint64_t hashValue = 0;
 
-    // Combine the hash values of all relevant components
     for (int colorIndex = 0; colorIndex < NrColors; colorIndex++) {
         for (const auto &piece : pieceMaps[colorIndex]) {
             const auto &square = piece.first;
@@ -459,7 +425,6 @@ uint64_t Board::hash() const
 
     return hashValue;
 }
-
 
 void Board::logBitboards() const {
     for (int colorInt = 0; colorInt < NrColors; ++colorInt) {
@@ -527,33 +492,57 @@ void Board::initZobristTables() {
     zobristActivePlayer = distribution(gen);
 }
 
-
-void Board::checkBoardConsistency() const
-{
-    #if defined(DEBUG) || defined(VERBOSE)
-    _assert(pieceMaps[White].size() == colorBitboards[White].count());
-    _assert(pieceMaps[Black].size() == colorBitboards[Black].count());
+void Board::validate() const {
+    assert(pieceMaps[White].size() == colorBitboards[White].count());
+    assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
     for (const auto &squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
-        _assert(colorBitboards[White].test(square));
-        _assert(piecetypeBitboards[type].test(square));
+        assert(colorBitboards[White].test(square));
+        assert(piecetypeBitboards[type].test(square));
     }
 
     Bitboard noOverlapBoard = Bitboard();
     for (const auto &bitboard : colorBitboards) {
-        _assert((bitboard & noOverlapBoard).empty());
+        assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
 
     noOverlapBoard.reset();
     for (const auto &bitboard : piecetypeBitboards) {
-        _assert((bitboard & noOverlapBoard).empty());
+        assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
-    #endif
+    
+    assert((piecetypeBitboards[King] & colorBitboards[White]).count() == 1);
+    assert((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1);
+    assert((finalRank[White] & piecetypeBitboards[Pawn]).empty());
+    assert((finalRank[Black] & piecetypeBitboards[Pawn]).empty());
+
+    if (boardState.wKC) {
+        assert((piecetypeBitboards[King] & colorBitboards[White]).test(e1));
+        assert((piecetypeBitboards[Rook] & colorBitboards[White]).test(h1));
+    }
+    if (boardState.wQC) {
+        assert((piecetypeBitboards[King] & colorBitboards[White]).test(e1));
+        assert((piecetypeBitboards[Rook] & colorBitboards[White]).test(a1));
+    }
+    if (boardState.bKC) {
+        assert((piecetypeBitboards[King] & colorBitboards[Black]).test(e8));
+        assert((piecetypeBitboards[Rook] & colorBitboards[Black]).test(h8));
+    }
+    if (boardState.bQC) {
+        assert((piecetypeBitboards[King] & colorBitboards[Black]).test(e8));
+        assert((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8));
+    }
+
+    // FIXME 
+    // This is used to determine the validity FEN strings in board/test/test_hash
+    // assert(!inCheck(~boardState.activePlayer));
+
+    assert(boardState.halfMoveClock <= 50);
 }
 
 bool Board::checkInsufficientMaterial() const

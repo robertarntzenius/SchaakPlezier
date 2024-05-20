@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <cassert>
 
 #include <unordered_map>
 #include <array>
@@ -320,15 +321,15 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
 
     if (move.isCastling) {
         os << " | Castling | ";
-        // os << ...;
     }
 
     return os;
 }
 
 static std::ostream& operator<<(std::ostream &os, const BoardState &boardState) {
-    os << boardState.activePlayer << " to move" << std::endl;
-    os << "wKC: " << boardState.wKC <<", wQC: "<< boardState.wQC <<", bKC: "<< boardState.bKC <<", bQC: "<< boardState.bQC << std::endl;
+    os << "activePlayer: " << boardState.activePlayer << std::endl;
+    os << "wKC: " << boardState.wKC << ", wQC: "<< boardState.wQC << ", bKC: "<< boardState.bKC << ", bQC: "<< boardState.bQC << std::endl;
+    os << "halfMoveClock: " << boardState.halfMoveClock << "fullMoveNumber: " << boardState.fullMoveNumber << std::endl;
     os << "enPassant: " << boardState.enPassantSquare <<std::endl;
     os << "hash: " << boardState.hash <<std::endl;
     return os;

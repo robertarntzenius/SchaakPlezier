@@ -12,7 +12,7 @@ public:
         double beta = 2 * MAX_EVAL; //DBL_MAX;
         size_t bestMoveIndex = 0;
 
-        std::cout << "hash: " << board.hash() << std::endl;
+        std::cout << "hash: " << board.getBoardState().hash << std::endl;
 
         for (size_t i = 0; i < moves.size(); i++) {
             board.doMove(moves[i]);

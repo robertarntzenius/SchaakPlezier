@@ -8,21 +8,22 @@
 #include <cassert>
 
 
-Board generateRandomBoard(int maxPiecesPerSide = 5) {
+std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
+    if (attemptsLeft == 0) {
+        return "NOT SUCCESFUL";
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> pieceDist(0, 12);
-    std::uniform_int_distribution<int> countDist(1, std::max(1, maxPiecesPerSide));
+    std::uniform_int_distribution<int> countDist(0, std::max(1, maxPiecesPerType));
     std::uniform_int_distribution<int> rankDist(0, 7);
     std::uniform_int_distribution<int> fileDist(0, 7);
     std::uniform_int_distribution<int> playerDist(0, 1);
-    std::uniform_int_distribution<int> castlingDist(0, 15);
     std::uniform_int_distribution<int> halfmoveDist(0, 50);
     std::uniform_int_distribution<int> fullmoveDist(1, 100);
 
     std::vector<char> pieceChars = {'P', 'N', 'B', 'R', 'Q', 'p', 'n', 'b', 'r', 'q'};
     std::vector<std::string> ranks(8, std::string(8, '1'));
-
 
     for (int color = 0; color < 2; ++color) {
         int kingRank = rankDist(gen);
@@ -61,160 +62,219 @@ Board generateRandomBoard(int maxPiecesPerSide = 5) {
         }
         boardString += '/';
     }
-    boardString.pop_back();  // Remove the trailing slash
+    boardString.pop_back();
 
     char activePlayer = playerDist(gen) == 0 ? 'w' : 'b';
 
-    std::string castlingString = "-";
-    // int castlingRights = castlingDist(gen);
-    // if (castlingRights & 1) castlingString += 'K';
-    // if (castlingRights & 2) castlingString += 'Q';
-    // if (castlingRights & 4) castlingString += 'k';
-    // if (castlingRights & 8) castlingString += 'q';
-    // if (castlingString.empty()) castlingString = '-';
-
     char enPassant = '-';
-    if (pieceDist(gen) == 0) {
-        char file = 'a' + fileDist(gen);
-        char rank = activePlayer == 'w' ? '6' : '3';
-        enPassant = *(std::string(1, file) + rank).c_str();
-    }
-
     int halfmoveClock = halfmoveDist(gen);
     int fullmoveNumber = fullmoveDist(gen);
+
     
+    int countK = std::count(boardString.begin(), boardString.end(), 'K');
+    int countk = std::count(boardString.begin(), boardString.end(), 'k');
+    if ( (countK != 1) || (countk != 1) ) {
+        return generateRandomValidFEN(attemptsLeft - 1, maxPiecesPerType);
+    }
+
+    std::string BlackStartingRank = boardString.substr(0, boardString.find('/'));
+    std::string WhiteStartingRank = boardString.substr(boardString.rfind('/') + 1);
+    
+    int countP = 0;
+    int countp = 0;
+
+    countP += std::count(BlackStartingRank.begin(), BlackStartingRank.end(), 'P');
+    countP += std::count(WhiteStartingRank.begin(), WhiteStartingRank.end(), 'P');
+
+    countp += std::count(BlackStartingRank.begin(), BlackStartingRank.end(), 'p');
+    countp += std::count(WhiteStartingRank.begin(), WhiteStartingRank.end(), 'p');
+    
+    if (countP + countp != 0) {
+        return generateRandomValidFEN(attemptsLeft - 1, maxPiecesPerType);
+    }
+    
+    auto isPieceAt = [](const std::string& rankString, char pieceChar, File file) -> bool {
+        int _file = 0;
+        for (const char c : rankString) {
+            if (std::isdigit(c)) {
+                _file += c - '0';
+            } else {
+                if ((c == pieceChar) && (_file == file)) {
+                    return true;
+                }
+                _file++;
+            }
+        }
+        return false;
+    };
+    
+    std::string castlingString = "KQkq";
+    auto removeCastlingRight = [](std::string& castlingString, char right) {
+        castlingString.erase(std::remove(castlingString.begin(), castlingString.end(), right), castlingString.end());
+        if (castlingString.empty()) {castlingString = '-';}
+    };
+
+    if ( (!isPieceAt(WhiteStartingRank, 'K', FileE)) || (!isPieceAt(WhiteStartingRank, 'R', FileH))) {
+        removeCastlingRight(castlingString, 'K');
+    }
+    if ( (!isPieceAt(WhiteStartingRank, 'K', FileE)) || (!isPieceAt(WhiteStartingRank, 'R', FileA))) {
+        removeCastlingRight(castlingString, 'Q');
+    }
+    if ( (!isPieceAt(BlackStartingRank, 'k', FileE)) || (!isPieceAt(BlackStartingRank, 'r', FileH))) {
+        removeCastlingRight(castlingString, 'k');
+    }
+    if ( (!isPieceAt(BlackStartingRank, 'k', FileE)) || (!isPieceAt(BlackStartingRank, 'r', FileA))) {
+        removeCastlingRight(castlingString, 'q');
+    }
+
     std::string _FEN = boardString + ' ' + activePlayer + ' ' + castlingString + ' ' + enPassant + ' ' + std::to_string(halfmoveClock) + ' ' + std::to_string(fullmoveNumber);
     
     try {
         Board board(_FEN.c_str());
         std::vector<Move> moves;
         board.getPossibleMoves(moves);
-        if (moves.size() == 0) {
-            return generateRandomBoard();
+
+        if ((moves.size() != 0) && (!board.inCheck(~board.getBoardState().activePlayer) )) {
+            return _FEN;
         }
-        return board;
+        return generateRandomValidFEN(attemptsLeft - 1, maxPiecesPerType);
     } catch (const std::exception &e) {
-        return generateRandomBoard();
+        return generateRandomValidFEN(attemptsLeft - 1, maxPiecesPerType);
     }
 }
 
+void generateTestFENs(size_t amount, const std::string& filename) {
+    int maxRetries = 100;
+    int piecesPerType = 2;
+    size_t count = 0;
 
-void test_incremental_hash_update(size_t numTests) {
-    std::cout << "test_incremental_hash_update" << std::endl;
-    std::cout << "Number of Tests: " << numTests << std::endl;
-    
-    std::random_device rd;
-    std::mt19937_64 gen(rd());
-    size_t fails = 0;
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        std::cerr << "Could not open the file for writing!" << std::endl;
+        throw std::runtime_error("Unable to open file: " + filename);
+    }
+
+    while(count < amount) {
+        std::string FEN = generateRandomValidFEN(maxRetries, piecesPerType);
+        if (FEN != "NOT SUCCESFUL") {
+            count++;
+            outFile << FEN << std::endl;
+        }
+    }
+    outFile.close();
+    std::cout << "Generated " << amount << " valid FEN strings in " << filename << std::endl;
+}
+
+std::vector<std::string> readFENStringsFromFile(const std::string& filename) {
+    std::ifstream inFile(filename);
+    if (!inFile) {
+        throw std::runtime_error("Unable to open file: " + filename);
+    }
+
+    std::vector<std::string> fenStrings;
+    std::string line;
+    while (std::getline(inFile, line)) {
+        fenStrings.push_back(line);
+    }
+
+    inFile.close();
+    return fenStrings;
+}
+
+void assertHashEqual(uint64_t hashBefore, uint64_t hashAfter, std::string msg) {
+    if (hashBefore != hashAfter) {
+        std::cout << "Hash mismatch: " << msg << std::endl;
+        std::cout << hashBefore << " | " << hashAfter << std::endl;
+    }
+    assert(hashBefore == hashAfter);
+}
+
+void test_board_incremental_hash_update(std::vector<std::string>& TEST_FENS) {
+    std::cout << "test_board_incremental_hash_update" << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (size_t i = 0; i < numTests; ++i) {
-        Board board = generateRandomBoard();
+    for (const auto& FEN : TEST_FENS) {
+        Board board(FEN.c_str());
 
+        uint64_t hashBeforeMoveGen = board.computeHashFromScratch();
+        uint64_t hashBeforeMoveGen_inc = board.getBoardState().hash;
+        assertHashEqual(hashBeforeMoveGen, hashBeforeMoveGen_inc, "hashBeforeMoveGen != hashBeforeMoveGen_inc");
+        
         std::vector<Move> moves;
-        uint64_t hashBeforeFromStruct = board.getBoardState().hash;
         board.getPossibleMoves(moves);
-        uint64_t hashAfterMovegen = board.getBoardState().hash;
-        assert(hashBeforeFromStruct == hashAfterMovegen);
+        
+        uint64_t hashAfterMovegen = board.computeHashFromScratch();
+        uint64_t hashAfterMovegen_inc = board.getBoardState().hash;
+        assertHashEqual(hashAfterMovegen, hashAfterMovegen_inc, "hashAfterMovegen != hashAfterMovegen_inc");
+        assertHashEqual(hashBeforeMoveGen_inc, hashAfterMovegen_inc, "hashBeforeMoveGen_inc != hashAfterMovegen_inc"); 
 
-        std::cout << '(' << i << '/' << numTests << " | move: " << moves[i] << std::endl;
-
-        uint64_t hashBeforeFromFunc = board.hash();
         board.doMove(moves[0]);
-        uint64_t hashAfterFromStruct = board.getBoardState().hash;
-        uint64_t hashAfterFromFunc = board.hash();
 
-        if ((hashBeforeFromStruct != hashBeforeFromFunc) || (hashAfterFromStruct != hashAfterFromFunc)) {
-            fails++;
-            std::cout << "Hash mismatch after move: " << moves[0] << std::endl;
-            std::cout << "hashBefore" << " | " << "hashAfter" << std::endl;
-            std::cout << hashBeforeFromStruct << " | " << hashAfterFromStruct << std::endl;
-            std::cout << hashBeforeFromFunc << " | " << hashAfterFromFunc << std::endl;
-        }
-
-        assert(hashBeforeFromStruct == hashBeforeFromFunc);
-        assert(hashAfterFromStruct == hashAfterFromFunc);
+        uint64_t hashAfterDoMove = board.computeHashFromScratch();
+        uint64_t hashAfterDoMove_inc = board.getBoardState().hash;
+        assertHashEqual(hashAfterDoMove_inc, hashAfterDoMove, "hashAfterDoMove_inc != hashAfterDoMove");
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
-    
-    std::cout << "Number of fails: " << fails << std::endl;
-    std::cout << "Failure rate: " << (static_cast<double>(fails) / numTests) * 100 << "%" << std::endl;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
-
 }
 
-
-void test_board_hash_collisions(size_t numTests) {
+void test_board_hash_collisions(std::vector<std::string>& TEST_FENS) {
+    std::cout << "test_board_hash_collisions" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     
     std::unordered_set<uint64_t> hashSet;
-    std::random_device rd;
-    std::mt19937_64 gen(rd());
-    
-    size_t maxPieces = 7;
     size_t collisionCount = 0;
 
-    std::cout << "Number of Tests: " << numTests * maxPieces << std::endl;
-    for (size_t nPieces = 1; nPieces < maxPieces; ++nPieces) {
-        for (size_t i = 0; i < numTests; ++i) {
-            Board board = generateRandomBoard(nPieces);
+    for (const auto& FEN : TEST_FENS) {
+        Board board(FEN.c_str());
+        uint64_t hashValue = std::hash<Board>{}(board);
 
-            uint64_t hashValue = std::hash<Board>{}(board);
-
-            if (hashSet.find(hashValue) != hashSet.end()) {
-                collisionCount++;
-                std::cout << board << std::endl;
-            } else {
-                hashSet.insert(hashValue);
-            }
+        if (hashSet.find(hashValue) != hashSet.end()) {
+            collisionCount++;
+        } else {
+            hashSet.insert(hashValue);
         }
     }
 
-    std::cout << "Number of collisions: " << collisionCount << std::endl;
-    std::cout << "Collision rate: " << (static_cast<double>(collisionCount) / (numTests * maxPieces)) * 100 << "%" << std::endl;
-
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
+
+    std::cout << "Number of collisions: " << collisionCount << std::endl;
+    std::cout << "Collision rate: " << (static_cast<double>(collisionCount) / TEST_FENS.size()) * 100 << "%" << std::endl;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
 }
 
-
-void test_board_hash_consistency(size_t numTests) {
-    std::cout << "test_board_hash_consistency" << numTests << std::endl;
-    std::cout << "Number of Tests: " << numTests << std::endl;
+void test_board_hash_consistency(std::vector<std::string>& TEST_FENS) {
+    std::cout << "test_board_hash_consistency" << std::endl;
     
-    std::random_device rd;
-    std::mt19937_64 gen(rd());
     size_t collisionCount = 0;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (size_t i = 0; i < numTests; ++i) {
-        Board board = generateRandomBoard();
-
+    
+    for (const auto& FEN : TEST_FENS) {
+        Board board(FEN.c_str());
         uint64_t hashValue1 = std::hash<Board>{}(board);
         uint64_t hashValue2 = std::hash<Board>{}(board);
-
-        if (hashValue1 != hashValue2) {
-            collisionCount++;
-            std::cout << "Hash mismatch for position:" << std::endl;
-            std::cout << board << std::endl;
-            std::cout << "Hash 1: " << hashValue1 << std::endl;
-            std::cout << "Hash 2: " << hashValue2 << std::endl;
-        }
+        assertHashEqual(hashValue1, hashValue2, "");
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
 
     std::cout << "Number of collisions: " << collisionCount << std::endl;
-    std::cout << "Collision rate: " << (static_cast<double>(collisionCount) / numTests) * 100 << "%" << std::endl;
+    std::cout << "Collision rate: " << (static_cast<double>(collisionCount) / TEST_FENS.size()) * 100 << "%" << std::endl;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
 }
 
-
 int main() {
-    test_incremental_hash_update(10000);
-    // test_board_hash_collisions(100000);
-    // test_board_hash_consistency(10000);
+    std::string fn = "testFENS.txt";
+    int numFENS = 10000;
+    
+    generateTestFENs(numFENS, fn);
+    std::vector<std::string> TEST_FENS = readFENStringsFromFile(fn);
+
+    test_board_incremental_hash_update(TEST_FENS);
+    test_board_hash_collisions(TEST_FENS);
+    test_board_hash_consistency(TEST_FENS);
 }
