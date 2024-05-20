@@ -208,7 +208,8 @@ void bindStructs(py::module& m) {
         .def_readwrite("bQC", &BoardState::bQC)
         .def_readwrite("enPassantSquare", &BoardState::enPassantSquare)
         .def_readwrite("fullMoveNumber", &BoardState::fullMoveNumber)
-        .def_readwrite("halfMoveClock", &BoardState::halfMoveClock);
+        .def_readwrite("halfMoveClock", &BoardState::halfMoveClock)
+        .def_readwrite("hash", &BoardState::hash);
 }
 
 void bindMaps(py::module& m) {

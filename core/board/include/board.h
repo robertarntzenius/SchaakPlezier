@@ -13,7 +13,7 @@ class Board {
     public:
         ~Board() = default;
         Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
-        
+
         /**
          * @brief initialize the board from the FENstring provided.
          *
@@ -103,11 +103,11 @@ class Board {
         // Expose getters and setters for gui
         [[nodiscard]] Color getActivePlayer() const;
         [[nodiscard]] GameResult getGameResult(bool noLegalMoves) const;
-        [[nodiscard]] const BoardState getBoardState() const;
-        [[nodiscard]] const std::unordered_map<Square, Piecetype> getPieceMap(Color color) const;
-        [[nodiscard]] const std::array<Bitboard, NrPiecetypes> getPiecetypeBitboards() const;
-        [[nodiscard]] const std::array<Bitboard, NrColors> getColorBitboards() const;
-        [[nodiscard]] const std::stack<MoveCommand> getHistory() const;
+        [[nodiscard]] BoardState getBoardState() const;
+        [[nodiscard]] std::unordered_map<Square, Piecetype> getPieceMap(Color color) const;
+        [[nodiscard]] std::array<Bitboard, NrPiecetypes> getPiecetypeBitboards() const;
+        [[nodiscard]] std::array<Bitboard, NrColors> getColorBitboards() const;
+        [[nodiscard]] std::stack<MoveCommand> getHistory() const;
         
         void setBoardState(const BoardState &copyState);
         void getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards);
@@ -138,8 +138,9 @@ class Board {
         /* Member variables */
         ChessLogger& logger;
         BoardState boardState;
+
         std::stack<MoveCommand> history;
-        std::stack<uint64_t> hashHistory;
+        std::unordered_map<uint64_t, size_t> repetitionTable;
 
         std::array<Bitboard, NrPiecetypes> piecetypeBitboards;
         std::array<Bitboard, NrColors> colorBitboards;

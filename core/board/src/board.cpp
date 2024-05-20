@@ -5,7 +5,7 @@ Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
       boardState(defaultBoardState),
       history(),
-      hashHistory(),
+      repetitionTable(),
       piecetypeBitboards(),
       colorBitboards(),
       pieceMaps(),
@@ -86,6 +86,8 @@ void Board::initFromFEN(const char *FENString)
 
     boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
     validate();
+
+    repetitionTable[boardState.hash] = 1;
 }
 
 void Board::clearBoard() {
@@ -98,8 +100,10 @@ void Board::clearBoard() {
     for (auto &bitboard : colorBitboards) {
         bitboard.reset();
     }
-    history = std::stack<MoveCommand>();
     boardState = defaultBoardState;
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
 }
 
 void Board::getPseudoLegalMoves(std::vector<Move> &pseudoLegalMoves) const {
@@ -181,8 +185,8 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
     if (noLegalMoves) {
         if (inCheck()) {
             switch(~getActivePlayer()) {
-                case White: return WHITE_WIN_BY_CHECKMATE; break;
-                case Black: return BLACK_WIN_BY_CHECKMATE; break;
+                case White: return WHITE_WIN_BY_CHECKMATE;
+                case Black: return BLACK_WIN_BY_CHECKMATE;
                 default: throw std::invalid_argument("Invalid color: " + std::to_string(~getActivePlayer()));
             }
         }
@@ -198,7 +202,6 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
         return DRAW_BY_50_MOVES;
     }
 
-    // TODO implement
     if (checkThreeFoldRepetition()) {
         return DRAW_BY_REPETITION;
     }
@@ -209,24 +212,24 @@ Color Board::getActivePlayer() const {
     return boardState.activePlayer;
 }
 
-const BoardState Board::getBoardState() const
+BoardState Board::getBoardState() const
 {
     return boardState;
 }
 
-const std::unordered_map<Square, Piecetype> Board::getPieceMap(Color color) const {
+std::unordered_map<Square, Piecetype> Board::getPieceMap(Color color) const {
     return pieceMaps[color];
 }
 
-const std::array<Bitboard, NrPiecetypes> Board::getPiecetypeBitboards() const {
+std::array<Bitboard, NrPiecetypes> Board::getPiecetypeBitboards() const {
     return piecetypeBitboards;
 }
 
-const std::array<Bitboard, NrColors> Board::getColorBitboards() const {
+std::array<Bitboard, NrColors> Board::getColorBitboards() const {
     return colorBitboards;
 }
 
-const std::stack<MoveCommand> Board::getHistory() const {
+std::stack<MoveCommand> Board::getHistory() const {
     return history;
 }
 
@@ -349,12 +352,14 @@ void Board::doMove(const Move &move) {
     boardState.enPassantSquare = move.newEnPassant;
     boardState.activePlayer = ~boardState.activePlayer;
     hashActivePlayer();
+    repetitionTable[boardState.hash]++;
 }
 
 void Board::undoMove() {
     MoveCommand moveCommand = history.top();
     Move move = moveCommand.move;
 
+    repetitionTable[boardState.hash]--;
     boardState = moveCommand.beforeState;
 
     if (move.isCastling) {
@@ -590,7 +595,10 @@ bool Board::checkFiftyMoveRule() const
 
 bool Board::checkThreeFoldRepetition() const
 {
-    // TODO implement
+    if (repetitionTable.at(boardState.hash) >= 3) {
+        return true;
+    }
+
     return false;
 }
 

@@ -10,7 +10,7 @@
 
 std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
     if (attemptsLeft == 0) {
-        return "NOT SUCCESFUL";
+        return "NOT SUCCESSFUL";
     }
 
     std::random_device rd;
@@ -19,8 +19,8 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
     std::uniform_int_distribution<int> rankDist(0, 7);
     std::uniform_int_distribution<int> fileDist(0, 7);
     std::uniform_int_distribution<int> playerDist(0, 1);
-    std::uniform_int_distribution<int> halfmoveDist(0, 50);
-    std::uniform_int_distribution<int> fullmoveDist(1, 100);
+    std::uniform_int_distribution<int> halfMoveDist(0, 50);
+    std::uniform_int_distribution<int> fullMoveDist(1, 100);
 
     std::vector<char> pieceChars = {'P', 'N', 'B', 'R', 'Q', 'p', 'n', 'b', 'r', 'q'};
     std::vector<std::string> ranks(8, std::string(8, '1'));
@@ -67,8 +67,8 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
     char activePlayer = playerDist(gen) == 0 ? 'w' : 'b';
 
     char enPassant = '-';
-    int halfmoveClock = halfmoveDist(gen);
-    int fullmoveNumber = fullmoveDist(gen);
+    int halfmoveClock = halfMoveDist(gen);
+    int fullmoveNumber = fullMoveDist(gen);
 
     
     int countK = std::count(boardString.begin(), boardString.end(), 'K');
@@ -156,7 +156,7 @@ void generateTestFENs(size_t amount, const std::string& filename) {
 
     while(count < amount) {
         std::string FEN = generateRandomValidFEN(maxRetries, piecesPerType);
-        if (FEN != "NOT SUCCESFUL") {
+        if (FEN != "NOT SUCCESSFUL") {
             count++;
             outFile << FEN << std::endl;
         }

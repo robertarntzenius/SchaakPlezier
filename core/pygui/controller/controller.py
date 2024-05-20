@@ -50,10 +50,9 @@ class Controller(Observable):
         self.black_player: IPlayer = Player(black) if black.lower() != 'human' else HumanPlayer(self.view.chessboard_view)
 
     def resign(self) -> Color:
-        if not self.playing:
-            raise ValueError('Cannot resign when game is not active')
-        self.playing = False
-        self.sound_player.play(sound=Sound.game_end)
+        if self.playing:
+            self.playing = False
+            self.sound_player.play(sound=Sound.game_end)
         return self.board.active_player
 
     def initialize_from_fen(self, fen_string: str) -> None:

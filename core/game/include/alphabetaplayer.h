@@ -37,7 +37,6 @@ public:
     [[nodiscard]] double alphaBetaSearch(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
             return evaluate(board);
-            // TODO turn back on
 //            return quiesce(board, alpha, beta);
         }
         
@@ -83,7 +82,7 @@ public:
     }
 
     // TODO add limit for depth or nodes
-    [[nodiscard]] double quiesce(Board &board, double alpha, double beta) {
+    [[nodiscard]] double quiesce(Board &board, double alpha, double beta, int depth = 0) {
     //     int Quiesce( int alpha, int beta ) {
     //     int stand_pat = Evaluate();
     //     if( stand_pat >= beta )
@@ -104,10 +103,15 @@ public:
     //     return alpha;
     // }
         double currentEval = evaluate(board);
+
         if( currentEval >= beta )
             return beta;
         if( alpha < currentEval )
             alpha = currentEval;
+
+        if (depth >= 8) {
+            return currentEval;
+        }
 
         std::vector<Move> moves;
         moves.reserve(64);
@@ -115,6 +119,7 @@ public:
 
         if (board.inCheck()) {
             board.getPossibleMoves(moves);
+            noLegalMoves = moves.empty();
         }
         else {
             board.getLoudMoves(moves, noLegalMoves);
@@ -147,7 +152,7 @@ public:
 
         for (auto move : moves) {
             board.doMove(move);
-            currentEval = -quiesce(board, -beta, -alpha);
+            currentEval = -quiesce(board, -beta, -alpha, depth + 1);
             board.undoMove();
             
             if ( currentEval >= beta) {
