@@ -25,7 +25,7 @@ struct PlayerSettings {
 
     int MinMax_Depth = 4;
     
-    int AlphaBeta_Depth = 4;
+    int AlphaBeta_Depth = 6;
 
     int Random_Seed = 6;
 };

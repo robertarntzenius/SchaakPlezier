@@ -8,25 +8,36 @@ public:
     explicit AlphaBetaPlayer(PlayerSettings settings) : maxDepth(settings.AlphaBeta_Depth), positionsEvaluated(0) {}
 
     [[nodiscard]] Move decideOnMove(Board board, const std::vector<Move> &moves) override {
-        double alpha = 2 * MIN_EVAL;// DBL_MIN;
+        double alpha = 2 * MIN_EVAL; // DBL_MIN;
         double beta = 2 * MAX_EVAL; //DBL_MAX;
+        double currentEval = 0;
         size_t bestMoveIndex = 0;
-
-        std::cout << "hash: " << board.getBoardState().hash << std::endl;
+        bool isMaximize = (board.getActivePlayer() == White);
 
         for (size_t i = 0; i < moves.size(); i++) {
             board.doMove(moves[i]);
-            double currentEval = -alphaBetaSearch(board, maxDepth - 1, -beta, -alpha);
+            if (isMaximize) {
+                currentEval = alphaBetaMin(board, maxDepth - 1, alpha, beta);
+                if (currentEval > alpha) {
+                    std::cout << "alpha: " << alpha << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
+                    alpha = currentEval;
+                    bestMoveIndex = i;
+                }
+            }
+            else {
+                currentEval = alphaBetaMax(board, maxDepth - 1, alpha, beta);
+                if (currentEval < beta) {
+                    std::cout << "beta: " << beta << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
+                    beta = currentEval;
+                    bestMoveIndex = i;
+                }
+            }
             board.undoMove();
 
-            if (currentEval > alpha) {
-                std::cout << "alpha: " << alpha << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
-                alpha = currentEval;
-                bestMoveIndex = i;
-            }
         }
+
         std::cout << "Positions evaluated: " << positionsEvaluated << std::endl;
-        std::cout << "alpha: " << alpha << "\nbestMoveIndex: "<<  bestMoveIndex << "\nmove: " << moves[bestMoveIndex] << std::endl;
+        std::cout << "\nbestMoveIndex: "<<  bestMoveIndex << "\nmove: " << moves[bestMoveIndex] << std::endl;
         return moves[bestMoveIndex];
     }
 
@@ -34,7 +45,7 @@ public:
     alpha: minimum assured score for maximizing player
     beta:  maximum assured score for minimizing player
     */
-    [[nodiscard]] double alphaBetaSearch(Board &board, int depth, double alpha, double beta) {
+    [[nodiscard]] double alphaBetaMax(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
             return evaluate(board);
 //            return quiesce(board, alpha, beta);
@@ -51,6 +62,8 @@ public:
             case WHITE_WIN_BY_CHECKMATE:
             case WHITE_WIN_BY_TIME_OUT:
             case WHITE_WIN_BY_FORFEIT:
+                return MAX_EVAL + depth;
+
             case BLACK_WIN_BY_CHECKMATE:
             case BLACK_WIN_BY_TIME_OUT: 
             case BLACK_WIN_BY_FORFEIT:
@@ -68,7 +81,7 @@ public:
 
         for (auto move : moves) {
             board.doMove(move);
-            const double currentEval = -alphaBetaSearch(board, depth - 1, -beta, -alpha);
+            const double currentEval = alphaBetaMin(board, depth - 1, alpha, beta);
             board.undoMove();
             
             if ( currentEval >= beta) {
@@ -79,6 +92,55 @@ public:
             }
         }
         return alpha;
+    }
+
+    [[nodiscard]] double alphaBetaMin(Board &board, int depth, double alpha, double beta) {
+        if (depth <= 0) {
+            return evaluate(board);
+//            return quiesce(board, alpha, beta);
+        }
+        
+        std::vector<Move> moves;
+        moves.reserve(64);
+        board.getPossibleMoves(moves);
+        
+        switch (board.getGameResult(moves.empty())) {
+            case NOT_OVER:
+                break;
+
+            case WHITE_WIN_BY_CHECKMATE:
+            case WHITE_WIN_BY_TIME_OUT:
+            case WHITE_WIN_BY_FORFEIT:
+                return MAX_EVAL + depth;
+
+            case BLACK_WIN_BY_CHECKMATE:
+            case BLACK_WIN_BY_TIME_OUT: 
+            case BLACK_WIN_BY_FORFEIT:
+                return MIN_EVAL - depth;
+
+            case DRAW_BY_STALEMATE: 
+            case DRAW_BY_INSUFFICIENT_MATERIAL: 
+            case DRAW_BY_REPETITION: 
+            case DRAW_BY_50_MOVES:
+                return 0.0;
+
+            default:
+                throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.empty())));
+            }
+
+        for (auto move : moves) {
+            board.doMove(move);
+            const double currentEval = alphaBetaMax(board, depth - 1, alpha, beta);
+            board.undoMove();
+            
+            if ( currentEval <= alpha) {
+                return alpha;
+            }
+            if (currentEval < beta) {
+                beta = currentEval;
+            }
+        }
+        return beta;
     }
 
     // TODO add limit for depth or nodes
@@ -170,17 +232,17 @@ public:
         positionsEvaluated++;
 
         // White
-        for (const auto &entry : board.getPieceMap(board.getActivePlayer())) {
+        for (const auto &entry : board.getPieceMap(White)) {
             const Piecetype &pieceType = entry.second;
             eval += pieceValues[pieceType];
         }
 
         // Black
-        for (const auto &entry : board.getPieceMap(~board.getActivePlayer())) {
+        for (const auto &entry : board.getPieceMap(Black)) {
             const Piecetype &pieceType = entry.second;
             eval -= pieceValues[pieceType];
         }
-        return (board.getActivePlayer() == White)? eval : -eval;
+        return eval;
     }
 
     [[nodiscard]] PlayerType getPlayerType() override { return AlphaBeta; };
