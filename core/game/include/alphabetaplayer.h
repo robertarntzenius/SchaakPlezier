@@ -47,8 +47,8 @@ public:
     */
     [[nodiscard]] double alphaBetaMax(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
-            return evaluate(board);
-//            return quiesce(board, alpha, beta);
+//            return evaluate(board);
+            return quiesceMax(board, alpha, beta);
         }
         
         std::vector<Move> moves;
@@ -96,8 +96,8 @@ public:
 
     [[nodiscard]] double alphaBetaMin(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
-            return evaluate(board);
-//            return quiesce(board, alpha, beta);
+//            return evaluate(board);
+            return quiesceMin(board, alpha, beta);
         }
         
         std::vector<Move> moves;
@@ -143,8 +143,7 @@ public:
         return beta;
     }
 
-    // TODO add limit for depth or nodes
-    [[nodiscard]] double quiesce(Board &board, double alpha, double beta, int depth = 0) {
+    [[nodiscard]] double quiesceMax(Board &board, double alpha, double beta, int depth = 0) {
     //     int Quiesce( int alpha, int beta ) {
     //     int stand_pat = Evaluate();
     //     if( stand_pat >= beta )
@@ -166,11 +165,12 @@ public:
     // }
         double currentEval = evaluate(board);
 
-        if( currentEval >= beta )
+        if ( currentEval >= beta) {
             return beta;
-        if( alpha < currentEval )
+        }
+        if (currentEval > alpha) {
             alpha = currentEval;
-
+        }
         if (depth >= 8) {
             return currentEval;
         }
@@ -193,11 +193,11 @@ public:
             case WHITE_WIN_BY_CHECKMATE:
             case WHITE_WIN_BY_TIME_OUT:
             case WHITE_WIN_BY_FORFEIT:
+                return MAX_EVAL - depth;
             case BLACK_WIN_BY_CHECKMATE:
             case BLACK_WIN_BY_TIME_OUT: 
             case BLACK_WIN_BY_FORFEIT: 
-                return MIN_EVAL;
-
+                return MIN_EVAL + depth;
             case DRAW_BY_STALEMATE: 
             case DRAW_BY_INSUFFICIENT_MATERIAL: 
             case DRAW_BY_REPETITION: 
@@ -209,19 +209,84 @@ public:
             }
 
         if (moves.empty()) { // Quiet position
-            return evaluate(board);
+            return currentEval;
         }
 
         for (auto move : moves) {
             board.doMove(move);
-            currentEval = -quiesce(board, -beta, -alpha, depth + 1);
+            currentEval = quiesceMin(board, alpha, beta, depth + 1);
             board.undoMove();
-            
+
             if ( currentEval >= beta) {
                 return beta;
             }
             if (currentEval > alpha) {
                 alpha = currentEval;
+            }
+        }
+        return alpha;
+    }
+
+    [[nodiscard]] double quiesceMin(Board &board, double alpha, double beta, int depth = 0) {
+        double currentEval = evaluate(board);
+
+        if ( currentEval <= alpha) {
+            return alpha;
+        }
+        if (currentEval < beta) {
+            beta = currentEval;
+        }
+        if (depth >= 8) {
+            return currentEval;
+        }
+
+        std::vector<Move> moves;
+        moves.reserve(64);
+        bool noLegalMoves = false;
+
+        if (board.inCheck()) {
+            board.getPossibleMoves(moves);
+            noLegalMoves = moves.empty();
+        }
+        else {
+            board.getLoudMoves(moves, noLegalMoves);
+        }
+
+        switch (board.getGameResult(noLegalMoves)) {
+            case NOT_OVER: break;
+
+            case WHITE_WIN_BY_CHECKMATE:
+            case WHITE_WIN_BY_TIME_OUT:
+            case WHITE_WIN_BY_FORFEIT:
+                return MAX_EVAL - depth;
+            case BLACK_WIN_BY_CHECKMATE:
+            case BLACK_WIN_BY_TIME_OUT:
+            case BLACK_WIN_BY_FORFEIT:
+                return MIN_EVAL + depth;
+            case DRAW_BY_STALEMATE:
+            case DRAW_BY_INSUFFICIENT_MATERIAL:
+            case DRAW_BY_REPETITION:
+            case DRAW_BY_50_MOVES:
+                return 0.0;
+
+            default:
+                throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(noLegalMoves)));
+        }
+
+        if (moves.empty()) { // Quiet position
+            return currentEval;
+        }
+
+        for (auto move : moves) {
+            board.doMove(move);
+            currentEval = quiesceMin(board, alpha, beta, depth + 1);
+            board.undoMove();
+
+            if ( currentEval <= alpha) {
+                return alpha;
+            }
+            if (currentEval < beta) {
+                beta = currentEval;
             }
         }
         return alpha;
