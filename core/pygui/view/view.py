@@ -2,7 +2,8 @@ import logging
 from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QAction, QDialog, QMessageBox, QLabel
 from PyQt5.QtCore import Qt
 
-from core.pygui.controller.controller import Controller
+from core.pygui.controller.controller import Controller, Mode
+from core.pygui.view.edit_board_dialog import EditBoardDialog
 from core.pygui.view.edit_fen_dialog import EditFenDialog
 from core.pygui.view.edit_players_dialog import EditPlayersDialog
 from core.pygui.view.errordialog import ErrorDialog
@@ -16,7 +17,7 @@ class View(QMainWindow):
         super().__init__()
         self.config = config
         self.controller = controller
-        
+
         self.setWindowTitle(self.config.gui.title)
         self.initUI()
         self.show()
@@ -45,7 +46,11 @@ class View(QMainWindow):
         edit_fen_button.clicked.connect(self.edit_fen_dialog)
 
         edit_board_button = QPushButton("Edit Board")
-        edit_board_button.clicked.connect(self.edit_board)
+        edit_board_button.clicked.connect(self.toggle_edit_mode)
+        self.edit_board_dialog = EditBoardDialog(self)
+        for piece, label in self.edit_board_dialog.piece_buttons.items():
+            label.mousePressEvent = lambda event, piece=piece: self.edit_board_dialog.select_piece(piece)
+        self.edit_board_dialog.hide()
 
         undo_board_button = QPushButton("Undo")
         undo_board_button.clicked.connect(self.controller.undo_move)
@@ -60,7 +65,7 @@ class View(QMainWindow):
         main_layout.addWidget(undo_board_button, 5, 5)
         main_layout.addWidget(quit_button, 5, 6)
 
-        # MENU
+        # Menu
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("File")
         exit_action = QAction("Exit", self)
@@ -75,6 +80,35 @@ class View(QMainWindow):
         main_layout.addWidget(self.white_player_label, 4, 6, alignment=Qt.AlignBottom | Qt.AlignRight)
 
         self.show()
+    
+    ##### EDIT MODE CALLBACKS #####
+    def toggle_edit_mode(self):
+        if self.controller.mode == Mode.EDIT:
+            self.controller.mode = Mode.IDLE
+        else:
+            self.controller.mode = Mode.EDIT
+        self.show_edit_board()
+
+    def show_edit_board(self):
+        if self.controller.mode == Mode.EDIT:
+            self.edit_board_dialog.show()
+        else:
+            self.edit_board_dialog.hide()
+    
+    def place_piece(self, color, square):
+        if self.selected_piece is not None:
+            self.controller.add_piece(color, self.selected_piece.piece_type, square)
+            self.selected_piece = None
+
+    def track_selected_piece(self, piece):
+        # Track the selected piece here
+        self.selected_piece = piece
+
+    def place_piece(self, square):
+        if self.selected_piece is not None:
+            # Call addPiece method on controller
+            self.controller.add_piece(self.selected_piece, square)
+            self.selected_piece = None
 
     ##### BUTTON CALLBACKS #####
     def start_game(self):
@@ -83,18 +117,15 @@ class View(QMainWindow):
     def resign(self):
         self.selected_square = None
         self.selected_piece_moves = []
-
-        losing_color = self.controller.resign()
-        QMessageBox.information(self, "Game Over", f"{losing_color} resigned.")
+        if self.controller.mode == Mode.PLAYING:
+            losing_color = self.controller.resign()
+            QMessageBox.information(self, "Game Over", f"{losing_color} resigned.")
         self.update()
 
-    def edit_board(self):
-        pass
-        # TODO allow user to set up board
-    
+
     def edit_fen_dialog(self):
-        if self.controller.playing:
-            error_dialog = ErrorDialog("Cannot edit the fen while game is ongoing.", self)
+        if self.controller.mode != Mode.IDLE:
+            error_dialog = ErrorDialog(f"Can only edit the fen in IDLE mode: {self.controller.mode}", self)
             error_dialog.exec_()
             return
         while True:
@@ -111,8 +142,8 @@ class View(QMainWindow):
                 break
         
     def edit_players_dialog(self):
-        if self.controller.playing:
-            error_dialog = ErrorDialog("Cannot edit the players while game is ongoing.", self)
+        if self.controller.mode != Mode.IDLE:
+            error_dialog = ErrorDialog(f"Can only edit the players in IDLE mode: {self.controller.mode}", self)
             error_dialog.exec_()
             return
         while True:
@@ -122,7 +153,6 @@ class View(QMainWindow):
                 self.controller.set_players(white_player, black_player)
                 self.white_player_label.setText("White Player: " + white_player)
                 self.black_player_label.setText("Black Player: " + black_player)
-
                 break
             else: # Cancel
                 break

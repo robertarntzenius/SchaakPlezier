@@ -47,8 +47,8 @@ public:
     */
     [[nodiscard]] double alphaBetaMax(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
-//            return evaluate(board);
-            return quiesceMax(board, alpha, beta);
+           return evaluate(board);
+            // return quiesceMax(board, alpha, beta);
         }
         
         std::vector<Move> moves;
@@ -96,8 +96,8 @@ public:
 
     [[nodiscard]] double alphaBetaMin(Board &board, int depth, double alpha, double beta) {
         if (depth <= 0) {
-//            return evaluate(board);
-            return quiesceMin(board, alpha, beta);
+           return evaluate(board);
+            // return quiesceMin(board, alpha, beta);
         }
         
         std::vector<Move> moves;

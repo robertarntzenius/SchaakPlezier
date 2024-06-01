@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QSizePolicy, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from core.pygui.controller.controller import Controller
+from core.pygui.controller.controller import Controller, Mode
 from core.pygui.model.piece import Piece
 from core.pygui.model.player import Player
 from core.pygui.model.wrapper_types import Color, Move, Piecetype, PlayerType, Square
@@ -19,6 +19,7 @@ class ChessboardView(ObserverWidget):
         self.setMaximumSize(1000, 1000)
         self.config = config
         self.controller = controller
+
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(10)
         shadow.setColor(QColor(0, 0, 0, 150))
@@ -27,7 +28,7 @@ class ChessboardView(ObserverWidget):
 
         self.board_size = min(self.width(), self.height())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                
+        
         self.selected_square = None
         self.selected_piece_moves = []
         self.wpieces = []
@@ -104,14 +105,29 @@ class ChessboardView(ObserverWidget):
             col = targetSquare.value % 8
             row = targetSquare.value // 8
             qp.drawRect(col * square_size, row * square_size, square_size, square_size)
-    
+
     ##### MOUSE EVENTS #####
     def mousePressEvent(self, event):
-        if not self.controller.playing:
-            return
-        
-        clicked_square = self.getSquare(event.pos())
+        if self.controller.mode == Mode.EDIT:
+            self.handle_edit_mode_events(event)
+        elif self.controller.mode == Mode.PLAYING:
+            self.handle_playing_mode_events(event)
+        else:
+            self.handle_idle_events(event)
+    
+    def handle_idle_events(event):
+        pass
 
+    def handle_edit_mode_events(self, event):
+        clicked_square = self.getSquare(event.pos())
+        self.selected_square = clicked_square
+        # get/update the selected piece 
+        self.place_piece(clicked_square)
+        self.update()
+        event.accept()
+
+    def handle_playing_mode_events(self, event):
+        clicked_square = self.getSquare(event.pos())
         if self.selected_square is None:
             self.selected_square = clicked_square
             self.update()
@@ -136,7 +152,7 @@ class ChessboardView(ObserverWidget):
                 event.accept()
 
     def mouseReleaseEvent(self, event):
-        if not self.controller.playing:
+        if not self.controller.mode == Mode.PLAYING:
             return
         if event.button() == Qt.RightButton:
             self.selected_square = None

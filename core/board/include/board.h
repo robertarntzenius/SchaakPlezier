@@ -93,6 +93,7 @@ class Board {
 
         // useful functions for testing
         void validate() const;
+        void addPiece(Color color, Piecetype type, Square square);
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
         bool checkThreeFoldRepetition() const;

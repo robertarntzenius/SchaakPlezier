@@ -36,7 +36,7 @@ class CppWrapperEnum():
         if name not in self._string_to_item:
             raise ValueError(f"Invalid {self._name} name: {name}")
         return self._string_to_item[name]
-    
+        
     def __eq__(self, other) -> bool:
         if isinstance(other, int):
             return self.value == other
@@ -62,7 +62,10 @@ class Square(CppWrapperEnum):
 class Piecetype(CppWrapperEnum):
     def __init__(self, value_or_name: int | str):
         super().__init__('Piecetype', value_or_name)
-
+    
+    def to_cpp_object(self):
+        return wrappers.string_piecetype_map()[self.name.lower()]
+    
 
 class Color(CppWrapperEnum):
     def __init__(self, value_or_name: int | str):
@@ -80,53 +83,53 @@ class PlayerType(CppWrapperEnum):
 
 
 class Move:
-    playerPiece: wrappers.Piecetype
-    fromSquare: wrappers.Square
-    targetSquare: wrappers.Square
-    isCastling: bool = False
-    isCapture: bool = False
-    isPromotion: bool = False
-    promotionPiece: wrappers.Piecetype = wrappers.Piecetype.NoType
-    capturePiece: wrappers.Piecetype = wrappers.Piecetype.NoType
-    captureSquare: wrappers.Square = wrappers.Square.NoSquare
-    newEnPassant: wrappers.Square = wrappers.Square.NoSquare
+    playerPiece     : wrappers.Piecetype
+    fromSquare      : wrappers.Square
+    targetSquare    : wrappers.Square
+    isCastling      : bool = False
+    isCapture       : bool = False
+    isPromotion     : bool = False
+    promotionPiece  : wrappers.Piecetype    = wrappers.Piecetype.NoType
+    capturePiece    : wrappers.Piecetype    = wrappers.Piecetype.NoType
+    captureSquare   : wrappers.Square       = wrappers.Square.NoSquare
+    newEnPassant    : wrappers.Square       = wrappers.Square.NoSquare
 
     # Move from parts
     def __init__(self,
-            playerPiece: wrappers.Piecetype,
-            fromSquare: wrappers.Square,
-            targetSquare: wrappers.Square, 
-            isCastling: bool = False,
-            isCapture: bool = False,
-            isPromotion: bool = False,
-            promotionPiece: wrappers.Piecetype = wrappers.Piecetype.NoType,
-            capturePiece: wrappers.Piecetype = wrappers.Piecetype.NoType,
-            captureSquare: wrappers.Square = wrappers.Square.NoSquare,
-            newEnPassant: wrappers.Square = wrappers.Square.NoSquare
+            playerPiece         : wrappers.Piecetype,
+            fromSquare          : wrappers.Square,
+            targetSquare        : wrappers.Square, 
+            isCastling          : bool                = False,
+            isCapture           : bool                = False,
+            isPromotion         : bool                = False,
+            promotionPiece      : wrappers.Piecetype  = wrappers.Piecetype.NoType,
+            capturePiece        : wrappers.Piecetype  = wrappers.Piecetype.NoType,
+            captureSquare       : wrappers.Square     = wrappers.Square.NoSquare,
+            newEnPassant        : wrappers.Square     = wrappers.Square.NoSquare
         ):
-        self.playerPiece = playerPiece
-        self.fromSquare = fromSquare
-        self.targetSquare = targetSquare
-        self.isCastling = isCastling
-        self.isCapture = isCapture
-        self.isPromotion = isPromotion
-        self.promotionPiece = promotionPiece
-        self.capturePiece = capturePiece
-        self.captureSquare = captureSquare
-        self.newEnPassant = newEnPassant
+        self.playerPiece        = playerPiece
+        self.fromSquare         = fromSquare
+        self.targetSquare       = targetSquare
+        self.isCastling         = isCastling
+        self.isCapture          = isCapture
+        self.isPromotion        = isPromotion
+        self.promotionPiece     = promotionPiece
+        self.capturePiece       = capturePiece
+        self.captureSquare      = captureSquare
+        self.newEnPassant       = newEnPassant
 
     # Move from wrappers object
     def __init__(self, move: wrappers.Move):
-        self.playerPiece = move.playerPiece
-        self.fromSquare = move.fromSquare
-        self.targetSquare = move.targetSquare
-        self.isCastling = move.isCastling
-        self.isCapture = move.isCapture
-        self.isPromotion = move.isPromotion
-        self.promotionPiece = move.promotionPiece
-        self.capturePiece = move.capturePiece
-        self.captureSquare = move.captureSquare
-        self.newEnPassant = move.newEnPassant
+        self.playerPiece        = move.playerPiece
+        self.fromSquare         = move.fromSquare
+        self.targetSquare       = move.targetSquare
+        self.isCastling         = move.isCastling
+        self.isCapture          = move.isCapture
+        self.isPromotion        = move.isPromotion
+        self.promotionPiece     = move.promotionPiece
+        self.capturePiece       = move.capturePiece
+        self.captureSquare      = move.captureSquare
+        self.newEnPassant       = move.newEnPassant
 
     def __eq__(self, other):
         if not isinstance(other, Move):

@@ -1,6 +1,6 @@
 import logging
 import wrappers
-from .wrapper_types import Move, Square, GameResult, Color
+from .wrapper_types import Move, Piecetype, Square, GameResult, Color
 from .observable import Observable
 from .piece import Piece
 
@@ -23,6 +23,9 @@ class Chessboard(Observable):
             self._board.undoMove()
             self.notify_observers(board=self)
     
+    def clear_board(self):
+        self._board.clearBoard()
+
     def initialize_from_fen(self, fen_string):
         try:
             cpy_board = wrappers.Board(fen_string, 'tmp.log')
@@ -31,6 +34,9 @@ class Chessboard(Observable):
         self._board.clearBoard()
         self._board.initFromFEN(fen_string)
         self.notify_observers(board=self)
+
+    def add_piece(self, color: Color, square: Square, piecetype: Piecetype):
+        self._board.addPiece(color, Square('NoSquare'), Square(square))
 
     def _getPossibleMoves(self):
         return self._board.getPossibleMoves()

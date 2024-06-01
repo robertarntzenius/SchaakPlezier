@@ -50,18 +50,10 @@ void Board::initFromFEN(const char *FENString)
             default:
                 const Square square = intToSquare(squareInt);
                 Piecetype type = charPiecetypeMap.at(c);
-                piecetypeBitboards[type].set(square);
+                Color color = (isupper(c) != 0)? White : Black;
 
-                if (isupper(c) != 0) {
-                    colorBitboards[White].set(square);
-                    pieceMaps[White][square] = type;
-                    hashPiece(White, type, square);
-                } else {
-                    colorBitboards[Black].set(square);
-                    pieceMaps[Black][square] = type;
-                    hashPiece(Black, type, square);
-                }
-
+                addPiece(color, type, square);
+                
                 squareInt++;
                 break;
         }
@@ -247,6 +239,14 @@ void Board::getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBit
 
 void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>, NrColors> &copyMaps) {
     pieceMaps = copyMaps;
+}
+
+void Board::addPiece(Color color, Piecetype pieceType, Square square)
+{
+    piecetypeBitboards[pieceType].set(square);
+    colorBitboards[color].set(square);
+    pieceMaps[color][square] = pieceType;
+    hashPiece(color, pieceType, square);
 }
 
 void Board::hashPiece(Color player, Piecetype pieceType, Square square) {
@@ -545,7 +545,7 @@ void Board::validate() const {
 
     // FIXME 
     // This is used to determine the validity FEN strings in board/test/test_hash
-    // assert(!inCheck(~boardState.activePlayer));
+    assert(!inCheck(~boardState.activePlayer));
 
     assert(boardState.halfMoveClock <= 50);
 }

@@ -265,6 +265,14 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         }
     }, "doMove");
 
+    boardClass.def("addPiece", [](Board& board, Color color, Piecetype type, Square square) {
+        board.addPiece(color, type, square);
+    }, "addPiece");
+
+    boardClass.def("validate", [](Board& board) {
+        board.validate();
+    }, "validate");
+
     boardClass.def("undoMove", [](Board& board) {
         board.undoMove();
     }, "undoMove");
