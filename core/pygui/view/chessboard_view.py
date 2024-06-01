@@ -55,14 +55,14 @@ class ChessboardView(ObserverWidget):
         """What is executed when a draw call is made"""
         qp = QPainter(self)
         self.drawChessBoard(qp)
-        self.drawPieces(qp)
         self.drawEventIndicators(qp)
+        self.drawPieces(qp)
         qp.end()
 
     def drawEventIndicators(self, qp):
-        self.draw_selected_square(qp)
-        self.draw_selected_piece_moves(qp)
         self.draw_previous_move(qp)
+        self.draw_selected_piece_moves(qp)
+        self.draw_selected_square(qp)
 
     def drawChessBoard(self, qp):
         self.board_size = min(self.width(), self.height())
@@ -106,7 +106,7 @@ class ChessboardView(ObserverWidget):
         self.drawSquare(qp, self.previous_move.fromSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
         self.drawSquare(qp, self.previous_move.targetSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
 
-    def drawSquare(self, qp, square, border_col: QColor=None, border_width: int=5, fill_col: QColor=None):
+    def drawSquare(self, qp, square, border_col: QColor=None, border_width: int=3, fill_col: QColor=None):
         square_size = self.board_size // 8
         
         border_col = border_col or Qt.blue

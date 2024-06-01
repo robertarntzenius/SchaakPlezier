@@ -45,7 +45,7 @@ class Controller(Observable):
         self.mode = Mode.PLAYING
         self.notify_observers(sound=Sound.game_start)
 
-        while self.board.game_result == GameResult('NOT_OVER'):
+        while self.board.game_result == GameResult('NOT_OVER') and self.mode == Mode.PLAYING:
             current_player = self.get_current_player()
             player_move = current_player.decide_on_move(self.board)
             self.do_move(player_move)
@@ -53,7 +53,7 @@ class Controller(Observable):
         
         logging.debug(f"Game over: {self.board.game_result}")
         self.notify_observers(sound=Sound.game_end)
-        self.MODE = Mode.IDLE
+        self.mode = Mode.IDLE
 
         return self.board.game_result
 

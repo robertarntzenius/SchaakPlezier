@@ -156,3 +156,8 @@ class View(QMainWindow):
                 break
             else: # Cancel
                 break
+    
+    def closeEvent(self, event):
+        self.controller.mode = Mode.IDLE
+        logging.info("Closing application...")
+        event.accept() # Accept the event and close the window
