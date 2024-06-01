@@ -8,7 +8,7 @@ from PyQt5.QtCore import QStringListModel
 
 class HistoryBox(ObserverWidget):
     def __init__(self, board: Chessboard, parent=None):
-        super().__init__(observable=board, parent=parent)
+        super().__init__(observable_list=[board], parent=parent)
         self.board = board
         self.layout = QVBoxLayout()
 

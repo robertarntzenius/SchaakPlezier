@@ -21,14 +21,14 @@ class Controller(Observable):
         self.initialize_from_fen(self.config.defaults.fen_string)
         self.playing: bool = False
         
-        self.sound_player = SoundPlayer()
+        self.sound_player = SoundPlayer(self)
         logging.info('Created controller')
 
 
     def start_game(self) -> GameResult:    
         logging.debug(f'Starting game with players: {self.white_player.player_type} and {self.black_player.player_type}')
         self.playing = True
-        self.sound_player.play(sound=Sound.game_start)
+        self.notify_observers(sound=Sound.game_start)
 
         while self.board.game_result == GameResult('NOT_OVER'):
             current_player = self.get_current_player()
@@ -52,7 +52,7 @@ class Controller(Observable):
     def resign(self) -> Color:
         if self.playing:
             self.playing = False
-            self.sound_player.play(sound=Sound.game_end)
+            self.notify_observers(sound=Sound.game_end)
         return self.board.active_player
 
     def initialize_from_fen(self, fen_string: str) -> None:
@@ -60,11 +60,11 @@ class Controller(Observable):
 
     def do_move(self, move: Move):
         self.board.do_move(move)
-        self.sound_player.play(sound=self.determine_sound(move))
+        self.notify_observers(sound=self.determine_sound(move))
 
     def undo_move(self):
         move = self.board.history[-1]
-        self.sound_player.play(sound=self.determine_sound(move))
+        self.notify_observers(sound=self.determine_sound(move))
         self.board.undo_move()
 
     def determine_sound(self, move: Move) -> Sound:

@@ -14,7 +14,7 @@ class ChessboardView(ObserverWidget):
     validMoveClicked = pyqtSignal(Move)
 
     def __init__(self, controller: Controller, config: dict, parent=None):
-        super().__init__(observable=controller.board, parent=parent)
+        super().__init__(observable_list=[controller.board], parent=parent)
         self.setMinimumSize(500, 500)
         self.setMaximumSize(1000, 1000)
         self.config = config

@@ -13,10 +13,15 @@ class TcWidget(ABC, metaclass=QABCMeta):
 
 
 class ObserverWidget(QWidget, TcWidget):
-    def __init__(self, observable, parent=None):
+    def __init__(self, observable_list: list, parent=None):
         super().__init__(parent=parent)
         self.parent = parent
-        observable.register_observer(self)
+        
+        if not isinstance(observable_list, list):
+            observable_list = [observable_list]
+
+        for observable in observable_list:
+            observable.register_observer(self)
 
     @abstractmethod
     def notify(self, **kwargs):
