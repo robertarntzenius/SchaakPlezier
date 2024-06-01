@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QSizePolicy, QGraphicsDropShadowEffect
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from core.pygui.controller.controller import Controller, Mode
@@ -30,6 +30,7 @@ class ChessboardView(ObserverWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         self.selected_square = None
+        self.previous_move: Move = None
         self.selected_piece_moves = []
         self.wpieces = []
         self.bpieces = []
@@ -42,6 +43,7 @@ class ChessboardView(ObserverWidget):
             self.wpieces = board.wpieces
             self.bpieces = board.bpieces
             self.legal_moves = board.possible_moves
+            self.previous_move = board.history[-1] if len(board.history) > 0 else None
             self.update()
 
     def update(self):
@@ -58,8 +60,9 @@ class ChessboardView(ObserverWidget):
         qp.end()
 
     def drawEventIndicators(self, qp):
-        self.drawSelectedSquare(qp)
+        self.draw_selected_square(qp)
         self.draw_selected_piece_moves(qp)
+        self.draw_previous_move(qp)
 
     def drawChessBoard(self, qp):
         self.board_size = min(self.width(), self.height())
@@ -84,28 +87,42 @@ class ChessboardView(ObserverWidget):
             piece = Piece(square, piece_type, Color('Black'))
             piece.draw(qp, self.board_size)
 
-    def drawSelectedSquare(self, qp):
+    def draw_selected_square(self, qp):
         if self.selected_square is None:
             return
-        square_size = self.board_size // 8
-        qp.setPen(Qt.red)
-        col = self.selected_square.value % 8
-        row = self.selected_square.value // 8
-        qp.drawRect(col * square_size, row * square_size, square_size, square_size)
+        self.drawSquare(qp, self.selected_square, border_col=QColor(*self.config.gui.selected_square.border), fill_col=QColor(*self.config.gui.selected_square.fill))
 
     def draw_selected_piece_moves(self, qp):
         if not self.selected_piece_moves:
             return
-
-        qp.setPen(Qt.blue)
-        qp.setBrush(QColor(255, 200, 200, 100))
+        
         for move in self.selected_piece_moves:
-            square_size = self.board_size // 8
-            targetSquare = move.targetSquare
-            col = targetSquare.value % 8
-            row = targetSquare.value // 8
-            qp.drawRect(col * square_size, row * square_size, square_size, square_size)
+            self.drawSquare(qp, square=move.targetSquare, border_col=QColor(*self.config.gui.possible_moves.border), fill_col=QColor(*self.config.gui.possible_moves.fill))
 
+    def draw_previous_move(self, qp):
+        if self.previous_move is None:
+            return
+
+        self.drawSquare(qp, self.previous_move.fromSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
+        self.drawSquare(qp, self.previous_move.targetSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
+
+    def drawSquare(self, qp, square, border_col: QColor=None, border_width: int=5, fill_col: QColor=None):
+        square_size = self.board_size // 8
+        
+        border_col = border_col or Qt.blue
+
+        pen = QPen(border_col)
+        pen.setWidth(border_width)
+        qp.setPen(pen)
+
+        if fill_col is not None:
+            qp.setBrush(fill_col)
+
+        col = square.value % 8
+        row = square.value // 8
+        qp.drawRect(col * square_size, row * square_size, square_size, square_size)
+
+        
     ##### MOUSE EVENTS #####
     def mousePressEvent(self, event):
         if self.controller.mode == Mode.EDIT:
