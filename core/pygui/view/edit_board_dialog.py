@@ -6,9 +6,26 @@ from PyQt5 import QtCore
 from core.pygui.model.piece import Piece
 from core.pygui.model.wrapper_types import Color, Square, Piecetype
 
+class ClickablePieceLabel(QLabel):
+    clicked = pyqtSignal(Piece)
+    piece: Piece
+
+    def __init__(self, color: Color, type: Piecetype, parent=None):
+        super().__init__(parent)
+        self.piece = Piece(Square('NoSquare'), type, color)
+
+        pixmap = QPixmap.fromImage(self.piece.image).scaled(50, 50)
+        self.setPixmap(pixmap)
+        self.setAlignment(QtCore.Qt.AlignCenter)
+        
+    def mousePressEvent(self, event):
+        self.clicked.emit(self.piece)
+
+
 class EditBoardDialog(QDialog):
-    piecePlaced = pyqtSignal(Color, Piecetype, Square)  # Signal emitted when a piece is placed
-    boardCleared = pyqtSignal()
+    pieceToAdd_signal = pyqtSignal(Color, Piecetype)  # Signal emitted when a piece is placed
+    boardCleared_signal = pyqtSignal()
+    tryValidate_signal = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -16,13 +33,9 @@ class EditBoardDialog(QDialog):
         
         layout = QVBoxLayout()
 
-        # Buttons for clearing and editing from the current position
         self.clear_button = QPushButton("Clear Board")
         self.clear_button.clicked.connect(self.clear_board)
-        self.edit_button = QPushButton("Edit from Current Position")
-        self.edit_button.clicked.connect(self.edit_from_current_position)
         layout.addWidget(self.clear_button)
-        layout.addWidget(self.edit_button)
 
         # Piece selection grid
         piece_selection_layout = QGridLayout()
@@ -30,47 +43,37 @@ class EditBoardDialog(QDialog):
         
         colors = [Color('White'), Color('Black')]
         piece_types = [Piecetype('Pawn'), Piecetype('Knight'), Piecetype('Bishop'), Piecetype('Rook'), Piecetype('Queen'), Piecetype('King')]
+
         for col, color in enumerate(colors):
             for row, type in enumerate(piece_types):
-                label = QLabel()
-                piece = Piece(Square('NoSquare'), type, color)
-                pixmap = QPixmap.fromImage(piece.image).scaled(50, 50)
-                label.setPixmap(pixmap)
-                label.setAlignment(QtCore.Qt.AlignCenter)
+                label = ClickablePieceLabel(color, type)
+                label.clicked.connect(self.select_piece)
                 piece_selection_layout.addWidget(label, row, col)
-                self.piece_buttons[piece] = label
+                self.piece_buttons[label.piece] = label
 
         layout.addLayout(piece_selection_layout)
 
         # Validate button
         self.validate_button = QPushButton("Validate")
-        self.validate_button.clicked.connect(self.validate_position)
+        self.validate_button.clicked.connect(self.try_validate)
         layout.addWidget(self.validate_button)
 
         self.setLayout(layout)
         
-        self.selected_piece = None
+        self.piece_to_add = None
 
     def clear_board(self):
-        self.boardCleared.emit()
-        print("Board cleared")
+        self.boardCleared_signal.emit()
 
-    def edit_from_current_position(self):
-        print("Editing from current position")
+    def try_validate(self):
+        self.tryValidate_signal.emit()
 
-    def validate_position(self):
-        self.try_validate.emit()
-        valid = True  # Replace with actual validation logic
-        if valid:
-            self.accept()
-        else:
-            QMessageBox.warning(self, "Invalid Position", "The position is not valid.")
 
     def select_piece(self, piece):
-        # Highlight selected piece
-        if self.selected_piece:
-            old_piece_label = self.piece_buttons[self.selected_piece]
-            old_piece_label.setStyleSheet("")  # Reset style sheet
-        self.selected_piece = piece
-        piece_label = self.piece_buttons[self.selected_piece]
+        if self.piece_to_add:
+            old_piece_label = self.piece_buttons[self.piece_to_add]
+            old_piece_label.setStyleSheet("")
+        self.piece_to_add = piece
+        piece_label = self.piece_buttons[self.piece_to_add]
         piece_label.setStyleSheet("border: 2px solid red;")
+        self.pieceToAdd_signal.emit(piece.color, piece.piece_type)

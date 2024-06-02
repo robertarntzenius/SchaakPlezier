@@ -2,8 +2,9 @@ from enum import Enum
 from core.pygui.controller.sound_player import Sound, SoundPlayer
 from core.pygui.model.chessboard import Chessboard
 from core.pygui.model.observable import Observable
+from core.pygui.model.piece import Piece
 from core.pygui.model.player import HumanPlayer, IPlayer, Player
-from core.pygui.model.wrapper_types import Color, GameResult, Move
+from core.pygui.model.wrapper_types import Color, GameResult, Move, Piecetype, Square
 
 import logging
 
@@ -29,8 +30,12 @@ class Controller(Observable):
         self.mode: Mode = Mode.IDLE
         
         # SIGNALS 
-        self.view.edit_board_dialog.piecePlaced.connect(self.board.add_piece)
-        self.view.edit_board_dialog.boardCleared.connect(self.board.clear_board)
+        self.piece_to_add = None        
+        self.view.chessboard_view.squareClickedInEditMode.connect(lambda square: self.try_add_piece(square))
+        self.view.edit_board_dialog.pieceToAdd_signal.connect(lambda color, piecetype: self.set_piece_to_add(color, piecetype))
+
+        self.view.edit_board_dialog.boardCleared_signal.connect(self.board.clear_board)
+        self.view.edit_board_dialog.tryValidate_signal.connect(self.try_validate)
 
         self.sound_player = SoundPlayer(self)
         logging.info('Created controller')
@@ -45,7 +50,7 @@ class Controller(Observable):
         self.mode = Mode.PLAYING
         self.notify_observers(sound=Sound.game_start)
 
-        while self.board.game_result == GameResult('NOT_OVER') and self.mode == Mode.PLAYING:
+        while (self.board.game_result == GameResult('NOT_OVER')) and (self.mode == Mode.PLAYING):
             current_player = self.get_current_player()
             player_move = current_player.decide_on_move(self.board)
             self.do_move(player_move)
@@ -82,6 +87,27 @@ class Controller(Observable):
         self.notify_observers(sound=self.determine_sound(move))
         self.board.undo_move()
 
+    def try_validate(self):
+        valid, error_list = self.board.validate()
+
+        if valid:
+            logging.info("Board validated")
+            self.view.toggle_edit_mode()
+        else:
+            logging.warning('\n '.join(error_list))
+        
+
+    def try_add_piece(self, square):
+        # signal from chessboardboard_view
+        if self.piece_to_add is not None:
+            color: Color = self.piece_to_add.color
+            type: Piecetype = self.piece_to_add.piece_type
+            self.board.add_piece(color, type, square)
+            
+    def set_piece_to_add(self, color: Color, type: Piecetype):
+        # signal from edit board dialog
+        self.piece_to_add = Piece(Square('NoSquare'), type, color)
+        
     def determine_sound(self, move: Move) -> Sound:
         if self.board.in_check:
             return Sound.check

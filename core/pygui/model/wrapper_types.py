@@ -36,7 +36,11 @@ class CppWrapperEnum():
         if name not in self._string_to_item:
             raise ValueError(f"Invalid {self._name} name: {name}")
         return self._string_to_item[name]
-        
+    
+    def to_cpp_obj(self):
+        cpp_enum = getattr(wrappers, self._name)
+        return cpp_enum(self.value)
+    
     def __eq__(self, other) -> bool:
         if isinstance(other, int):
             return self.value == other

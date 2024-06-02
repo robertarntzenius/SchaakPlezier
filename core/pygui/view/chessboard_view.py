@@ -12,6 +12,7 @@ from .observer import ObserverWidget
 
 class ChessboardView(ObserverWidget):
     validMoveClicked = pyqtSignal(Move)
+    squareClickedInEditMode = pyqtSignal(Square)
 
     def __init__(self, controller: Controller, config: dict, parent=None):
         super().__init__(observable_list=[controller.board], parent=parent)
@@ -137,9 +138,7 @@ class ChessboardView(ObserverWidget):
 
     def handle_edit_mode_events(self, event):
         clicked_square = self.getSquare(event.pos())
-        self.selected_square = clicked_square
-        # get/update the selected piece 
-        self.place_piece(clicked_square)
+        self.squareClickedInEditMode.emit(clicked_square)
         self.update()
         event.accept()
 

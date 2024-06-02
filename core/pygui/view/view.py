@@ -31,9 +31,11 @@ class View(QMainWindow):
         # OBSERVERS
         self.history_box = HistoryBox(self.controller.board, self)
         self.chessboard_view = ChessboardView(self.controller, self.config, self)
+        self.edit_board_dialog = EditBoardDialog(self)
 
         main_layout.addWidget(self.history_box, 0, 0, 3, 1)
         main_layout.addWidget(self.chessboard_view, 0, 1, 5, 5)
+        main_layout.addWidget(self.edit_board_dialog, 0, 6, 5, 1)
 
         # BUTTONS
         start_button = QPushButton("Start Game")
@@ -47,7 +49,6 @@ class View(QMainWindow):
 
         edit_board_button = QPushButton("Edit Board")
         edit_board_button.clicked.connect(self.toggle_edit_mode)
-        self.edit_board_dialog = EditBoardDialog(self)
         for piece, label in self.edit_board_dialog.piece_buttons.items():
             label.mousePressEvent = lambda event, piece=piece: self.edit_board_dialog.select_piece(piece)
         self.edit_board_dialog.hide()
@@ -85,30 +86,11 @@ class View(QMainWindow):
     def toggle_edit_mode(self):
         if self.controller.mode == Mode.EDIT:
             self.controller.mode = Mode.IDLE
+            self.edit_board_dialog.hide()
         else:
             self.controller.mode = Mode.EDIT
-        self.show_edit_board()
-
-    def show_edit_board(self):
-        if self.controller.mode == Mode.EDIT:
             self.edit_board_dialog.show()
-        else:
-            self.edit_board_dialog.hide()
-    
-    def place_piece(self, color, square):
-        if self.selected_piece is not None:
-            self.controller.add_piece(color, self.selected_piece.piece_type, square)
-            self.selected_piece = None
 
-    def track_selected_piece(self, piece):
-        # Track the selected piece here
-        self.selected_piece = piece
-
-    def place_piece(self, square):
-        if self.selected_piece is not None:
-            # Call addPiece method on controller
-            self.controller.add_piece(self.selected_piece, square)
-            self.selected_piece = None
 
     ##### BUTTON CALLBACKS #####
     def start_game(self):

@@ -93,6 +93,7 @@ class Board {
 
         // useful functions for testing
         void validate() const;
+        std::pair<bool, std::vector<std::string>> try_validate() const;
         void addPiece(Color color, Piecetype type, Square square);
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;

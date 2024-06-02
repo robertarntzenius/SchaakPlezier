@@ -1,7 +1,10 @@
+from pathlib import Path
 from PyQt5.QtGui import  QImage, QPainter
 from PyQt5.QtCore import Qt, QSize
 
 from .wrapper_types import Square, Piecetype, Color
+from core.pygui import ASSETS_DIR
+
 
 class Piece:
     square: Square
@@ -22,7 +25,7 @@ class Piece:
         if self.piece_type == Piecetype('Knight'):
             piece_type_char = 'n'
 
-        filename = f"assets/images/{color_char}{piece_type_char}.png"
+        filename = str(ASSETS_DIR / "images" / f"{color_char}{piece_type_char}.png").replace('\\\\', '/')
         image = QImage(filename)
         return image
 

@@ -142,6 +142,10 @@ function parse_args {
   fi
 }
 
+function run_gui {
+  python3 pygui/main.py
+}
+
 function show_usage {
   echo "Usage: ./BuildAndRun.sh [OPTIONS]"
   echo ""
@@ -195,6 +199,9 @@ function main {
 
   # Reset working directory
   cd "$source_dir" || exit
+
+  # Run 
+  run_gui
 }
 
 ######### Main #########

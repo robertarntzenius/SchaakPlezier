@@ -18,7 +18,7 @@ Board::Board(const char *FENString, const std::string &logFile)
     #elif defined(VERBOSE)
         logger.setLogLevel(LEVEL_VERBOSE);
     #endif
-    logger.essential("New Board created!");
+    logger.debug("New Board created!");
 
     initZobristTables();
     initFromFEN(FENString);
@@ -549,6 +549,74 @@ void Board::validate() const {
 
     assert(boardState.halfMoveClock <= 50);
 }
+
+
+std::pair<bool, std::vector<std::string>> Board::try_validate() const {
+    auto check_expr = [](const auto& expr, const char* msg, std::vector<std::string>& errors) {
+        if (!expr) {
+            errors.push_back(msg);
+        }
+        return expr;
+    };
+
+    bool isValid = true;
+    std::vector<std::string> errors;
+
+
+    isValid &= check_expr(pieceMaps[White].size() == colorBitboards[White].count(), "<White> <pieceMap.size> <eq> <colorbitboard.size>", errors);
+    isValid &= check_expr(pieceMaps[Black].size() == colorBitboards[Black].count(), "<Black> <pieceMap.size> <eq> <colorbitboard.size>", errors);
+
+    for (const auto &squarePiecetypePair : pieceMaps[White]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        isValid &= check_expr(colorBitboards[White].test(square), "<White> <Piecemap.entry> <at> <Bitboard.square>", errors);
+        isValid &= check_expr(piecetypeBitboards[type].test(square), "<Black> <Piecemap.entry> <at> <Bitboard.square>", errors);
+    }
+
+    Bitboard noOverlapBoard = Bitboard();
+    for (const auto &bitboard : colorBitboards) {
+        isValid &= check_expr((bitboard & noOverlapBoard).empty(), "<Colorbitboards> <Bitboard.noOverlap>", errors);
+        noOverlapBoard = noOverlapBoard | bitboard;
+    }
+
+    noOverlapBoard.reset();
+    for (const auto &bitboard : piecetypeBitboards) {
+        isValid &= check_expr((bitboard & noOverlapBoard).empty(), "<PiecetypeBitboards> <Bitboard.noOverlap>", errors);
+        noOverlapBoard = noOverlapBoard | bitboard;
+    }
+    
+    isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).count() == 1, "<White> <King.count> <eq> <1>", errors);
+    isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1, "<Black> <King.count> <eq> <1>", errors);
+    isValid &= check_expr((finalRank[White] & piecetypeBitboards[Pawn]).empty(), "<Pawn> <White finalRank> <empty>", errors);
+    isValid &= check_expr((finalRank[Black] & piecetypeBitboards[Pawn]).empty(), "<Pawn> <Black finalrank> <empty>", errors);
+
+    if (boardState.wKC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).test(e1), "<wKC> <White King> <at> <e1>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[White]).test(h1), "<wKC> <White Rook> <at> <h1>", errors);
+    }
+    if (boardState.wQC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).test(e1), "<wQC> <White King> <at> <e1>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[White]).test(a1), "<wQC> <White Rook> <at> <a1>", errors);
+    }
+    if (boardState.bKC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).test(e8), "<bKC> <Black King> <at> <e8>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[Black]).test(h8), "<bKC> <Black Rook> <at> <h8>", errors);
+    }
+    if (boardState.bQC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).test(e8), "<bQC> <Black King> <at> <e8>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8), "<bQC> <Black Rook> <at> <a8>", errors);
+    }
+
+    // FIXME 
+    // This is used to determine the validity FEN strings in board/test/test_hash
+    isValid &= check_expr(!inCheck(~boardState.activePlayer), "<Capture opponent king>", errors);
+
+    isValid &= check_expr((boardState.halfMoveClock <= 50), "<halfmoveclock> <gt> <50>", errors);
+
+    return std::make_pair(isValid, errors);
+}
+
 
 bool Board::checkInsufficientMaterial() const
 {

@@ -265,12 +265,22 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         }
     }, "doMove");
 
-    boardClass.def("addPiece", [](Board& board, Color color, Piecetype type, Square square) {
+    boardClass.def("addPiece", [](Board& board, int pycolor, int pytype, int pysquare) {
+        assert((pycolor >= 0) && (pycolor < Color::NrColors));
+        Color color = static_cast<Color>(pycolor);
+
+        assert((pytype >= 0) && (pytype < Piecetype::NrPiecetypes));
+        Piecetype type = static_cast<Piecetype>(pytype);
+
+        assert((pysquare >= 0) && (pysquare < Square::NrSquares));
+        Square square = static_cast<Square>(pysquare);
+
         board.addPiece(color, type, square);
     }, "addPiece");
 
+
     boardClass.def("validate", [](Board& board) {
-        board.validate();
+        return board.try_validate();
     }, "validate");
 
     boardClass.def("undoMove", [](Board& board) {
@@ -303,13 +313,6 @@ void bindBoard(py::module& m) {
     myBoard.def(py::init<const char *, std::string &>());
     bindBoardGetters(myBoard);
 }
-
-// void bindGameFunctions(py::class_<Game>& gameClass) {
-//     gameClass.def("start", &Game::start);
-//     gameClass.def("setFEN", &Game::setFEN, py::arg("FENString"));
-//     gameClass.def("resetBoard", &Game::resetBoard);
-//     gameClass.def("setPlayer", &Game::setPlayer, py::arg("color"), py::arg("player"));
-// }
 
 void bindGame(py::module& m) {
     py::class_<Game> myGame(m, "Game");

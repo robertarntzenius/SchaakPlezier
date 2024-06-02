@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 import wrappers
 from .wrapper_types import Move, Piecetype, Square, GameResult, Color
 from .observable import Observable
@@ -25,6 +26,8 @@ class Chessboard(Observable):
     
     def clear_board(self):
         self._board.clearBoard()
+        self.notify_observers(board=self)
+
 
     def initialize_from_fen(self, fen_string):
         try:
@@ -35,8 +38,21 @@ class Chessboard(Observable):
         self._board.initFromFEN(fen_string)
         self.notify_observers(board=self)
 
-    def add_piece(self, color: Color, square: Square, piecetype: Piecetype):
-        self._board.addPiece(color, Square('NoSquare'), Square(square))
+    def validate(self) -> Tuple[bool, list[str]]:
+
+        check = self._board.validate()
+        print(check)
+        valid: bool = check[0]
+        error_description: str = check[1]
+        if valid:
+            self.notify_observers(board=self)
+        return (valid, error_description)
+
+    def add_piece(self, color: Color, piecetype: Piecetype, square: Square):
+        logging.debug(f"{color}, {piecetype}, {square}")
+        self._board.addPiece(color.value, piecetype.value, square.value)
+        self.notify_observers(board=self)
+
 
     def _getPossibleMoves(self):
         return self._board.getPossibleMoves()
@@ -68,5 +84,6 @@ class Chessboard(Observable):
     @property
     def game_result(self) -> GameResult:
         no_legal_moves = len(self.possible_moves) == 0
+        logging.debug(self._board.getGameResult(no_legal_moves))
         return GameResult(self._board.getGameResult(no_legal_moves))
     
