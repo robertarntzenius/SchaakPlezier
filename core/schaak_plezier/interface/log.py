@@ -8,7 +8,7 @@ from pathlib import Path
 class FixedWidthFormatter(logging.Formatter):
     def format(self, record):
         log_level = f"{record.levelname:<5}"
-        logger_name = f"{record.name:<50}"
+        logger_name = f"{record.name:<40}"
         message = record.getMessage()
         return f"{log_level} | {logger_name} | {message}"
 
@@ -33,8 +33,6 @@ class SchaakPlezierLogging:
         self._formatter = formatter
 
         self._root_logger.setLevel(loglevel_root)
-        if self._root_logger.hasHandlers():
-            self._root_logger.handlers.clear()
 
         # Add file handler if provided
         if file_path is not None:
@@ -44,7 +42,7 @@ class SchaakPlezierLogging:
         console_handler = logging.StreamHandler(stream=sys.stdout)
         console_handler.setLevel(loglevel_console)
         console_handler.setFormatter(formatter)
-        self._root_logger.addHandler(console_handler)
+        self.getLogger().addHandler(console_handler)
 
     @classmethod
     def add_file_handler(
@@ -99,7 +97,7 @@ class SchaakPlezierLogging:
         if name is None:
             logger = cls._root_logger
         else:
-            logger = logging.getLogger(f"SchaakPlezier.{name}")
+            logger = logging.getLogger(name)
 
         if level is not None:
             logger.setLevel(level)

@@ -150,14 +150,17 @@ class ChessboardView(ObserverWidget):
 
     ##### MOUSE EVENTS #####
     def mousePressEvent(self, event):
-        if self.controller.mode == Mode.EDIT:
-            self.handle_edit_mode_events(event)
-        elif self.controller.mode == Mode.PLAYING:
-            self.handle_playing_mode_events(event)
-        else:
-            self.handle_idle_events(event)
+        match self.controller.mode:
+            case Mode.EDIT:
+                self.handle_edit_mode_events(event)
+            case Mode.PLAYING:
+                self.handle_playing_mode_events(event)
+            case Mode.IDLE:
+                self.handle_idle_mode_events(event)
+            case _:
+                raise ValueError(f"Invalid mode: {self.controller.mode}")
 
-    def handle_idle_events(event):
+    def handle_idle_mode_events(self, event):
         pass
 
     def handle_edit_mode_events(self, event):
