@@ -40,6 +40,7 @@ class Controller(IController):
 
         self.view.edit_board_dialog.boardCleared_signal.connect(self.board.clear_board)
         self.view.edit_board_dialog.tryValidate_signal.connect(self.try_validate)
+        self.logger.debug("Connected view")
 
     def start_game(self) -> GameResult:
         if self.mode != Mode.IDLE:

@@ -6,7 +6,7 @@ from schaak_plezier import ASSETS_DIR
 from schaak_plezier.controller.controller import Controller
 from schaak_plezier.interface.app import ISchaakPlezier
 from schaak_plezier.interface.config import GUIConfig
-from schaak_plezier.interface.log import SchaakPlezierLogging
+from schaak_plezier.interface.log import FixedWidthFormatter, SchaakPlezierLogging
 from schaak_plezier.view.view import View
 
 
@@ -18,9 +18,13 @@ class SchaakPlezier(ISchaakPlezier):
             data = tomli.load(toml)
 
         self.config = GUIConfig.model_validate(data)
-        self.logger = SchaakPlezierLogging(
-            file_path=self.config.log_file, loglevel_root=self.config.log_level
-        ).getLogger()
+
+        SchaakPlezierLogging(
+            file_path=self.config.log_file,
+            loglevel_root=self.config.log_level,
+            formatter=FixedWidthFormatter(),
+        )
+        self.logger = SchaakPlezierLogging.getLogger(__name__)
 
     def build(self):
         self.controller = Controller(self.config)

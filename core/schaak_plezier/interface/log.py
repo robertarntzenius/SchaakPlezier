@@ -1,20 +1,30 @@
 import logging
 import os
+import sys
 from contextlib import contextmanager
 from pathlib import Path
+
+
+class FixedWidthFormatter(logging.Formatter):
+    def format(self, record):
+        log_level = f"{record.levelname:<5}"
+        logger_name = f"{record.name:<50}"
+        message = record.getMessage()
+        return f"{log_level} | {logger_name} | {message}"
 
 
 class SchaakPlezierLogging:
     _DEFAULT_FORMATTER = logging.Formatter(
         fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %I:%M:%S %p",
+        datefmt="%H:%M:%S",
     )
-    _root_logger = logging.getLogger("SchaakPlezier")
+
+    _root_logger = logging.getLogger()
 
     def __init__(
         self,
         file_path: str = None,
-        loglevel_console: int = logging.WARNING,
+        loglevel_console: int = logging.DEBUG,
         loglevel_root: int = logging.INFO,
         loglevel_files: int = logging.DEBUG,
         formatter: logging.Formatter = _DEFAULT_FORMATTER,
@@ -31,7 +41,7 @@ class SchaakPlezierLogging:
             self.add_file_handler(file_path, loglevel_files, formatter)
 
         # Add console handler
-        console_handler = logging.StreamHandler()
+        console_handler = logging.StreamHandler(stream=sys.stdout)
         console_handler.setLevel(loglevel_console)
         console_handler.setFormatter(formatter)
         self._root_logger.addHandler(console_handler)
@@ -54,7 +64,7 @@ class SchaakPlezierLogging:
 
         formatter = formatter or cls._DEFAULT_FORMATTER
         file_handler.setFormatter(formatter)
-
+        cls.getLogger().debug(f"Added file handler. Writing to {path}")
         cls.getLogger().addHandler(file_handler)
 
     @classmethod
@@ -89,7 +99,7 @@ class SchaakPlezierLogging:
         if name is None:
             logger = cls._root_logger
         else:
-            logger = logging.getLogger(f"FloodAdapt.{name}")
+            logger = logging.getLogger(f"SchaakPlezier.{name}")
 
         if level is not None:
             logger.setLevel(level)
