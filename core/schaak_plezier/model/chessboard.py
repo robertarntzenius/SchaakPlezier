@@ -2,6 +2,7 @@ from typing import Tuple
 
 import wrappers
 
+from schaak_plezier.interface.config import GUIConfig
 from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.observe import ObservableWidget
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
@@ -11,11 +12,11 @@ from schaak_plezier.model.piece import Piece
 class Chessboard(ObservableWidget):
     _board: wrappers.Board
 
-    def __init__(self, config: dict):
+    def __init__(self, config: GUIConfig):
         super().__init__()
         self.logger = SchaakPlezierLogging.getLogger(__name__)
         self.config = config
-        self._board = wrappers.Board(self.config.defaults.fen_string, self.config.defaults.log_file)
+        self._board = wrappers.Board(self.config.fen_string, self.config.log_file.as_posix())
         self.notify_observers(board=self)
         self.logger.info("Created chessboard")
 

@@ -1,6 +1,6 @@
 title = "SchaakPlezier"
 fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-log_file = "~/Projects/SchaakPlezier/GUI.log"
+log_file = "GUI.log"
 white_player = "Human"
 black_player = "AlphaBeta"
 log_level = 10 # DEBUG

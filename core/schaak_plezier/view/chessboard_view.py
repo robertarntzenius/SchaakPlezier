@@ -2,7 +2,8 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QPainter, QPen
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy
 
-from schaak_plezier.controller.controller import Controller, Mode
+from schaak_plezier.interface.app import IController, Mode
+from schaak_plezier.interface.config import GUIConfig
 from schaak_plezier.interface.observe import ObserverWidget
 from schaak_plezier.interface.wrapper_types import Color, Move, Piecetype, Square
 from schaak_plezier.model.piece import Piece
@@ -12,7 +13,7 @@ class ChessboardView(ObserverWidget):
     validMoveClicked = pyqtSignal(Move)
     squareClickedInEditMode = pyqtSignal(Square)
 
-    def __init__(self, controller: Controller, config: dict, parent=None):
+    def __init__(self, controller: IController, config: GUIConfig, parent=None):
         super().__init__(observable_list=[controller.board], parent=parent)
         self.setMinimumSize(500, 500)
         self.setMaximumSize(1000, 1000)
@@ -74,9 +75,9 @@ class ChessboardView(ObserverWidget):
         for row in range(8):
             for col in range(8):
                 if (row + col) % 2 == 0:
-                    color = QColor(self.config.gui.light_color)
+                    color = QColor(self.config.colors.light_color.value)
                 else:
-                    color = QColor(self.config.gui.dark_color)
+                    color = QColor(self.config.colors.dark_color.value)
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
 
     def drawPieces(self, qp):
@@ -96,8 +97,8 @@ class ChessboardView(ObserverWidget):
         self.drawSquare(
             qp,
             self.selected_square,
-            border_col=QColor(*self.config.gui.selected_square.border),
-            fill_col=QColor(*self.config.gui.selected_square.fill),
+            border_col=QColor(*self.config.colors.selected_square.border.values),
+            fill_col=QColor(*self.config.colors.selected_square.fill.values),
         )
 
     def draw_selected_piece_moves(self, qp):
@@ -108,8 +109,8 @@ class ChessboardView(ObserverWidget):
             self.drawSquare(
                 qp,
                 square=move.targetSquare,
-                border_col=QColor(*self.config.gui.possible_moves.border),
-                fill_col=QColor(*self.config.gui.possible_moves.fill),
+                border_col=QColor(*self.config.colors.possible_moves.border.values),
+                fill_col=QColor(*self.config.colors.possible_moves.fill.values),
             )
 
     def draw_previous_move(self, qp):
@@ -119,14 +120,14 @@ class ChessboardView(ObserverWidget):
         self.drawSquare(
             qp,
             self.previous_move.fromSquare,
-            border_col=QColor(*self.config.gui.previous_move.border),
-            fill_col=QColor(*self.config.gui.previous_move.fill),
+            border_col=QColor(*self.config.colors.previous_move.border.values),
+            fill_col=QColor(*self.config.colors.previous_move.fill.values),
         )
         self.drawSquare(
             qp,
             self.previous_move.targetSquare,
-            border_col=QColor(*self.config.gui.previous_move.border),
-            fill_col=QColor(*self.config.gui.previous_move.fill),
+            border_col=QColor(*self.config.colors.previous_move.border.values),
+            fill_col=QColor(*self.config.colors.previous_move.fill.values),
         )
 
     def drawSquare(

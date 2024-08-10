@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import contextmanager
+from pathlib import Path
 
 
 class SchaakPlezierLogging:
@@ -43,10 +44,12 @@ class SchaakPlezierLogging:
         formatter: logging.Formatter = None,
     ) -> None:
         """Add a file handler to the logger that directs outputs to a the file."""
-        if not os.path.exists(file_path):
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        path = Path(file_path).resolve()
 
-        file_handler = logging.FileHandler(filename=file_path, mode="a")
+        if not path.parent.exists():
+            path.parent.mkdir()
+
+        file_handler = logging.FileHandler(filename=path, mode="w+")
         file_handler.setLevel(loglevel)
 
         formatter = formatter or cls._DEFAULT_FORMATTER

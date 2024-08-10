@@ -1,8 +1,10 @@
+import sys
+
 from schaak_plezier.gui import SchaakPlezier
 
 
 def main():
-    app = SchaakPlezier()
+    app = SchaakPlezier(sys.argv)
 
     app.build()
 

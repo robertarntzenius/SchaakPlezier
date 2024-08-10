@@ -15,6 +15,10 @@ class IChessboard(ObservableWidget):
     @abstractmethod
     def undo_move(self) -> None: ...
 
+    @property
+    @abstractmethod
+    def history() -> list[Move]: ...
+
 
 class IPlayer(Protocol):
     player_type: PlayerType

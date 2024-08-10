@@ -1,13 +1,13 @@
 from PyQt5.QtCore import QStringListModel
 from PyQt5.QtWidgets import QLabel, QListView, QSizePolicy, QVBoxLayout
 
+from schaak_plezier.interface.game import IChessboard
 from schaak_plezier.interface.observe import ObserverWidget
 from schaak_plezier.interface.wrapper_types import Move
-from schaak_plezier.model.chessboard import Chessboard
 
 
 class HistoryBox(ObserverWidget):
-    def __init__(self, board: Chessboard, parent=None):
+    def __init__(self, board: IChessboard, parent=None):
         super().__init__(observable_list=[board], parent=parent)
         self.board = board
         self.layout = QVBoxLayout()

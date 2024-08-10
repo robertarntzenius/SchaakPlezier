@@ -4,13 +4,13 @@ from PyQt5.QtWidgets import (
     QDialog,
     QGridLayout,
     QLabel,
-    QMainWindow,
     QMessageBox,
     QPushButton,
     QWidget,
 )
 
-from schaak_plezier.controller.controller import Controller, Mode
+from schaak_plezier.interface.app import IController, IView, Mode
+from schaak_plezier.interface.config import GUIConfig
 from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.view.chessboard_view import ChessboardView
 from schaak_plezier.view.edit_board_dialog import EditBoardDialog
@@ -20,13 +20,13 @@ from schaak_plezier.view.errordialog import ErrorDialog
 from schaak_plezier.view.history_box import HistoryBox
 
 
-class View(QMainWindow):
-    def __init__(self, controller: Controller, config: dict):
+class View(IView):
+    def __init__(self, controller: IController, config: GUIConfig):
         super().__init__()
         self.config = config
         self.controller = controller
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self.setWindowTitle(self.config.gui.title)
+        self.setWindowTitle(self.config.title)
         self.initUI()
         self.show()
         self.logger.info("Created view")
@@ -84,8 +84,8 @@ class View(QMainWindow):
         file_menu.addAction(exit_action)
 
         # Display player types
-        self.white_player_label = QLabel("White Player: " + self.config.defaults.white_player)
-        self.black_player_label = QLabel("Black Player: " + self.config.defaults.black_player)
+        self.white_player_label = QLabel("White Player: " + self.config.white_player)
+        self.black_player_label = QLabel("Black Player: " + self.config.black_player)
 
         main_layout.addWidget(self.black_player_label, 0, 6, alignment=Qt.AlignTop | Qt.AlignRight)
         main_layout.addWidget(

@@ -1,38 +1,36 @@
-from enum import Enum
-
-from schaak_plezier.controller.sound_player import Sound
-from schaak_plezier.interface.app import IController
+from schaak_plezier.interface.app import IController, IView, Mode
+from schaak_plezier.interface.config import GUIConfig
+from schaak_plezier.interface.game import IPlayer
 from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
 from schaak_plezier.model.piece import Piece
-from schaak_plezier.model.player import HumanPlayer, IPlayer, Player
-from schaak_plezier.view.view import View
-
-
-class Mode(str, Enum):
-    IDLE = "IDLE"
-    PLAYING = "PLAYING"
-    EDIT = "EDIT"
+from schaak_plezier.model.player import HumanPlayer, Player
 
 
 class Controller(IController):
-    def __init__(self, config: dict):
+    def __init__(self, config: GUIConfig):
         super().__init__()
         self.config = config
         self.logger = SchaakPlezierLogging.getLogger(__name__)
         self.board: Chessboard = Chessboard(config)
-        self.view: View = View(self, config)
 
+        self.view = None
         self.white_player: IPlayer = None
         self.black_player: IPlayer = None
+        self.piece_to_add = None
 
-        self.set_players(self.config.defaults.white_player, self.config.defaults.black_player)
-        self.initialize_from_fen(self.config.defaults.fen_string)
+        self.initialize_from_fen(self.config.fen_string)
         self.mode: Mode = Mode.IDLE
 
+        # self.sound_player = SoundPlayer(self)
+        self.logger.info("Created controller")
+
+    def connect_view(self, view: IView):
+        self.view = view
+        self.set_players(self.config.white_player, self.config.black_player)
+
         # SIGNALS
-        self.piece_to_add = None
         self.view.chessboard_view.squareClickedInEditMode.connect(
             lambda square: self.try_add_piece(square)
         )
@@ -42,9 +40,6 @@ class Controller(IController):
 
         self.view.edit_board_dialog.boardCleared_signal.connect(self.board.clear_board)
         self.view.edit_board_dialog.tryValidate_signal.connect(self.try_validate)
-
-        # self.sound_player = SoundPlayer(self)
-        self.logger.info("Created controller")
 
     def start_game(self) -> GameResult:
         if self.mode != Mode.IDLE:
@@ -120,15 +115,15 @@ class Controller(IController):
         # signal from edit board dialog
         self.piece_to_add = Piece(Square("NoSquare"), type, color)
 
-    def determine_sound(self, move: Move) -> Sound:
-        if self.board.in_check:
-            return Sound.check
-        elif move.isCastling:
-            return Sound.castle
-        elif move.isCapture:
-            return Sound.capture
-        else:
-            if self.board.active_player == Color("White"):
-                return Sound.normal_white
-            else:
-                return Sound.normal_black
+    # def determine_sound(self, move: Move) -> Sound:
+    #     if self.board.in_check:
+    #         return Sound.check
+    #     elif move.isCastling:
+    #         return Sound.castle
+    #     elif move.isCapture:
+    #         return Sound.capture
+    #     else:
+    #         if self.board.active_player == Color("White"):
+    #             return Sound.normal_white
+    #         else:
+    #             return Sound.normal_black

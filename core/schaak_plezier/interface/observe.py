@@ -12,27 +12,15 @@ class QABCMeta(ABCMeta, type(QWidget)):
 class ABC_Widget(ABC, metaclass=QABCMeta):
     """Abstract class, to be multi-inherited together with a Qt item"""
 
-    pass
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
 
 
 class IObserver(ABC_Widget):
     def notify(): ...
 
 
-class IObservable(ABC_Widget):
-    def register_observer(self, observer: IObserver): ...
-
-    def unregister_observer(self, observer: IObserver): ...
-
-    def notify_observers(self, **kwargs): ...
-
-
-class ObservableWidget(IObservable):
-    _observers: list[IObserver]
-
-    def __init__(self):
-        self._observers: list[IObserver] = []
-
+class IObservable(ABC):
     def register_observer(self, observer: IObserver):
         self._observers.append(observer)
 
@@ -44,9 +32,16 @@ class ObservableWidget(IObservable):
             obs.notify(**kwargs)
 
 
-class ObserverWidget(IObserver):
+class ObservableWidget(IObservable):
+    _observers: list[IObserver]
+
+    def __init__(self, parent=None):
+        self._observers: list[IObserver] = []
+
+
+class ObserverWidget(IObserver, QWidget):
     def __init__(self, observable_list: list[IObservable], parent=None):
-        super().__init__(parent=parent)
+        QWidget.__init__(self, parent=parent)
 
         for observable in observable_list:
             observable.register_observer(self)

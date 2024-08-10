@@ -148,7 +148,7 @@ function run_gui {
   fi
 
   # windows: venv\Scripts\activate
-  source "$root_dir/.venv/bin/activate" && pip install "$root_dir" && python3 "$source_dir/main.py"
+  source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir" && python3 "$source_dir/main.py"
 }
 
 function show_usage {
