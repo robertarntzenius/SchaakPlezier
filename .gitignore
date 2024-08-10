@@ -34,15 +34,19 @@
 # Log files
 *.log
 
-# Cython files
+# Python
 __pycache__
 *.pyc
-
+.venv
+*.egg-info
+.ruff_cache
 
 build
-cmake-build-debug
+dist
+
 .idea
 .vscode
-testFENS.txt
+.git
 
-venv
+cmake-build-debug
+testFENS.txt
