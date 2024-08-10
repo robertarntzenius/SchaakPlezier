@@ -22,14 +22,18 @@ dependencies = [
 version = "0.1.0"
 
 [tool.setuptools]
-packages = ["schaak_plezier"]
 zip-safe = false
+package-dir = { "" = "core" }
 
-[tool.setuptools.package-dir]
-schaak_plezier = "core"
+[tool.setuptools.packages.find]
+where = ["core"]
+include = ["schaak_plezier*", "schaak_plezier.*"]
 
 [tool.setuptools.package-data]
 schaak_plezier = [
+    "**/*.toml",
+    "**/*.png",
+    "**/*.wav",
     "py.typed",
 ]
 
