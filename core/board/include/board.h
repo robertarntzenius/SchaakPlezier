@@ -30,13 +30,13 @@ class Board {
 
         /**
          * @brief Computes and inserts all possible moves from current board state
-         *        in the moves vector by reference. 
+         *        in the moves vector by reference.
          * @note It is recommended to reserve space in the moveVector before calling this function
          *
          * @param moveVector
          */
         void getPossibleMoves(std::vector<Move> &moveVector);
-        
+
         /**
          * @brief Computes and inserts all capture & check moves from current board state
          *        in the moves vector by reference
@@ -95,13 +95,14 @@ class Board {
         void validate() const;
         std::pair<bool, std::vector<std::string>> try_validate() const;
         void addPiece(Color color, Piecetype type, Square square);
+        void removePiece(Color color, Piecetype type, Square square);
         bool checkInsufficientMaterial() const;
         bool checkFiftyMoveRule() const;
         bool checkThreeFoldRepetition() const;
 
         /* Setters & Getters */
         void setLogLevel(LogLevel logLevel) { logger.setLogLevel(logLevel); }
-        
+
         // Expose getters and setters for gui
         [[nodiscard]] Color getActivePlayer() const;
         [[nodiscard]] GameResult getGameResult(bool noLegalMoves) const;
@@ -110,7 +111,7 @@ class Board {
         [[nodiscard]] std::array<Bitboard, NrPiecetypes> getPiecetypeBitboards() const;
         [[nodiscard]] std::array<Bitboard, NrColors> getColorBitboards() const;
         [[nodiscard]] std::stack<MoveCommand> getHistory() const;
-        
+
         void setBoardState(const BoardState &copyState);
         void getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards);
         void getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards );
@@ -120,7 +121,7 @@ class Board {
         /* Methods*/
         void movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare, bool updateHash = true);
         void removeCastlingRights(Square square);
-        
+
         /* MoveGen */
         void getPseudoLegalMoves(std::vector<Move> &moveVector) const;
 
@@ -132,11 +133,11 @@ class Board {
         void generatePawnPushes(std::vector<Move> &moveVector, Square fromSquare) const;
         void generatePawnCaptures(std::vector<Move> &moveVector, Square fromSquare) const;
         void generateCastleMove(std::vector<Move> &moveVector, CastlingSide side) const;
-    
+
         /* MaskGen */
         Bitboard getAttacksFromSlider(Square fromSquare, Piecetype piecetype) const;
         Bitboard getPlayerAttackMask(Color player) const;
-        
+
         /* Member variables */
         ChessLogger& logger;
         BoardState boardState;
@@ -148,12 +149,12 @@ class Board {
         std::array<Bitboard, NrColors> colorBitboards;
 
         std::array<std::unordered_map<Square, Piecetype>, NrColors> pieceMaps;
-        
+
         /* Hashing */
         std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> zobristPieceTable;
         std::array<uint64_t, NrCastlingRights> zobristCastlingTable;
         uint64_t zobristActivePlayer;
-        
+
         void initZobristTables();
         void hashPiece(Color player, Piecetype pieceType, Square square);
         void hashCastlingRight(CastlingSide side);
@@ -170,8 +171,8 @@ class Board {
         };
         static constexpr std::array<Bitboard, BOARD_SIZE> knightScopeLookUp =
                 MaskGeneration::computeKnightScopeLookUp();
-        
-        static constexpr std::array<Bitboard, BOARD_SIZE> kingScopeLookUp = 
+
+        static constexpr std::array<Bitboard, BOARD_SIZE> kingScopeLookUp =
                 MaskGeneration::computeKingScopeLookUp();
 
         static constexpr std::array<std::array<Bitboard, BOARD_SIZE>, NrDirections> directionalLookUp =

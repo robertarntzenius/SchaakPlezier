@@ -103,7 +103,7 @@ void bindEnums(py::module& m) {
         .value("NrPiecetypes", Piecetype::NrPiecetypes)
         .value("NrPromotiontypes", Piecetype::NrPromotiontypes)
         .value("NoType", Piecetype::NoType);
-    
+
 
 
     // Bind File enum
@@ -238,11 +238,11 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         // Convert white and black piece maps
         auto whiteList = convertPieceMap(whitePieceMap);
         auto blackList = convertPieceMap(blackPieceMap);
-        
+
         // Return as a tuple of two lists
         return std::make_tuple(whiteList, blackList);
     }, "getPieceMaps");
-    
+
     boardClass.def("getGameResult", &Board::getGameResult, py::arg("noLegalMoves"));
     boardClass.def("getBoardState", &Board::getBoardState);
     boardClass.def("clearBoard", &Board::clearBoard);
@@ -253,7 +253,7 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         board.getPossibleMoves(moves);
         return moves;
     }, "getPossibleMoves");
-    
+
     boardClass.def("doMove", [](Board& board, Square fromSquare, Square targetSquare, Piecetype promotionPiece = Piecetype::NoType) {
         std::vector<Move> moves;
         board.getPossibleMoves(moves);
@@ -278,6 +278,19 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
         board.addPiece(color, type, square);
     }, "addPiece");
 
+    boardClass.def("removePiece", [](Board& board, int pycolor, int pytype, int pysquare) {
+        assert((pycolor >= 0) && (pycolor < Color::NrColors));
+        Color color = static_cast<Color>(pycolor);
+
+        assert((pytype >= 0) && (pytype < Piecetype::NrPiecetypes));
+        Piecetype type = static_cast<Piecetype>(pytype);
+
+        assert((pysquare >= 0) && (pysquare < Square::NrSquares));
+        Square square = static_cast<Square>(pysquare);
+
+        board.removePiece(color, type, square);
+    }, "removePiece");
+
 
     boardClass.def("validate", [](Board& board) {
         return board.try_validate();
@@ -293,15 +306,15 @@ void bindBoardGetters(py::class_<Board>& boardClass) {
 
     boardClass.def("getHistory", [](Board& board) {
         std::stack<MoveCommand> originalHistory = board.getHistory();
-        
+
         std::vector<Move> _history;
         while (!originalHistory.empty()) {
             _history.push_back(originalHistory.top().move);
             originalHistory.pop();
         }
-        
+
         std::reverse(_history.begin(), _history.end());
-        
+
         return _history;
     }, "getHistory");
 
@@ -322,7 +335,7 @@ void bindGame(py::module& m) {
 
 void bindPlayer(py::module& m) {
     py::class_<Player, std::unique_ptr<Player>> myPlayer(m, "Player");
-    
+
     myPlayer.def("decideOnMove", &Player::decideOnMove);
 
     myPlayer.def("getPlayerType", &Player::getPlayerType);

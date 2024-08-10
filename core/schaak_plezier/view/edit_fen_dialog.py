@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QDialog, QDialogButtonBox, QLabel, QPushButton
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QLineEdit, QPushButton, QVBoxLayout
+
 
 class EditFenDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit FEN")
-        
+
         layout = QVBoxLayout()
         self.fen_label = QLabel("Enter FEN string:")
         self.fen_edit = QLineEdit()
@@ -26,6 +27,6 @@ class EditFenDialog(QDialog):
 
     def get_fen_string(self):
         return self.fen_edit.text()
-    
+
     def set_default_fen(self):
         self.fen_edit.setText("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")

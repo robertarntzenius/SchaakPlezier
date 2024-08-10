@@ -1,0 +1,65 @@
+1. main :
+    Game()
+
+    while(game not over())
+        Game.doMove()
+        switch player
+
+
+Game
+public :
+    doMove()
+        getPossibleMoves()
+        wait input
+        board.movePiece(input, activePlayer)
+
+    newGame(FENstr)
+        board = FENstr
+        activePlayer = white
+
+    isCheckmate()
+
+    Game()
+        newgame()
+
+private:
+    Board board
+    activePlayer
+
+
+Board
+public:
+    getters/setters
+    getPossibleMoves(activePlayer)
+
+    movePiece(from, to, type, activePlayer)
+
+
+private:
+    whitePieces array<pieces*>
+    blackPieces array<pieces*>
+
+    (bit)boards
+        blackPieces
+        whitePieces
+
+        PieceIndices 2D array
+
+
+
+Piece
+    public:
+        virtual getOffsets() // all moves if no other pieces
+    protected:
+        offsets
+        type
+        color
+
+
+
+King : public piece
+Queen : public piece
+Rook : public piece
+Bishop : public piece
+Knight : public piece
+Pawn : public piece { promoteTo(Piecetype) }

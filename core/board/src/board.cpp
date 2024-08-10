@@ -53,7 +53,7 @@ void Board::initFromFEN(const char *FENString)
                 Color color = (isupper(c) != 0)? White : Black;
 
                 addPiece(color, type, square);
-                
+
                 squareInt++;
                 break;
         }
@@ -142,7 +142,7 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
     std::vector<Move> pseudoLegalMoves;
     pseudoLegalMoves.reserve(64);
     getPseudoLegalMoves(pseudoLegalMoves);
-    
+
     for (const auto& move : pseudoLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
@@ -184,7 +184,7 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
         }
         return DRAW_BY_STALEMATE;
     }
-    
+
     // Insufficient material
     if (checkInsufficientMaterial()) {
         return DRAW_BY_INSUFFICIENT_MATERIAL;
@@ -230,7 +230,7 @@ void Board::setBoardState(const BoardState &copyState) {
 }
 
 void Board::getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards) {
-    piecetypeBitboards = copyPiecetypeBitboards; 
+    piecetypeBitboards = copyPiecetypeBitboards;
 }
 
 void Board::getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards ) {
@@ -246,6 +246,14 @@ void Board::addPiece(Color color, Piecetype pieceType, Square square)
     piecetypeBitboards[pieceType].set(square);
     colorBitboards[color].set(square);
     pieceMaps[color][square] = pieceType;
+    hashPiece(color, pieceType, square);
+}
+
+void Board::removePiece(Color color, Piecetype pieceType, Square square)
+{
+    piecetypeBitboards[pieceType].set(square, false);
+    colorBitboards[color].set(square, false);
+    pieceMaps[color].erase(square);
     hashPiece(color, pieceType, square);
 }
 
@@ -269,7 +277,7 @@ void Board::removeCastlingRights(Square square) {
         case h8: if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; } break;
         case e1:
             if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; }
-            if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } 
+            if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; }
             break;
         case e8:
             if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; }
@@ -318,7 +326,7 @@ void Board::doMove(const Move &move) {
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
         pieceMaps[boardState.activePlayer][move.targetSquare] = move.promotionPiece;
 
-        hashPiece(boardState.activePlayer, Pawn, move.targetSquare); // Pawn out@targetSquare 
+        hashPiece(boardState.activePlayer, Pawn, move.targetSquare); // Pawn out@targetSquare
         hashPiece(boardState.activePlayer, move.promotionPiece, move.targetSquare); // promotionPiece in@targetSquare
     }
 
@@ -340,7 +348,7 @@ void Board::doMove(const Move &move) {
             throw std::invalid_argument("Invalid Castle move");
         }
     }
-    
+
     removeCastlingRights(move.fromSquare);
     removeCastlingRights(move.targetSquare);
 
@@ -469,7 +477,7 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
         os  << std::endl;
     }
     os << "\n   a b c d e f g h\n";
-    
+
     os << "\n" << board.getBoardState() << std::endl;
     return os;
 }
@@ -520,7 +528,7 @@ void Board::validate() const {
         assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
-    
+
     assert((piecetypeBitboards[King] & colorBitboards[White]).count() == 1);
     assert((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1);
     assert((finalRank[White] & piecetypeBitboards[Pawn]).empty());
@@ -543,7 +551,7 @@ void Board::validate() const {
         assert((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8));
     }
 
-    // FIXME 
+    // FIXME
     // This is used to determine the validity FEN strings in board/test/test_hash
     assert(!inCheck(~boardState.activePlayer));
 
@@ -585,7 +593,7 @@ std::pair<bool, std::vector<std::string>> Board::try_validate() const {
         isValid &= check_expr((bitboard & noOverlapBoard).empty(), "<PiecetypeBitboards> <Bitboard.noOverlap>", errors);
         noOverlapBoard = noOverlapBoard | bitboard;
     }
-    
+
     isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).count() == 1, "<White> <King.count> <eq> <1>", errors);
     isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1, "<Black> <King.count> <eq> <1>", errors);
     isValid &= check_expr((finalRank[White] & piecetypeBitboards[Pawn]).empty(), "<Pawn> <White finalRank> <empty>", errors);
@@ -608,7 +616,7 @@ std::pair<bool, std::vector<std::string>> Board::try_validate() const {
         isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8), "<bQC> <Black Rook> <at> <a8>", errors);
     }
 
-    // FIXME 
+    // FIXME
     // This is used to determine the validity FEN strings in board/test/test_hash
     isValid &= check_expr(!inCheck(~boardState.activePlayer), "<Capture opponent king>", errors);
 
@@ -641,7 +649,7 @@ bool Board::checkInsufficientMaterial() const
 
     // Do checks with 2 bishops on board
     Bitboard whiteBishops = (piecetypeBitboards[Bishop] & colorBitboards[White]);
-    
+
     // One side has 2 Bishops
     if (whiteBishops.count() != 1) {
         return false;
@@ -707,7 +715,7 @@ Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) con
             firstDirection = FirstOrthogonal;
             lastDirection = LastOrthogonal;
         break;
-        
+
         default:
             throw std::invalid_argument("Invalid Piecetype, generateSliderMoves() should be called with a slider");
         break;
@@ -754,7 +762,7 @@ void Board::logBoard(LogLevel logLevel) const {
     os << "enPassantSquare: " << boardState.enPassantSquare << std::endl;
     os << "wKC: " << boardState.wKC << ", wQC: " << boardState.wQC << ", bKC: " << boardState.bKC << ", bQC: " <<  boardState.bQC << std::endl;
     os << "halfMoveClock: " << boardState.halfMoveClock << ", fullMoveNumber: " << boardState.fullMoveNumber;
-    
+
     switch (logLevel) {
         case LEVEL_ESSENTIAL:   logger.essential(os.str()); break;
         case LEVEL_DEBUG:       logger.debug(os.str());     break;

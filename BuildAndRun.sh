@@ -1,6 +1,6 @@
 #!/bin/bash
 
-######### Functions ######### 
+######### Functions #########
 function validate_build_type {
   if [ "$build_type" != "Release" ] && [ "$build_type" != "Debug" ] && [ "$build_type" != "Verbose" ]; then
       echo "Invalid build type, use Debug or Release. (Build type: $build_type)"
@@ -73,7 +73,7 @@ function run_profiler {
 }
 
 function run_SchaakPlezier {
-  if $execute; then 
+  if $execute; then
     ./SchaakPlezier -w "$1" -b "$2" || exit
   fi
 }
@@ -143,7 +143,14 @@ function parse_args {
 }
 
 function run_gui {
-  python3 pygui/main.py
+  if ![ -d "$root_dir/.venv" ]; then
+    python3 -m venv "$root_dir/.venv"
+  fi
+
+  # windows: venv\Scripts\activate
+  source "$root_dir/.venv/bin/activate" || exit
+  pip install "$root_dir" || exit
+  python3 "$source_dir/main.py" || exit
 }
 
 function show_usage {
@@ -174,13 +181,16 @@ function main {
   whitePlayer="human"
   blackPlayer="random"
 
+  # Set paths
+  root_dir="$PWD"
+  source_dir="$root_dir/core"
+  build_dir="$root_dir/build/$build_type"
+
   # User input
   parse_args "$@"
 
   # Set build & source dirs
   validate_build_type
-  source_dir="$PWD/core"
-  build_dir="$PWD/build/$build_type"
 
   # Compile
   clean_build_dir
@@ -188,6 +198,7 @@ function main {
 
   # Test & Analyze
   run_ctest
+
   # run_profiler "$build_dir/board/test/test_movegeneration"
   run_profiler "$build_dir/SchaakPlezier"
 
@@ -197,11 +208,11 @@ function main {
   # Output
   cat_logfile
 
-  # Reset working directory
-  cd "$source_dir" || exit
-
-  # Run 
+  # Run
   run_gui
+
+  # Reset working directory
+  cd "$root_dir" || exit
 }
 
 ######### Main #########

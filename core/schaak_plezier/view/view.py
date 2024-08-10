@@ -1,15 +1,23 @@
-import logging
-from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QAction, QDialog, QMessageBox, QLabel
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QAction,
+    QDialog,
+    QGridLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QWidget,
+)
 
-from core.pygui.controller.controller import Controller, Mode
-from core.pygui.view.edit_board_dialog import EditBoardDialog
-from core.pygui.view.edit_fen_dialog import EditFenDialog
-from core.pygui.view.edit_players_dialog import EditPlayersDialog
-from core.pygui.view.errordialog import ErrorDialog
-
-from .chessboard_view import ChessboardView
-from .history_box import HistoryBox
+from schaak_plezier.controller.controller import Controller, Mode
+from schaak_plezier.interface.log import SchaakPlezierLogging
+from schaak_plezier.view.chessboard_view import ChessboardView
+from schaak_plezier.view.edit_board_dialog import EditBoardDialog
+from schaak_plezier.view.edit_fen_dialog import EditFenDialog
+from schaak_plezier.view.edit_players_dialog import EditPlayersDialog
+from schaak_plezier.view.errordialog import ErrorDialog
+from schaak_plezier.view.history_box import HistoryBox
 
 
 class View(QMainWindow):
@@ -17,11 +25,11 @@ class View(QMainWindow):
         super().__init__()
         self.config = config
         self.controller = controller
-
+        self.logger = SchaakPlezierLogging.getLogger(__name__)
         self.setWindowTitle(self.config.gui.title)
         self.initUI()
         self.show()
-        logging.info('Created view')
+        self.logger.info("Created view")
 
     def initUI(self):
         central_widget = QWidget()
@@ -50,7 +58,9 @@ class View(QMainWindow):
         edit_board_button = QPushButton("Edit Board")
         edit_board_button.clicked.connect(self.toggle_edit_mode)
         for piece, label in self.edit_board_dialog.piece_buttons.items():
-            label.mousePressEvent = lambda event, piece=piece: self.edit_board_dialog.select_piece(piece)
+            label.mousePressEvent = lambda event, piece=piece: self.edit_board_dialog.select_piece(
+                piece
+            )
         self.edit_board_dialog.hide()
 
         undo_board_button = QPushButton("Undo")
@@ -72,16 +82,18 @@ class View(QMainWindow):
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
-        
+
         # Display player types
         self.white_player_label = QLabel("White Player: " + self.config.defaults.white_player)
         self.black_player_label = QLabel("Black Player: " + self.config.defaults.black_player)
 
         main_layout.addWidget(self.black_player_label, 0, 6, alignment=Qt.AlignTop | Qt.AlignRight)
-        main_layout.addWidget(self.white_player_label, 4, 6, alignment=Qt.AlignBottom | Qt.AlignRight)
+        main_layout.addWidget(
+            self.white_player_label, 4, 6, alignment=Qt.AlignBottom | Qt.AlignRight
+        )
 
         self.show()
-    
+
     ##### EDIT MODE CALLBACKS #####
     def toggle_edit_mode(self):
         if self.controller.mode == Mode.EDIT:
@@ -90,7 +102,6 @@ class View(QMainWindow):
         else:
             self.controller.mode = Mode.EDIT
             self.edit_board_dialog.show()
-
 
     ##### BUTTON CALLBACKS #####
     def start_game(self):
@@ -104,10 +115,11 @@ class View(QMainWindow):
             QMessageBox.information(self, "Game Over", f"{losing_color} resigned.")
         self.update()
 
-
     def edit_fen_dialog(self):
         if self.controller.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(f"Can only edit the fen in IDLE mode: {self.controller.mode}", self)
+            error_dialog = ErrorDialog(
+                f"Can only edit the fen in IDLE mode: {self.controller.mode}", self
+            )
             error_dialog.exec_()
             return
         while True:
@@ -120,12 +132,14 @@ class View(QMainWindow):
                 except ValueError as e:
                     error_dialog = ErrorDialog(str(e), self)
                     error_dialog.exec_()
-            else: # Cancel
+            else:  # Cancel
                 break
-        
+
     def edit_players_dialog(self):
         if self.controller.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(f"Can only edit the players in IDLE mode: {self.controller.mode}", self)
+            error_dialog = ErrorDialog(
+                f"Can only edit the players in IDLE mode: {self.controller.mode}", self
+            )
             error_dialog.exec_()
             return
         while True:
@@ -136,10 +150,10 @@ class View(QMainWindow):
                 self.white_player_label.setText("White Player: " + white_player)
                 self.black_player_label.setText("Black Player: " + black_player)
                 break
-            else: # Cancel
+            else:  # Cancel
                 break
-    
+
     def closeEvent(self, event):
         self.controller.mode = Mode.IDLE
-        logging.info("Closing application...")
-        event.accept() # Accept the event and close the window
+        self.logger.info("Closing application...")
+        event.accept()  # Accept the event and close the window

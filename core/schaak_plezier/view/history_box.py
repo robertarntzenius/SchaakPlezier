@@ -1,10 +1,10 @@
-from model.chessboard import Chessboard
-from model.wrapper_types import Move
-
-from .observer import ObserverWidget
-
-from PyQt5.QtWidgets import QListView, QVBoxLayout, QLabel, QSizePolicy
 from PyQt5.QtCore import QStringListModel
+from PyQt5.QtWidgets import QLabel, QListView, QSizePolicy, QVBoxLayout
+
+from schaak_plezier.interface.observe import ObserverWidget
+from schaak_plezier.interface.wrapper_types import Move
+from schaak_plezier.model.chessboard import Chessboard
+
 
 class HistoryBox(ObserverWidget):
     def __init__(self, board: Chessboard, parent=None):
@@ -23,7 +23,7 @@ class HistoryBox(ObserverWidget):
 
         self.setLayout(self.layout)
 
-    def notify(self, board = None):
+    def notify(self, board=None):
         if board is not None:
             self.update_history_list()
 

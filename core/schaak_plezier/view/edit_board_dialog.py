@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QGridLayout, QDialog, QLabel, QMessageBox
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QPushButton, QVBoxLayout
 
-from core.pygui.model.piece import Piece
-from core.pygui.model.wrapper_types import Color, Square, Piecetype
+from schaak_plezier.interface.wrapper_types import Color, Piecetype, Square
+from schaak_plezier.model.piece import Piece
+
 
 class ClickablePieceLabel(QLabel):
     clicked = pyqtSignal(Piece)
@@ -12,12 +13,12 @@ class ClickablePieceLabel(QLabel):
 
     def __init__(self, color: Color, type: Piecetype, parent=None):
         super().__init__(parent)
-        self.piece = Piece(Square('NoSquare'), type, color)
+        self.piece = Piece(Square("NoSquare"), type, color)
 
         pixmap = QPixmap.fromImage(self.piece.image).scaled(50, 50)
         self.setPixmap(pixmap)
         self.setAlignment(QtCore.Qt.AlignCenter)
-        
+
     def mousePressEvent(self, event):
         self.clicked.emit(self.piece)
 
@@ -30,7 +31,7 @@ class EditBoardDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Board")
-        
+
         layout = QVBoxLayout()
 
         self.clear_button = QPushButton("Clear Board")
@@ -40,9 +41,16 @@ class EditBoardDialog(QDialog):
         # Piece selection grid
         piece_selection_layout = QGridLayout()
         self.piece_buttons = {}
-        
-        colors = [Color('White'), Color('Black')]
-        piece_types = [Piecetype('Pawn'), Piecetype('Knight'), Piecetype('Bishop'), Piecetype('Rook'), Piecetype('Queen'), Piecetype('King')]
+
+        colors = [Color("White"), Color("Black")]
+        piece_types = [
+            Piecetype("Pawn"),
+            Piecetype("Knight"),
+            Piecetype("Bishop"),
+            Piecetype("Rook"),
+            Piecetype("Queen"),
+            Piecetype("King"),
+        ]
 
         for col, color in enumerate(colors):
             for row, type in enumerate(piece_types):
@@ -59,7 +67,7 @@ class EditBoardDialog(QDialog):
         layout.addWidget(self.validate_button)
 
         self.setLayout(layout)
-        
+
         self.piece_to_add = None
 
     def clear_board(self):
@@ -67,7 +75,6 @@ class EditBoardDialog(QDialog):
 
     def try_validate(self):
         self.tryValidate_signal.emit()
-
 
     def select_piece(self, piece):
         if self.piece_to_add:

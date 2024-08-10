@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QVBoxLayout, QDialog, QDialogButtonBox, QLabel, QComboBox
+from PyQt5.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QLabel, QVBoxLayout
+
 
 class EditPlayersDialog(QDialog):
     def __init__(self, parent=None):

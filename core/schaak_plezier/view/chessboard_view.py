@@ -1,13 +1,11 @@
-from PyQt5.QtWidgets import QSizePolicy, QGraphicsDropShadowEffect
-from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QPainter, QPen
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy
 
-from core.pygui.controller.controller import Controller, Mode
-from core.pygui.model.piece import Piece
-from core.pygui.model.player import Player
-from core.pygui.model.wrapper_types import Color, Move, Piecetype, PlayerType, Square
-
-from .observer import ObserverWidget
+from schaak_plezier.controller.controller import Controller, Mode
+from schaak_plezier.interface.observe import ObserverWidget
+from schaak_plezier.interface.wrapper_types import Color, Move, Piecetype, Square
+from schaak_plezier.model.piece import Piece
 
 
 class ChessboardView(ObserverWidget):
@@ -29,7 +27,7 @@ class ChessboardView(ObserverWidget):
 
         self.board_size = min(self.width(), self.height())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        
+
         self.selected_square = None
         self.previous_move: Move = None
         self.selected_piece_moves = []
@@ -38,7 +36,7 @@ class ChessboardView(ObserverWidget):
         self.legal_moves = []
 
     ##### DRAWING EVENTS #####
-    def notify(self, board = None):
+    def notify(self, board=None):
         """Called by board when it changes"""
         if board is not None:
             self.wpieces = board.wpieces
@@ -49,7 +47,11 @@ class ChessboardView(ObserverWidget):
 
     def update(self):
         """Called by Widget when an event happens/change occurs that changes the visuals, but not the underlying board object"""
-        self.selected_piece_moves = [move for move in self.legal_moves if move.fromSquare == self.selected_square] if self.selected_square is not None else []
+        self.selected_piece_moves = (
+            [move for move in self.legal_moves if move.fromSquare == self.selected_square]
+            if self.selected_square is not None
+            else []
+        )
         self.repaint()
 
     def paintEvent(self, event):
@@ -76,40 +78,62 @@ class ChessboardView(ObserverWidget):
                 else:
                     color = QColor(self.config.gui.dark_color)
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
-        
-    def drawPieces(self, qp):        
+
+    def drawPieces(self, qp):
         for piece_entry in self.wpieces:
             square, piece_type = piece_entry
-            piece = Piece(square, piece_type, Color('White'))
+            piece = Piece(square, piece_type, Color("White"))
             piece.draw(qp, self.board_size)
-        
+
         for piece_entry in self.bpieces:
             square, piece_type = piece_entry
-            piece = Piece(square, piece_type, Color('Black'))
+            piece = Piece(square, piece_type, Color("Black"))
             piece.draw(qp, self.board_size)
 
     def draw_selected_square(self, qp):
         if self.selected_square is None:
             return
-        self.drawSquare(qp, self.selected_square, border_col=QColor(*self.config.gui.selected_square.border), fill_col=QColor(*self.config.gui.selected_square.fill))
+        self.drawSquare(
+            qp,
+            self.selected_square,
+            border_col=QColor(*self.config.gui.selected_square.border),
+            fill_col=QColor(*self.config.gui.selected_square.fill),
+        )
 
     def draw_selected_piece_moves(self, qp):
         if not self.selected_piece_moves:
             return
-        
+
         for move in self.selected_piece_moves:
-            self.drawSquare(qp, square=move.targetSquare, border_col=QColor(*self.config.gui.possible_moves.border), fill_col=QColor(*self.config.gui.possible_moves.fill))
+            self.drawSquare(
+                qp,
+                square=move.targetSquare,
+                border_col=QColor(*self.config.gui.possible_moves.border),
+                fill_col=QColor(*self.config.gui.possible_moves.fill),
+            )
 
     def draw_previous_move(self, qp):
         if self.previous_move is None:
             return
 
-        self.drawSquare(qp, self.previous_move.fromSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
-        self.drawSquare(qp, self.previous_move.targetSquare, border_col=QColor(*self.config.gui.previous_move.border), fill_col=QColor(*self.config.gui.previous_move.fill))
+        self.drawSquare(
+            qp,
+            self.previous_move.fromSquare,
+            border_col=QColor(*self.config.gui.previous_move.border),
+            fill_col=QColor(*self.config.gui.previous_move.fill),
+        )
+        self.drawSquare(
+            qp,
+            self.previous_move.targetSquare,
+            border_col=QColor(*self.config.gui.previous_move.border),
+            fill_col=QColor(*self.config.gui.previous_move.fill),
+        )
 
-    def drawSquare(self, qp, square, border_col: QColor=None, border_width: int=3, fill_col: QColor=None):
+    def drawSquare(
+        self, qp, square, border_col: QColor = None, border_width: int = 3, fill_col: QColor = None
+    ):
         square_size = self.board_size // 8
-        
+
         border_col = border_col or Qt.blue
 
         pen = QPen(border_col)
@@ -123,7 +147,6 @@ class ChessboardView(ObserverWidget):
         row = square.value // 8
         qp.drawRect(col * square_size, row * square_size, square_size, square_size)
 
-        
     ##### MOUSE EVENTS #####
     def mousePressEvent(self, event):
         if self.controller.mode == Mode.EDIT:
@@ -132,7 +155,7 @@ class ChessboardView(ObserverWidget):
             self.handle_playing_mode_events(event)
         else:
             self.handle_idle_events(event)
-    
+
     def handle_idle_events(event):
         pass
 
@@ -155,7 +178,7 @@ class ChessboardView(ObserverWidget):
                     if move.targetSquare == clicked_square:
                         if move.isPromotion:
                             # TODO implement
-                            move.promotionPiece = Piecetype('Queen').to_cpp_object()
+                            move.promotionPiece = Piecetype("Queen").to_cpp_object()
 
                         self.selected_square = None
                         event.accept()

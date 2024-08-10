@@ -1,9 +1,8 @@
-from pathlib import Path
-from PyQt5.QtGui import  QImage, QPainter
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtGui import QImage, QPainter
 
-from .wrapper_types import Square, Piecetype, Color
-from core.pygui import ASSETS_DIR
+from schaak_plezier import ASSETS_DIR
+from schaak_plezier.interface.wrapper_types import Color, Piecetype, Square
 
 
 class Piece:
@@ -18,14 +17,15 @@ class Piece:
         self.color = color
         self.image = self.load_image()
 
-
     def load_image(self):
-        color_char = 'w' if self.color == Color('White') else 'b'
+        color_char = "w" if self.color == Color("White") else "b"
         piece_type_char = self.piece_type.name[0].lower()
-        if self.piece_type == Piecetype('Knight'):
-            piece_type_char = 'n'
+        if self.piece_type == Piecetype("Knight"):
+            piece_type_char = "n"
 
-        filename = str(ASSETS_DIR / "images" / f"{color_char}{piece_type_char}.png").replace('\\\\', '/')
+        filename = str(ASSETS_DIR / "images" / f"{color_char}{piece_type_char}.png").replace(
+            "\\\\", "/"
+        )
         image = QImage(filename)
         return image
 
