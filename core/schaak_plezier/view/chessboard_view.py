@@ -35,6 +35,7 @@ class ChessboardView(ObserverWidget):
         self.wpieces = []
         self.bpieces = []
         self.legal_moves = []
+        self.repaint()
 
     ##### DRAWING EVENTS #####
     def notify(self, board=None):

@@ -23,9 +23,7 @@ class Piece:
         if self.piece_type == Piecetype("Knight"):
             piece_type_char = "n"
 
-        filename = str(ASSETS_DIR / "images" / f"{color_char}{piece_type_char}.png").replace(
-            "\\\\", "/"
-        )
+        filename = (ASSETS_DIR / "images" / f"{color_char}{piece_type_char}.png").as_posix()
         image = QImage(filename)
         return image
 

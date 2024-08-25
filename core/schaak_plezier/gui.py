@@ -4,13 +4,16 @@ import tomli
 
 from schaak_plezier import ASSETS_DIR
 from schaak_plezier.controller.controller import Controller
-from schaak_plezier.interface.app import ISchaakPlezier
+from schaak_plezier.interface.app import IController, ISchaakPlezier, IView
 from schaak_plezier.interface.config import GUIConfig
 from schaak_plezier.interface.log import FixedWidthFormatter, SchaakPlezierLogging
 from schaak_plezier.view.view import View
 
 
 class SchaakPlezier(ISchaakPlezier):
+    controller: IController
+    view: IView
+
     def __init__(self, argv: List[str]) -> None:
         super().__init__(argv)
 

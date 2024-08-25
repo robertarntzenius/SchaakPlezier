@@ -1,6 +1,6 @@
 from schaak_plezier.interface.app import IController, IView, Mode
 from schaak_plezier.interface.config import GUIConfig
-from schaak_plezier.interface.game import IPlayer
+from schaak_plezier.interface.game import IChessboard, IPlayer
 from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
@@ -9,6 +9,10 @@ from schaak_plezier.model.player import HumanPlayer, Player
 
 
 class Controller(IController):
+    config: GUIConfig
+    board: IChessboard
+    mode: Mode
+
     def __init__(self, config: GUIConfig):
         super().__init__()
         self.config = config
@@ -40,6 +44,7 @@ class Controller(IController):
 
         self.view.edit_board_dialog.boardCleared_signal.connect(self.board.clear_board)
         self.view.edit_board_dialog.tryValidate_signal.connect(self.try_validate)
+        self.view.update()
         self.logger.debug("Connected view")
 
     def start_game(self) -> GameResult:

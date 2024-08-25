@@ -506,6 +506,10 @@ void Board::initZobristTables() {
 }
 
 void Board::validate() const {
+    std::vector<Color> colors = {White, Black};
+    for (const Color color : colors) {
+
+    }
     assert(pieceMaps[White].size() == colorBitboards[White].count());
     assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
@@ -516,6 +520,14 @@ void Board::validate() const {
         assert(colorBitboards[White].test(square));
         assert(piecetypeBitboards[type].test(square));
     }
+    for (const auto &squarePiecetypePair : pieceMaps[Black]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        assert(colorBitboards[Black].test(square));
+        assert(piecetypeBitboards[type].test(square));
+    }
+
 
     Bitboard noOverlapBoard = Bitboard();
     for (const auto &bitboard : colorBitboards) {

@@ -145,10 +145,11 @@ function parse_args {
 function run_gui {
   if [ ! -d "$root_dir/.venv" ]; then
     python3 -m venv "$root_dir/.venv"
+    # windows: venv\Scripts\activate
+    source "$root_dir/.venv/bin/activate"
   fi
 
-  # windows: venv\Scripts\activate
-  source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir" && python3 "$source_dir/main.py"
+  pip install -e "$root_dir" && python3 "$source_dir/main.py"
 }
 
 function show_usage {

@@ -21,6 +21,14 @@ from schaak_plezier.view.history_box import HistoryBox
 
 
 class View(IView):
+    config: GUIConfig
+    controller: IController
+
+    # OBSERVERS
+    history_box: HistoryBox
+    chessboard_view: ChessboardView
+    edit_board_dialog: EditBoardDialog
+
     def __init__(self, controller: IController, config: GUIConfig):
         super().__init__()
         self.config = config
