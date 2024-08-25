@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.22)
 project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
+get_filename_component(ROOT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY)
+set(EXTERN_DIR "${ROOT_DIR}/extern")
+
 # Als we heel serieus willen doen:
 
 # add_compile_options(-Wshadow)
@@ -11,15 +14,23 @@ add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-
 # Parallel
 find_package(OpenMP REQUIRED)
 
-# Testing
-find_package(nlohmann_json REQUIRED)
-
+# Add the header only nlohmann_json submodule to the include directories
+set(NLOHMANN_JSON_DIR "${EXTERN_DIR}/json")
+include_directories(${NLOHMANN_JSON_DIR}/include)
 
 # GUI stuff
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-find_package(pybind11 REQUIRED)
+# Include the pybind11 submodule
+# Specify the source directory and an explicit out-of-source build directory for pybind11
+set(PYBIND11_SOURCE_DIR "${EXTERN_DIR}/pybind11")
+set(PYBIND11_BINARY_DIR "${EXTERN_DIR}/pybind11/build")
+add_subdirectory(${PYBIND11_SOURCE_DIR} ${PYBIND11_BINARY_DIR})
+include_directories(${PYBIND11_DIR}/include)
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${PYBIND11_BINARY_DIR}")
+
+# Dont know where this came from
 add_compile_options(-fPIC)
 
 # Find Clang-Tidy

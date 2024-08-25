@@ -5,7 +5,7 @@
 
 constexpr const char *testFEN5 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ";
 
-std::unordered_map<std::string, std::pair<const char *, std::vector<u_int64_t>>> positionToLeafNodesMap = {
+std::unordered_map<std::string, std::pair<const char *, std::vector<uint64_t>>> positionToLeafNodesMap = {
     {"defaultFEN", 
         {defaultStartingFEN, {1, 20, 400, 8902, 197281, 4865609}} }, // , 197281, 4865609 , 119060324
     {"testFEN5", 
@@ -13,7 +13,7 @@ std::unordered_map<std::string, std::pair<const char *, std::vector<u_int64_t>>>
 };
 
 // Recursive helper function for move application
-void countLeafNodes(Board& board, int depth, u_int64_t &move_count) {
+void countLeafNodes(Board& board, int depth, uint64_t &move_count) {
     if (depth <= 0) {
         move_count++;
         return;
@@ -44,7 +44,7 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     std::vector<Move> moves;
 
     board.getPossibleMoves(moves);
-    u_int64_t leaf_nodes = 0;
+    uint64_t leaf_nodes = 0;
 
     testLogger.essential("\n\n");
     testLogger.essential(name, depth);
@@ -54,7 +54,7 @@ uint64_t test_MoveGenerationMoveApplicationPerformance(const char *FEN, const st
     for (auto move : moves) {
         board.doMove(move);
 
-        u_int64_t move_count = 0;
+        uint64_t move_count = 0;
         countLeafNodes(board, depth - 1, move_count);
 
         leaf_nodes += move_count;
@@ -87,7 +87,7 @@ int main() {
         for (int depth = 1; depth < max_depth; depth++) {
             uint64_t leaf_nodes = test_MoveGenerationMoveApplicationPerformance(FEN, name, depth);
             std::cout << leaf_nodes << " " << depth << " " << expectedLeafNodes[depth] << std::endl;
-             _assert(leaf_nodes == expectedLeafNodes[depth]);
+            assert(leaf_nodes == expectedLeafNodes[depth]);
         }
     }
     return 0;

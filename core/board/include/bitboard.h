@@ -16,7 +16,7 @@ class Bitboard {
 
         ~Bitboard() = default;
 
-        constexpr explicit Bitboard(ulong bits)
+        constexpr explicit Bitboard(unsigned long long bits)
                 : bits(bits)
         {
         }
@@ -49,7 +49,7 @@ class Bitboard {
         }
 
         constexpr Bitboard &set(Square square, bool value = true) {
-            ulong mask = 1UL << (BOARD_SIZE - square - 1);
+            unsigned long long mask = 1ULL << (BOARD_SIZE - square - 1);
 
             if (value) {
                 bits = bits | mask;
@@ -74,7 +74,7 @@ class Bitboard {
                 return *this;
             }
 
-            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            unsigned long long lowerBits = (1ULL << (BOARD_SIZE - square - 1)) - 1;
             bits = bits & ~lowerBits;
             set(square, false);
             return *this;
@@ -86,7 +86,7 @@ class Bitboard {
                 return *this;
             }
 
-            ulong lowerBits = (1UL << (BOARD_SIZE - square - 1)) - 1;
+            unsigned long long lowerBits = (1ULL << (BOARD_SIZE - square - 1)) - 1;
             bits = bits & lowerBits;
             return *this;
         }
@@ -97,7 +97,7 @@ class Bitboard {
 
         [[nodiscard]] constexpr size_t count() const {
             size_t count = 0;
-            ulong copy = bits;
+            unsigned long long copy = bits;
             while (copy) {
                 ++count;
                 copy &= copy - 1; // Clear the lowest set bit
@@ -122,7 +122,7 @@ class Bitboard {
         };
 
         [[nodiscard]] constexpr bool test(int bitNr) const {
-            ulong mask = 1UL << (BOARD_SIZE - bitNr - 1);
+            unsigned long long mask = 1ULL << (BOARD_SIZE - bitNr - 1);
             return bits & mask;
         }
 
@@ -131,7 +131,7 @@ class Bitboard {
                 return false;
             }
 
-            ulong mask = 1UL << (BOARD_SIZE - square - 1);
+            unsigned long long mask = 1ULL << (BOARD_SIZE - square - 1);
             return bits & mask;
         }
 
@@ -143,7 +143,7 @@ class Bitboard {
                 using pointer = Square*;
                 using reference = Square&;
 
-                explicit Iterator(ulong bits) : bitsCopy(bits) {}
+                explicit Iterator(unsigned long long bits) : bitsCopy(bits) {}
 
                 [[nodiscard]] bool operator==(const Iterator& other) const { return bitsCopy == other.bitsCopy; }
                 [[nodiscard]] bool operator!=(const Iterator& other) const { return bitsCopy != other.bitsCopy; }
@@ -158,7 +158,7 @@ class Bitboard {
                 }
 
             private:
-                ulong bitsCopy;
+                unsigned long long bitsCopy;
         };
 
         [[nodiscard]] Iterator begin() const {
@@ -170,6 +170,6 @@ class Bitboard {
         }
 
     private:
-        ulong bits;
+        unsigned long long bits;
 };
 

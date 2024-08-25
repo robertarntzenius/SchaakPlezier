@@ -21,18 +21,7 @@ constexpr const char *gameOverFEN = "k7/2KP4/8/8/8/8/8/8 b - - 20 10";
 
 
 #ifdef DEBUG
-// _assert will be compiled in Debug
-#define _assert(expr) \
-    if (!(expr)) { \
-        std::string logstream = "-- [ASSERTION FAILED] at " + \
-            std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        std::cerr << logstream << std::endl; \
-        std::cerr << "See build/Debug/board/test/PerformanceTest_defaultFEN.log for more information" << std::endl; \
-        exit(-1); \
-    }
-#else
-// _assert will not be compiled in Release
-#define _assert(expr) ((void)0)
+
 #endif
 
 [[nodiscard]] constexpr Square intToSquare(int i) {

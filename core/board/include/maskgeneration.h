@@ -15,7 +15,7 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computeRankMask(Rank rank) {
-        return Bitboard(0xFFUL << (BOARD_DIMENSIONS - rank - 1) * BOARD_DIMENSIONS);
+        return Bitboard(0xFFULL << (BOARD_DIMENSIONS - rank - 1) * BOARD_DIMENSIONS);
     }
 
     [[nodiscard]] constexpr Bitboard computeDiagonalsMask(int square, DirectionalOffset offset) {
