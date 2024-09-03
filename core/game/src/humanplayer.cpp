@@ -86,11 +86,11 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
                         break;
                 }
             } while (!valid);
-            
+
             Piecetype promotionPiecetype = move.promotionPiece;
             auto isPromotionMove = [fromSquare, toSquare, promotionPiecetype](const Move &move) {
-                return (   (move.fromSquare == fromSquare) 
-                        && (move.targetSquare == toSquare) 
+                return (   (move.fromSquare == fromSquare)
+                        && (move.targetSquare == toSquare)
                         && (move.promotionPiece == promotionPiecetype));
             };
 

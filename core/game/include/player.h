@@ -24,7 +24,7 @@ struct PlayerSettings {
     int MonteCarlo_Seed = 12;
 
     int MinMax_Depth = 4;
-    
+
     int AlphaBeta_Depth = 6;
 
     int Random_Seed = 6;
@@ -46,9 +46,9 @@ const std::unordered_map<std::string, PlayerType> stringPlayerTypeMap = {
     {"human", Human},
     {"Human", Human},
     {"random", Random},
-    {"Random", Random}, 
-    {"MinMax", MinMax}, 
-    {"minmax", MinMax}, 
+    {"Random", Random},
+    {"MinMax", MinMax},
+    {"minmax", MinMax},
     {"MonteCarlo", MonteCarlo},
     {"montecarlo", MonteCarlo},
     {"AlphaBeta", AlphaBeta},

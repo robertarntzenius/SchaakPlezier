@@ -22,7 +22,7 @@ void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare
             firstDirection = FirstOrthogonal;
             lastDirection = LastOrthogonal;
         break;
-        
+
         default:
             throw std::invalid_argument("Invalid Piecetype, generateSliderMoves() should be called with a slider");
         break;
@@ -51,7 +51,7 @@ void Board::generateSliderMoves(std::vector<Move> &moveVector, Square fromSquare
             default:
                 throw std::invalid_argument("Direction of Slider should be diagonal or orthogonal. Invalid direction received.");
         }
-        
+
 
         if (colorBitboards[~boardState.activePlayer].test(nearestPieceLocation)) {
             const Piecetype capturePiece = pieceMaps[~boardState.activePlayer].at(nearestPieceLocation);

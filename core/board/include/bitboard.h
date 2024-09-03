@@ -172,4 +172,3 @@ class Bitboard {
     private:
         unsigned long long bits;
 };
-

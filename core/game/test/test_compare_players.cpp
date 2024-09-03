@@ -16,10 +16,10 @@ int main() {
     Game game(std::move(whitePlayer), std::move(blackPlayer), selectedFEN);
 
     std::unordered_map<GameResult, size_t> gameresults;
-    
+
     try {
         for (int i = 0; i < nrGames; i++) {
-	        std::cout << "Game nr: " << i << " (out of " << nrGames << ")\n"; 
+	        std::cout << "Game nr: " << i << " (out of " << nrGames << ")\n";
             GameResult result = game.start();
 
             gameresults[result]++;

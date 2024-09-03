@@ -17,7 +17,7 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     # Exclude Clang-Tidy checks for the test files
     set_target_properties(${TEST_NAME} PROPERTIES
             CXX_CLANG_TIDY "")
-    
+
     target_compile_definitions(${TEST_NAME} PRIVATE ${BUILD_TYPE_FLAGS})
-    
+
 endforeach()
