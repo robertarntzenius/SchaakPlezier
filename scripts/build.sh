@@ -2,7 +2,7 @@
 
 root_dir="$PWD"
 source_dir="$root_dir/core"
-build_dir="$root_dir/build/$build_type"
+build_dir="$root_dir/build/Release"
 
 mkdir -p "$build_dir" || exit
 cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="Release" -DCMAKE_CXX_COMPILER="g++" -DCMAKE_C_COMPILER="gcc"
