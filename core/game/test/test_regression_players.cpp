@@ -32,7 +32,7 @@ void saveJSONToFile(const std::string& filePath, const json& data) {
 
 json loadJSON(const std::string& filePath) {
     std::ifstream file(filePath);
-    
+
     if (!file.is_open()) {
         std::cerr << "Failed to open file." << std::endl;
     }
@@ -51,7 +51,7 @@ void testRegressionPlayers(std::string &testPlayer, PlayerSettings settings, std
     PlayerFactory factory;
     std::unique_ptr<Player> whitePlayer = factory.makePlayer(testPlayer, settings);
     std::unique_ptr<Player> blackPlayer = factory.makePlayer("Random", settings);
-    
+
     Game game(std::move(whitePlayer), std::move(blackPlayer), selectedFEN);
 
     std::unordered_map<GameResult, size_t> gameresults;
@@ -75,12 +75,12 @@ void testRegressionPlayers(std::string &testPlayer, PlayerSettings settings, std
     size_t whiteWins = gameresults[WHITE_WIN_BY_CHECKMATE] + gameresults[WHITE_WIN_BY_TIME_OUT] + gameresults[WHITE_WIN_BY_FORFEIT];
     size_t blackWins = gameresults[BLACK_WIN_BY_CHECKMATE] + gameresults[BLACK_WIN_BY_TIME_OUT] + gameresults[BLACK_WIN_BY_FORFEIT];
     size_t draws = gameresults[DRAW_BY_STALEMATE] + gameresults[DRAW_BY_INSUFFICIENT_MATERIAL] + gameresults[DRAW_BY_REPETITION] + gameresults[DRAW_BY_50_MOVES];
-    
+
     // Round these to 2 decimals
     double whiteWinRate = (double)whiteWins / nrGames * 100;
     double blackWinRate = (double)blackWins / nrGames * 100;
     double drawRate = (double)draws / nrGames * 100;
-        
+
     // Metrics to JSON object
     json currentResult;
     currentResult["whitePlayer"] = game.getPlayerSettings(White);
@@ -89,15 +89,15 @@ void testRegressionPlayers(std::string &testPlayer, PlayerSettings settings, std
     currentResult["metrics"]["winRate (%)"] = whiteWinRate;
     currentResult["metrics"]["drawRate (%)"] = drawRate;
     currentResult["metrics"]["nrGames (#)"] = nrGames;
-    
+
     for (const auto &pair : gameresults) {
         std::string resultString = gameResultStringMap.at(pair.first);
         currentResult["gameresults"][resultString] = static_cast<int>(pair.second);
     }
-    
+
     std::string folderPath = "core/game/test/regression/white/" + currentResult["whitePlayer"]["playerType"].get<std::string>();
     std::string filePath = folderPath + "/" + testVar + std::to_string(game.getPlayerSettings(White)[testVar].get<int>()) + ".json";
-    
+
     // Assert not worse
     // Tests will fail if winrate goes down by tolerance %
     double tolerance = 5;
@@ -110,7 +110,7 @@ void testRegressionPlayers(std::string &testPlayer, PlayerSettings settings, std
         }
         assert(whiteWinRate >= previousWinRate - tolerance);
     }
-    
+
     createFolder(folderPath);
     saveJSONToFile(filePath, currentResult);
 }
@@ -132,7 +132,7 @@ void testRegressionMonteCarloDepth(int maxDepth) {
     PlayerSettings settings;
     std::string testPlayer = "MonteCarlo";
     std::string testVar = "movesPerGame";
-    
+
     for (int depth = 10; depth < maxDepth; depth += 10) {
         settings.MonteCarlo_Depth = depth;
         testRegressionPlayers(testPlayer, settings, testVar);
@@ -156,7 +156,6 @@ int main() {
 
     // testRegressionMonteCarloDepth(100);
     // testRegressionMonteCarloBreadth(100);
-    
+
     return 0;
 }
-

@@ -107,13 +107,13 @@ struct Move {
     Piecetype capturePiece    = NoType;   // Captures
     Square captureSquare    = NoSquare;   // Captures
     Square newEnPassant     = NoSquare;   // Double pawn moves
- 
+
     bool operator<=>(const Move&) const = default;
 };
 
 struct BoardState {
     Color activePlayer; //1
-    bool wKC, wQC, bKC, bQC; //4 
+    bool wKC, wQC, bKC, bQC; //4
     Square enPassantSquare; //1
     uint16_t fullMoveNumber, halfMoveClock; // 4
     uint64_t hash; // 16

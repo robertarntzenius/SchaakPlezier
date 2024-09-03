@@ -6,7 +6,8 @@ PROJECT_ROOT = Path(__file__).parents[2]
 ASSETS_DIR = PROJECT_ROOT / "core" / "schaak_plezier" / "assets"
 BIN_DIR = PROJECT_ROOT / "build" / "Release" / "bin"
 
-assert BIN_DIR.is_dir(), f"Error: {BIN_DIR} does not exist. Build the backend first by running the {PROJECT_ROOT}/scripts/build.<bat/sh> depending on your os."
+assert BIN_DIR.is_dir(), f"Error: {BIN_DIR} does not exist. Build the backend first by running the correct build script in {PROJECT_ROOT / 'scripts'} depending on your os."
+sys.path.append(str(BIN_DIR))
 
 if os.name == "nt":
     # windows only. source: https://stackoverflow.com/questions/78124769/pybind11-how-do-i-truly-fix-missing-dll-error
@@ -14,7 +15,6 @@ if os.name == "nt":
     MINGW_BIN = Path(r"c:\programdata\mingw64\mingw64\bin").resolve()
     assert MINGW_BIN.is_dir(), f"error: {MINGW_BIN} is not a valid directory."
 
-    sys.path.append(str(BIN_DIR))
     for dir in [BIN_DIR, MINGW_BIN]:
         os.add_dll_directory(str(dir))
 

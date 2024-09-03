@@ -8,7 +8,7 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
     if (!stringPlayerTypeMap.contains(playerTypeString)) {
         throw std::invalid_argument("Unknown player type");
     }
-        
+
     PlayerType playerType = stringPlayerTypeMap.at(playerTypeString);
     switch (playerType)
     {

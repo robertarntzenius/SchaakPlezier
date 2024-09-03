@@ -63,20 +63,20 @@ GameResult Game::start(bool print)
 //            }
 //            return WHITE_WIN_BY_FORFEIT; // Quit
 //        }
-        
+
 //        move = moves[playerChoice];
 
 //    logger.verbose(playerChoice, ": ", move);
 
 	board.doMove(move);
-    
+
         if (print) {
             logger.verbose(move);
             // Flush screen
             std::cout << "\033[2J\033[H";
         }
     }
-    
+
     // Game over
     if (print) {
         std::cout << board;

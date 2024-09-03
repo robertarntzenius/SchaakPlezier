@@ -20,11 +20,11 @@ class Game {
         void resetBoard();
         void setPlayer(Color color, const std::string &player);
         json getPlayerSettings(Color color);
-        
+
     private:
         PlayerFactory playerFactory;
         std::array<std::unique_ptr<Player>, NrColors> players;
-        
+
         ChessLogger& logger;
         std::string FENString;
         Board board;
