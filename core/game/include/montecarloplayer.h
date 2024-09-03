@@ -23,18 +23,18 @@ public:
             #pragma omp parallel for
             for (size_t i = 0; i < nrGames; i++) {
                 GameResult result = simulateGame(board);
-                
+
                 if ((board.getActivePlayer() == White && result == WHITE_WIN_BY_CHECKMATE) ||
                     (board.getActivePlayer() == Black && result == BLACK_WIN_BY_CHECKMATE)) {
                     #pragma omp atomic
                     currentEval++;
-                }                                    
+                }
             }
-            
+
             if (currentEval > bestEval) {
                 bestEval = currentEval;
                 bestMove = moveIndex;
-            }            
+            }
         }
 
         return moves[bestMove];
@@ -48,16 +48,16 @@ public:
             {"breadth", nrGames},
             {"depth", movesPerGame}
         };
-        return settings; 
+        return settings;
     }
 private:
     [[nodiscard]] GameResult simulateGame(Board board) {
         std::vector<Move> moves;
 
         board.getPossibleMoves(moves);
-        
+
         int depth = 0;
-                
+
         while (board.getGameResult(moves.empty()) == NOT_OVER) {
             if (depth >= movesPerGame) {
                 return (evaluate(board) >= 0) ? WHITE_WIN_BY_CHECKMATE : BLACK_WIN_BY_CHECKMATE;
@@ -69,7 +69,7 @@ private:
             board.getPossibleMoves(moves);
             depth++;
         }
-        
+
         return board.getGameResult(moves.empty());
     }
 

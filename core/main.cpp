@@ -6,7 +6,7 @@
 
 
 int main(int argc, char *argv[]) {
-    
+
     const char *selectedFEN = defaultStartingFEN;
     PlayerFactory playerFactory;
     std::unique_ptr<Player> whitePlayer = PlayerFactory::makePlayer("Human");

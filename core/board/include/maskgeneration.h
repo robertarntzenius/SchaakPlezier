@@ -19,14 +19,14 @@ namespace MaskGeneration {
     }
 
     [[nodiscard]] constexpr Bitboard computeDiagonalsMask(int square, DirectionalOffset offset) {
-        
+
         Bitboard scope;
 
         while (true) {
             if ( ((square - offset) < a8) || ((square - offset) > h1) ) {
                 return scope;
             }
-            
+
             switch (offset)
             {
             case OFFSET_NORTHEAST:
@@ -159,7 +159,7 @@ namespace MaskGeneration {
         }
         return knightAttacks;
     }
-    
+
     [[nodiscard]] constexpr Bitboard computeKnightScopeFromSquare(Square square) {
         Bitboard playerKnight;
         playerKnight.set(square);

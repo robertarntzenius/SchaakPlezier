@@ -8,7 +8,7 @@ public:
     : gen(seed)
     {
     }
-    
+
     RandomPlayer(PlayerSettings settings)
     : gen(settings.Random_Seed)
     {

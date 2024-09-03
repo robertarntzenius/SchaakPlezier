@@ -70,7 +70,7 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
     int halfmoveClock = halfMoveDist(gen);
     int fullmoveNumber = fullMoveDist(gen);
 
-    
+
     int countK = std::count(boardString.begin(), boardString.end(), 'K');
     int countk = std::count(boardString.begin(), boardString.end(), 'k');
     if ( (countK != 1) || (countk != 1) ) {
@@ -79,7 +79,7 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
 
     std::string BlackStartingRank = boardString.substr(0, boardString.find('/'));
     std::string WhiteStartingRank = boardString.substr(boardString.rfind('/') + 1);
-    
+
     int countP = 0;
     int countp = 0;
 
@@ -88,11 +88,11 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
 
     countp += std::count(BlackStartingRank.begin(), BlackStartingRank.end(), 'p');
     countp += std::count(WhiteStartingRank.begin(), WhiteStartingRank.end(), 'p');
-    
+
     if (countP + countp != 0) {
         return generateRandomValidFEN(attemptsLeft - 1, maxPiecesPerType);
     }
-    
+
     auto isPieceAt = [](const std::string& rankString, char pieceChar, File file) -> bool {
         int _file = 0;
         for (const char c : rankString) {
@@ -107,7 +107,7 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
         }
         return false;
     };
-    
+
     std::string castlingString = "KQkq";
     auto removeCastlingRight = [](std::string& castlingString, char right) {
         castlingString.erase(std::remove(castlingString.begin(), castlingString.end(), right), castlingString.end());
@@ -128,7 +128,7 @@ std::string generateRandomValidFEN(int attemptsLeft, int maxPiecesPerType) {
     }
 
     std::string _FEN = boardString + ' ' + activePlayer + ' ' + castlingString + ' ' + enPassant + ' ' + std::to_string(halfmoveClock) + ' ' + std::to_string(fullmoveNumber);
-    
+
     try {
         Board board(_FEN.c_str());
         std::vector<Move> moves;
@@ -199,14 +199,14 @@ void test_board_incremental_hash_update(std::vector<std::string>& TEST_FENS) {
         uint64_t hashBeforeMoveGen = board.computeHashFromScratch();
         uint64_t hashBeforeMoveGen_inc = board.getBoardState().hash;
         assertHashEqual(hashBeforeMoveGen, hashBeforeMoveGen_inc, "hashBeforeMoveGen != hashBeforeMoveGen_inc");
-        
+
         std::vector<Move> moves;
         board.getPossibleMoves(moves);
-        
+
         uint64_t hashAfterMovegen = board.computeHashFromScratch();
         uint64_t hashAfterMovegen_inc = board.getBoardState().hash;
         assertHashEqual(hashAfterMovegen, hashAfterMovegen_inc, "hashAfterMovegen != hashAfterMovegen_inc");
-        assertHashEqual(hashBeforeMoveGen_inc, hashAfterMovegen_inc, "hashBeforeMoveGen_inc != hashAfterMovegen_inc"); 
+        assertHashEqual(hashBeforeMoveGen_inc, hashAfterMovegen_inc, "hashBeforeMoveGen_inc != hashAfterMovegen_inc");
 
         board.doMove(moves[0]);
 
@@ -223,7 +223,7 @@ void test_board_incremental_hash_update(std::vector<std::string>& TEST_FENS) {
 void test_board_hash_collisions(std::vector<std::string>& TEST_FENS) {
     std::cout << "test_board_hash_collisions" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     std::unordered_set<uint64_t> hashSet;
     size_t collisionCount = 0;
 
@@ -248,11 +248,11 @@ void test_board_hash_collisions(std::vector<std::string>& TEST_FENS) {
 
 void test_board_hash_consistency(std::vector<std::string>& TEST_FENS) {
     std::cout << "test_board_hash_consistency" << std::endl;
-    
+
     size_t collisionCount = 0;
 
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     for (const auto& FEN : TEST_FENS) {
         Board board(FEN.c_str());
         uint64_t hashValue1 = std::hash<Board>{}(board);
@@ -270,7 +270,7 @@ void test_board_hash_consistency(std::vector<std::string>& TEST_FENS) {
 int main() {
     std::string fn = "testFENS.txt";
     int numFENS = 10000;
-    
+
     generateTestFENs(numFENS, fn);
     std::vector<std::string> TEST_FENS = readFENStringsFromFile(fn);
 
