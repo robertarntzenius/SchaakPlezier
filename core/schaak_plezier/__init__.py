@@ -4,9 +4,9 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parents[2]
 ASSETS_DIR = PROJECT_ROOT / "core" / "schaak_plezier" / "assets"
-BIN_DIR = PROJECT_ROOT / "build" / "bin"
+BIN_DIR = PROJECT_ROOT / "build" / "Release" / "bin"
 
-assert BIN_DIR.is_dir(), f"Error: {BIN_DIR} does not exist. Build the backend first by running the build script corresponding to your os, located in {PROJECT_ROOT / "scripts"}. "
+assert BIN_DIR.is_dir(), f"Error: {BIN_DIR} does not exist. Build the backend first by running the {PROJECT_ROOT}/scripts/build.<bat/sh> depending on your os."
 
 if os.name == "nt":
     # windows only. source: https://stackoverflow.com/questions/78124769/pybind11-how-do-i-truly-fix-missing-dll-error
