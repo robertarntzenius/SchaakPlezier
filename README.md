@@ -4,50 +4,46 @@
 
 Follow these steps to set up the development environment for the SchaakPlezier project.
 
-### 1. Create a Virtual Environment
-
-First, create a virtual environment using the following command:
+### 1. Install build tools
+#### Windows
+- Install python (if you dont have it already) form LINK_HERE.
+- Install chocolatey by downloading it from LINK_HERE.
+- Run the following command from a terminal with admin rights to install c++ and it's build tools:
+```cmd
+choco install mingw cmake ninja
+```
+#### Linux
 
 ```bash
-python -m venv .venv
+sudo apt-get install python g++ cmake
 ```
 
-### 2. Activate the Virtual Environment
-Activate the virtual environment using the appropriate command for your operating system and shell:
-
-| Platform | Shell         | Command                                      |
-|----------|---------------|----------------------------------------------|
-| POSIX    | `bash/zsh`    | `source .venv/bin/activate`                  |
-|          | `fish`        | `source .venv/bin/activate.fish`             |
-|          | `csh/tcsh`    | `source .venv/bin/activate.csh`              |
-|          | `PowerShell`  | `.venv/bin/Activate.ps1`                     |
-| Windows  | `cmd.exe`     | `.venv\Scripts\activate.bat`                 |
-|          | `PowerShell`  | `.venv\Scripts\Activate.ps1`                 |
-
-For more information on creating and managing virtual environments, refer to the [Python documentation](https://docs.python.org/3/library/venv.html).
-
-
-### 3. Initialize submodules
-```bash
-git submodule update --init --recursive
-```
-
-
-### 3. Build, install and run
+### 2. Build and install
 
 Run a script that will retrieve, build and install all dependencies (Python and C++)
 
-### Linux
-```bash
-./scripts/run_schaakplezier.sh
+#### Windows
+```cmd
+.\scripts\build.bat
 ```
 
-### Windows
-```cmd
-.\scripts\run_schaakplezier.bat
+#### Linux
+```bash
+./scripts/build.sh
 ```
 
 Manual configuration (Linux only)
 ```bash
 ./scripts/BuildAndRunAdvanced.sh -h
+```
+
+### 3. Run
+#### Windows
+```cmd
+.\scripts\run.bat
+```
+
+#### Linux
+```bash
+./scripts/run.sh
 ```
