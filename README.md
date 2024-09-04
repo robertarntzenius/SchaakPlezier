@@ -8,11 +8,9 @@ Follow these steps to set up the development environment for the SchaakPlezier p
 #### Windows
 - Install python (if you dont have it already) form LINK_HERE.
 - Install chocolatey by downloading it from LINK_HERE.
-- Run the following commands from a terminal with admin rights to install c++ and it's build tools:
+- Run the following command from a terminal with admin rights to install c++ and it's build tools:
 ```cmd
-choco install mingw
-choco install cmake
-choco install ninja
+choco install mingw cmake ninja
 ```
 #### Linux
 
