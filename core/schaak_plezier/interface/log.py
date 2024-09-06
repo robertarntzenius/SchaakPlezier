@@ -4,6 +4,8 @@ import sys
 from contextlib import contextmanager
 from pathlib import Path
 
+from schaak_plezier.interface.config import SETTINGS
+
 
 class FixedWidthFormatter(logging.Formatter):
     def format(self, record):
@@ -14,19 +16,16 @@ class FixedWidthFormatter(logging.Formatter):
 
 
 class SchaakPlezierLogging:
-    _DEFAULT_FORMATTER = logging.Formatter(
-        fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%H:%M:%S",
-    )
+    _DEFAULT_FORMATTER = FixedWidthFormatter()
 
     _root_logger = logging.getLogger()
 
     def __init__(
         self,
-        file_path: str = None,
-        loglevel_console: int = logging.DEBUG,
-        loglevel_root: int = logging.INFO,
-        loglevel_files: int = logging.DEBUG,
+        file_path: str = SETTINGS.log_file,
+        loglevel_console: int = SETTINGS.log_level,
+        loglevel_root: int = SETTINGS.log_level,
+        loglevel_files: int = SETTINGS.log_level,
         formatter: logging.Formatter = _DEFAULT_FORMATTER,
     ) -> None:
         """Initialize the logging system for the SchaakPlezier."""

@@ -4,7 +4,7 @@ from schaak_plezier.gui.gui import Gui
 from schaak_plezier.interface.app import IApplication, Mode
 from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.game import IPlayer
-from schaak_plezier.interface.log import FixedWidthFormatter, SchaakPlezierLogging
+from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
 from schaak_plezier.model.piece import Piece
@@ -22,11 +22,7 @@ class SchaakPlezier(IApplication):
     def __init__(self, argv: List[str]) -> None:
         super().__init__(argv)
 
-        SchaakPlezierLogging(
-            file_path=SETTINGS.log_file,
-            loglevel_root=SETTINGS.log_level,
-            formatter=FixedWidthFormatter(),
-        )
+        SchaakPlezierLogging()  # Init
         self.logger = SchaakPlezierLogging.getLogger(__name__)
 
         self.board = Chessboard()
