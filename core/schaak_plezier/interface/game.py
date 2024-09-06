@@ -16,6 +16,9 @@ class IChessboard(ObservableWidget):
     @abstractmethod
     def undo_move(self) -> None: ...
 
+    @abstractmethod
+    def redo_move(self) -> None: ...
+
     @property
     @abstractmethod
     def history() -> list[Move]: ...

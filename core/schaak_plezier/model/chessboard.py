@@ -16,6 +16,7 @@ class Chessboard(ObservableWidget):
         super().__init__()
         self.logger = SchaakPlezierLogging.getLogger(__name__)
         self._board = wrappers.Board(SETTINGS.fen_string, SETTINGS.log_file.as_posix())
+        self.redo_list = []
         self.notify_observers(board=self)
         self.logger.info("Created chessboard")
 
@@ -25,8 +26,14 @@ class Chessboard(ObservableWidget):
 
     def undo_move(self) -> None:
         if len(self.history) > 0:
+            self.redo_list.append(self.history[-1])
             self._board.undoMove()
             self.notify_observers(board=self)
+
+    def redo_move(self) -> None:
+        self.logger.debug("redo")
+        if len(self.redo_list) > 0:
+            self.do_move(self.redo_list.pop())
 
     def clear_board(self) -> None:
         self._board.clearBoard()

@@ -67,6 +67,9 @@ class Gui(IGUI):
         undo_board_button = QPushButton("Undo")
         undo_board_button.clicked.connect(self.app.undo_move)
 
+        redo_board_button = QPushButton("Redo")
+        redo_board_button.clicked.connect(self.app.redo_move)
+
         quit_button = QPushButton("Resign")
         quit_button.clicked.connect(self.resign)
 
@@ -75,7 +78,8 @@ class Gui(IGUI):
         main_layout.addWidget(edit_players_button, 5, 3)
         main_layout.addWidget(edit_board_button, 5, 4)
         main_layout.addWidget(undo_board_button, 5, 5)
-        main_layout.addWidget(quit_button, 5, 6)
+        main_layout.addWidget(redo_board_button, 5, 6)
+        main_layout.addWidget(quit_button, 5, 7)
 
         # Menu
         menu_bar = self.menuBar()

@@ -99,6 +99,9 @@ class SchaakPlezier(IApplication):
         # self.notify_observers(sound=self.determine_sound(move))
         self.board.undo_move()
 
+    def redo_move(self):
+        return self.board.redo_move()
+
     def try_validate(self):
         valid, error_list = self.board.validate()
 
