@@ -1,7 +1,9 @@
 import logging
 from pathlib import Path
 
+import tomli
 from pydantic import BaseModel, Field, field_validator
+from schaak_plezier import ASSETS_DIR
 
 
 class RGBAColor(BaseModel):
@@ -59,3 +61,9 @@ class GUIConfig(BaseModel):
     white_player: str
     black_player: str
     colors: ColorConfig
+
+
+with open(ASSETS_DIR / "config" / "config.toml", "rb") as toml:
+    data = tomli.load(toml)
+
+SETTINGS = GUIConfig.model_validate(data)
