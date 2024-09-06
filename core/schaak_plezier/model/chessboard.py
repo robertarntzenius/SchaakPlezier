@@ -31,7 +31,6 @@ class Chessboard(ObservableWidget):
             self.notify_observers(board=self)
 
     def redo_move(self) -> None:
-        self.logger.debug("redo")
         if len(self.redo_list) > 0:
             self.do_move(self.redo_list.pop())
 

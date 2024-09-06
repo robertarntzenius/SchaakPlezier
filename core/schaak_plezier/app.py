@@ -1,9 +1,9 @@
 from typing import List
 
 from schaak_plezier.gui.gui import Gui
-from schaak_plezier.interface.app import IGUI, IApplication, Mode
+from schaak_plezier.interface.app import IApplication, Mode
 from schaak_plezier.interface.config import SETTINGS
-from schaak_plezier.interface.game import IChessboard, IPlayer
+from schaak_plezier.interface.game import IPlayer
 from schaak_plezier.interface.log import FixedWidthFormatter, SchaakPlezierLogging
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
@@ -12,12 +12,12 @@ from schaak_plezier.model.player import HumanPlayer, Player
 
 
 class SchaakPlezier(IApplication):
-    board: IChessboard
+    board: Chessboard
     white_player: IPlayer
     black_player: IPlayer
     piece_to_add: Piece
 
-    gui: IGUI
+    gui: Gui
 
     def __init__(self, argv: List[str]) -> None:
         super().__init__(argv)
@@ -31,7 +31,7 @@ class SchaakPlezier(IApplication):
 
         self.board = Chessboard()
 
-        self.gui: Gui = Gui(self)
+        self.gui = Gui(self)
         self.gui.update()
 
     def build(self):
