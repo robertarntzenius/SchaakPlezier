@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QPushButton, QVBoxLayout
 
+from schaak_plezier.interface.app import IGUI
 from schaak_plezier.interface.wrapper_types import Color, Piecetype, Square
 from schaak_plezier.model.piece import Piece
 
@@ -28,8 +29,10 @@ class EditBoardDialog(QDialog):
     boardCleared_signal = pyqtSignal()
     tryValidate_signal = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, gui: IGUI, parent=None):
         super().__init__(parent)
+        self.gui = gui
+
         self.setWindowTitle("Edit Board")
 
         layout = QVBoxLayout()
@@ -69,6 +72,13 @@ class EditBoardDialog(QDialog):
         self.setLayout(layout)
 
         self.piece_to_add = None
+
+        self.pieceToAdd_signal.connect(
+            lambda color, piecetype: self.gui.set_piece_to_add(color, piecetype)
+        )
+
+        self.boardCleared_signal.connect(self.gui.clear_board)
+        self.tryValidate_signal.connect(self.gui.try_validate)
 
     def clear_board(self):
         self.boardCleared_signal.emit()

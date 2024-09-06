@@ -2,7 +2,7 @@ from typing import Tuple
 
 import wrappers
 
-from schaak_plezier.interface.config import GUIConfig
+from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.observe import ObservableWidget
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
@@ -12,11 +12,11 @@ from schaak_plezier.model.piece import Piece
 class Chessboard(ObservableWidget):
     _board: wrappers.Board
 
-    def __init__(self, config: GUIConfig):
+    def __init__(self):
         super().__init__()
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self.config = config
-        self._board = wrappers.Board(self.config.fen_string, self.config.log_file.as_posix())
+        self._board = wrappers.Board(SETTINGS.fen_string, SETTINGS.log_file.as_posix())
+        self.redo_list = []
         self.notify_observers(board=self)
         self.logger.info("Created chessboard")
 
@@ -26,8 +26,14 @@ class Chessboard(ObservableWidget):
 
     def undo_move(self) -> None:
         if len(self.history) > 0:
+            self.redo_list.append(self.history[-1])
             self._board.undoMove()
             self.notify_observers(board=self)
+
+    def redo_move(self) -> None:
+        self.logger.debug("redo")
+        if len(self.redo_list) > 0:
+            self.do_move(self.redo_list.pop())
 
     def clear_board(self) -> None:
         self._board.clearBoard()

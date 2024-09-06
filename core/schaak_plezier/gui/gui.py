@@ -9,45 +9,38 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from schaak_plezier.interface.app import IController, IView, Mode
-from schaak_plezier.interface.config import GUIConfig
+from schaak_plezier.gui.chessboard_view import ChessboardView, IChessboardView
+from schaak_plezier.gui.edit_board_dialog import EditBoardDialog
+from schaak_plezier.gui.edit_fen_dialog import EditFenDialog
+from schaak_plezier.gui.edit_players_dialog import EditPlayersDialog
+from schaak_plezier.gui.errordialog import ErrorDialog
+from schaak_plezier.gui.history_box import HistoryBox
+from schaak_plezier.interface.app import IGUI, IApplication, Mode
+from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.log import SchaakPlezierLogging
-from schaak_plezier.view.chessboard_view import ChessboardView
-from schaak_plezier.view.edit_board_dialog import EditBoardDialog
-from schaak_plezier.view.edit_fen_dialog import EditFenDialog
-from schaak_plezier.view.edit_players_dialog import EditPlayersDialog
-from schaak_plezier.view.errordialog import ErrorDialog
-from schaak_plezier.view.history_box import HistoryBox
 
 
-class View(IView):
-    config: GUIConfig
-    controller: IController
-
-    # OBSERVERS
+class Gui(IGUI):
     history_box: HistoryBox
-    chessboard_view: ChessboardView
+    chessboard_view: IChessboardView
     edit_board_dialog: EditBoardDialog
 
-    def __init__(self, controller: IController, config: GUIConfig):
+    def __init__(self, app: IApplication):
         super().__init__()
-        self.config = config
-        self.controller = controller
+        self.app = app
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self.setWindowTitle(self.config.title)
-        self.initUI()
-        self.show()
-        self.logger.info("Created view")
+        self.mode = Mode.IDLE
 
-    def initUI(self):
+        # OBSERVERS
+        self.history_box = HistoryBox(self.app.board, self)
+        self.chessboard_view = ChessboardView(self.app.board, self)
+        self.edit_board_dialog = EditBoardDialog(self)
+
+    def build(self):
+        self.setWindowTitle(SETTINGS.title)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QGridLayout(central_widget)
-
-        # OBSERVERS
-        self.history_box = HistoryBox(self.controller.board, self)
-        self.chessboard_view = ChessboardView(self.controller, self.config, self)
-        self.edit_board_dialog = EditBoardDialog(self)
 
         main_layout.addWidget(self.history_box, 0, 0, 3, 1)
         main_layout.addWidget(self.chessboard_view, 0, 1, 5, 5)
@@ -72,7 +65,10 @@ class View(IView):
         self.edit_board_dialog.hide()
 
         undo_board_button = QPushButton("Undo")
-        undo_board_button.clicked.connect(self.controller.undo_move)
+        undo_board_button.clicked.connect(self.app.undo_move)
+
+        redo_board_button = QPushButton("Redo")
+        redo_board_button.clicked.connect(self.app.redo_move)
 
         quit_button = QPushButton("Resign")
         quit_button.clicked.connect(self.resign)
@@ -82,7 +78,8 @@ class View(IView):
         main_layout.addWidget(edit_players_button, 5, 3)
         main_layout.addWidget(edit_board_button, 5, 4)
         main_layout.addWidget(undo_board_button, 5, 5)
-        main_layout.addWidget(quit_button, 5, 6)
+        main_layout.addWidget(redo_board_button, 5, 6)
+        main_layout.addWidget(quit_button, 5, 7)
 
         # Menu
         menu_bar = self.menuBar()
@@ -92,8 +89,8 @@ class View(IView):
         file_menu.addAction(exit_action)
 
         # Display player types
-        self.white_player_label = QLabel("White Player: " + self.config.white_player)
-        self.black_player_label = QLabel("Black Player: " + self.config.black_player)
+        self.white_player_label = QLabel("White Player: " + SETTINGS.white_player)
+        self.black_player_label = QLabel("Black Player: " + SETTINGS.black_player)
 
         main_layout.addWidget(self.black_player_label, 0, 6, alignment=Qt.AlignTop | Qt.AlignRight)
         main_layout.addWidget(
@@ -101,33 +98,44 @@ class View(IView):
         )
 
         self.show()
+        self.logger.info("Built GUI")
 
     ##### EDIT MODE CALLBACKS #####
     def toggle_edit_mode(self):
-        if self.controller.mode == Mode.EDIT:
-            self.controller.mode = Mode.IDLE
+        if self.mode == Mode.EDIT:
+            self.mode = Mode.IDLE
             self.edit_board_dialog.hide()
         else:
-            self.controller.mode = Mode.EDIT
+            self.mode = Mode.EDIT
             self.edit_board_dialog.show()
+
+    def try_add_piece(self, square):
+        self.app.try_add_piece(square)
+
+    def set_piece_to_add(self, color, piecetype):
+        self.app.set_piece_to_add(color, piecetype)
 
     ##### BUTTON CALLBACKS #####
     def start_game(self):
-        self.controller.start_game()
+        self.app.start_game()
+
+    def clear_board(self):
+        self.app.clear_board()
+
+    def try_validate(self):
+        self.app.try_validate()
 
     def resign(self):
         self.selected_square = None
         self.selected_piece_moves = []
-        if self.controller.mode == Mode.PLAYING:
-            losing_color = self.controller.resign()
+        if self.mode == Mode.PLAYING:
+            losing_color = self.app.resign()
             QMessageBox.information(self, "Game Over", f"{losing_color} resigned.")
         self.update()
 
     def edit_fen_dialog(self):
-        if self.controller.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(
-                f"Can only edit the fen in IDLE mode: {self.controller.mode}", self
-            )
+        if self.mode != Mode.IDLE:
+            error_dialog = ErrorDialog(f"Can only edit the fen in IDLE mode: {self.mode}", self)
             error_dialog.exec_()
             return
         while True:
@@ -135,7 +143,7 @@ class View(IView):
             if dialog.exec_() == QDialog.Accepted:
                 fen_string = dialog.get_fen_string()
                 try:
-                    self.controller.initialize_from_fen(fen_string)
+                    self.app.initialize_from_fen(fen_string)
                     break
                 except ValueError as e:
                     error_dialog = ErrorDialog(str(e), self)
@@ -144,17 +152,15 @@ class View(IView):
                 break
 
     def edit_players_dialog(self):
-        if self.controller.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(
-                f"Can only edit the players in IDLE mode: {self.controller.mode}", self
-            )
+        if self.mode != Mode.IDLE:
+            error_dialog = ErrorDialog(f"Can only edit the players in IDLE mode: {self.mode}", self)
             error_dialog.exec_()
             return
         while True:
             dialog = EditPlayersDialog(self)
             if dialog.exec_() == QDialog.Accepted:
                 white_player, black_player = dialog.get_player_types()
-                self.controller.set_players(white_player, black_player)
+                self.app.set_players(white_player, black_player)
                 self.white_player_label.setText("White Player: " + white_player)
                 self.black_player_label.setText("Black Player: " + black_player)
                 break
@@ -162,6 +168,6 @@ class View(IView):
                 break
 
     def closeEvent(self, event):
-        self.controller.mode = Mode.IDLE
+        self.mode = Mode.IDLE
         self.logger.info("Closing application...")
         event.accept()  # Accept the event and close the window

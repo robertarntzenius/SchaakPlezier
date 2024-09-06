@@ -9,7 +9,6 @@ from schaak_plezier.interface.wrapper_types import Move
 class HistoryBox(ObserverWidget):
     def __init__(self, board: IChessboard, parent=None):
         super().__init__(observable_list=[board], parent=parent)
-        self.board = board
         self.layout = QVBoxLayout()
 
         history_label = QLabel("Game history")
@@ -23,12 +22,12 @@ class HistoryBox(ObserverWidget):
 
         self.setLayout(self.layout)
 
-    def notify(self, board=None):
+    def notify(self, board: IChessboard = None, **kwargs):
         if board is not None:
-            self.update_history_list()
+            self.update_history_list(board)
 
-    def update_history_list(self):
+    def update_history_list(self, board: IChessboard):
         self.model.setStringList([])
-        if self.board.history:
-            history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(self.board.history)]
+        if board.history:
+            history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(board.history)]
             self.model.setStringList(history_list)

@@ -1,64 +1,62 @@
-from schaak_plezier.interface.app import IController, IView, Mode
-from schaak_plezier.interface.config import GUIConfig
+from typing import List
+
+from schaak_plezier.gui.gui import Gui
+from schaak_plezier.interface.app import IGUI, IApplication, Mode
+from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.game import IChessboard, IPlayer
-from schaak_plezier.interface.log import SchaakPlezierLogging
+from schaak_plezier.interface.log import FixedWidthFormatter, SchaakPlezierLogging
 from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
 from schaak_plezier.model.piece import Piece
 from schaak_plezier.model.player import HumanPlayer, Player
 
 
-class Controller(IController):
-    config: GUIConfig
+class SchaakPlezier(IApplication):
     board: IChessboard
-    mode: Mode
+    white_player: IPlayer
+    black_player: IPlayer
+    piece_to_add: Piece
 
-    def __init__(self, config: GUIConfig):
-        super().__init__()
-        self.config = config
+    gui: IGUI
+
+    def __init__(self, argv: List[str]) -> None:
+        super().__init__(argv)
+
+        SchaakPlezierLogging(
+            file_path=SETTINGS.log_file,
+            loglevel_root=SETTINGS.log_level,
+            formatter=FixedWidthFormatter(),
+        )
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self.board: Chessboard = Chessboard(config)
 
-        self.view = None
-        self.white_player: IPlayer = None
-        self.black_player: IPlayer = None
-        self.piece_to_add = None
+        self.board = Chessboard()
 
-        self.initialize_from_fen(self.config.fen_string)
-        self.mode: Mode = Mode.IDLE
+        self.gui: Gui = Gui(self)
+        self.gui.update()
 
-        # self.sound_player = SoundPlayer(self)
-        self.logger.info("Created controller")
+    def build(self):
+        self.set_players(SETTINGS.white_player, SETTINGS.black_player)
+        self.initialize_from_fen(SETTINGS.fen_string)
+        self.gui.build()
 
-    def connect_view(self, view: IView):
-        self.view = view
-        self.set_players(self.config.white_player, self.config.black_player)
-
-        # SIGNALS
-        self.view.chessboard_view.squareClickedInEditMode.connect(
-            lambda square: self.try_add_piece(square)
-        )
-        self.view.edit_board_dialog.pieceToAdd_signal.connect(
-            lambda color, piecetype: self.set_piece_to_add(color, piecetype)
-        )
-
-        self.view.edit_board_dialog.boardCleared_signal.connect(self.board.clear_board)
-        self.view.edit_board_dialog.tryValidate_signal.connect(self.try_validate)
-        self.view.update()
-        self.logger.debug("Connected view")
+    def run(self):
+        if self.exec_() != 0:
+            raise RuntimeError("Application exited with a non-zero exit code.")
 
     def start_game(self) -> GameResult:
-        if self.mode != Mode.IDLE:
-            self.logger.warning(f"Can only start a game when in IDLE mode. {self.mode}")
+        if self.gui.mode != Mode.IDLE:
+            self.logger.warning(f"Can only start a game when in IDLE mode. {self.gui.mode}")
             return
 
         self.logger.debug(
             f"Starting game with players: {self.white_player.player_type} and {self.black_player.player_type}"
         )
-        self.mode = Mode.PLAYING
+        self.gui.mode = Mode.PLAYING
         # self.notify_observers(sound=Sound.game_start)
 
-        while (self.board.game_result == GameResult("NOT_OVER")) and (self.mode == Mode.PLAYING):
+        while (self.board.game_result == GameResult("NOT_OVER")) and (
+            self.gui.mode == Mode.PLAYING
+        ):
             current_player = self.get_current_player()
             player_move = current_player.decide_on_move(self.board)
             self.do_move(player_move)
@@ -66,7 +64,7 @@ class Controller(IController):
 
         self.logger.debug(f"Game over: {self.board.game_result}")
         # self.notify_observers(sound=Sound.game_end)
-        self.mode = Mode.IDLE
+        self.gui.mode = Mode.IDLE
 
         return self.board.game_result
 
@@ -77,15 +75,15 @@ class Controller(IController):
 
     def set_players(self, white: str, black: str) -> None:
         self.white_player: IPlayer = (
-            Player(white) if white.lower() != "human" else HumanPlayer(self.view.chessboard_view)
+            Player(white) if white.lower() != "human" else HumanPlayer(self)
         )
         self.black_player: IPlayer = (
-            Player(black) if black.lower() != "human" else HumanPlayer(self.view.chessboard_view)
+            Player(black) if black.lower() != "human" else HumanPlayer(self)
         )
 
     def resign(self) -> Color:
-        if self.mode == Mode.PLAYING:
-            self.mode = Mode.IDLE
+        if self.gui.mode == Mode.PLAYING:
+            self.gui.mode = Mode.IDLE
             # self.notify_observers(sound=Sound.game_end)
         return self.board.active_player
 
@@ -101,14 +99,20 @@ class Controller(IController):
         # self.notify_observers(sound=self.determine_sound(move))
         self.board.undo_move()
 
+    def redo_move(self):
+        return self.board.redo_move()
+
     def try_validate(self):
         valid, error_list = self.board.validate()
 
         if valid:
             self.logger.info("Board validated")
-            self.view.toggle_edit_mode()
+            self.gui.toggle_edit_mode()
         else:
             self.logger.warning("\n ".join(error_list))
+
+    def clear_board(self):
+        self.board.clear_board()
 
     def try_add_piece(self, square):
         # signal from chessboardboard_view
