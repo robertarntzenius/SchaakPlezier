@@ -96,6 +96,7 @@ void Board::clearBoard() {
 
     history = std::stack<MoveCommand>();
     repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
 }
 
 void Board::getPseudoLegalMoves(std::vector<Move> &pseudoLegalMoves) const {
@@ -241,20 +242,53 @@ void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>,
     pieceMaps = copyMaps;
 }
 
+
+PieceInfo Board::pieceAtSquare(Square square) const
+{
+    PieceInfo pieceInfo;
+
+    if (pieceMaps[White].find(square) != pieceMaps[White].end()) {
+        pieceInfo.color = White;
+        pieceInfo.square = square;
+        pieceInfo.type = pieceMaps[White].at(square);
+    }
+    else if (pieceMaps[Black].find(square) != pieceMaps[Black].end()) {
+        pieceInfo.color = Black;
+        pieceInfo.square = square;
+        pieceInfo.type = pieceMaps[Black].at(square);
+    }
+    return pieceInfo;
+}
+
 void Board::addPiece(Color color, Piecetype pieceType, Square square)
 {
+    PieceInfo piece = pieceAtSquare(square);
+    if (piece != PieceInfo()) {
+        removePiece(piece.color, piece.type, piece.square);
+    }
+
     piecetypeBitboards[pieceType].set(square);
     colorBitboards[color].set(square);
     pieceMaps[color][square] = pieceType;
     hashPiece(color, pieceType, square);
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
 }
 
 void Board::removePiece(Color color, Piecetype pieceType, Square square)
 {
+    if (pieceAtSquare(square) == PieceInfo()) return;
+
     piecetypeBitboards[pieceType].set(square, false);
     colorBitboards[color].set(square, false);
     pieceMaps[color].erase(square);
     hashPiece(color, pieceType, square);
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
 }
 
 void Board::hashPiece(Color player, Piecetype pieceType, Square square) {
@@ -683,9 +717,7 @@ bool Board::checkFiftyMoveRule() const
 
 bool Board::checkThreeFoldRepetition() const
 {
-    if (repetitionTable.at(boardState.hash) >= 3) {
-        return true;
-    }
+    if (repetitionTable.at(boardState.hash) >= 3) return true;
 
     return false;
 }

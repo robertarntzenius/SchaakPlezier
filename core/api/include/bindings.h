@@ -13,6 +13,7 @@ void bindEnums(py::module& m) {
     py::enum_<Color>(m, "Color")
         .value("White", Color::White)
         .value("Black", Color::Black)
+        .value("NoColor", Color::NoColor)
         .value("NrColors", Color::NrColors);
 
     // Bind Square enum

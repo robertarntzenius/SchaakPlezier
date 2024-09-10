@@ -9,7 +9,8 @@ constexpr int BOARD_SIZE = BOARD_DIMENSIONS * BOARD_DIMENSIONS;
 enum Color : uint8_t {
     White,
     Black,
-    NrColors = 2
+    NrColors = 2,
+    NoColor = 3
 };
 
 enum Square : int8_t {
@@ -122,4 +123,13 @@ struct BoardState {
 struct MoveCommand {
     Move move;
     BoardState beforeState;
+};
+
+struct PieceInfo {
+    Color color = NoColor;
+    Piecetype type = NoType;
+    Square square = NoSquare;
+    bool operator<=>(const PieceInfo&) const = default;
+    bool operator==(const PieceInfo& other) const = default;
+    bool operator!=(const PieceInfo& other) const = default;
 };
