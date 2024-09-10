@@ -15,8 +15,12 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
     # Exclude Clang-Tidy checks for the test files
+    set_target_properties(${TEST_NAME} PROPERTIES CXX_CLANG_TIDY "")
+
+    # Set separate build dir
     set_target_properties(${TEST_NAME} PROPERTIES
-            CXX_CLANG_TIDY "")
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+    )
 
     target_compile_definitions(${TEST_NAME} PRIVATE ${BUILD_TYPE_FLAGS})
 
