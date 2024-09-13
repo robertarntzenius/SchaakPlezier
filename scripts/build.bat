@@ -49,6 +49,7 @@ REM ====================
 REM Create .pyi type stubs
 REM ====================
 cd "%build_dir%\bin" || exit /b 1
+REM TODO add mingw paths here as well? (see schaak_plezier/__init__.py)
 stubgen --package wrappers --output "%build_dir%\bin" || exit /b 1
 cd "%root_dir%" || exit /b 1
 
