@@ -10,18 +10,22 @@ git submodule update --init --recursive
 if [ ! -d "$pybind11_build" ]; then
   echo "Installing pybind11..."
   mkdir -p "$pybind11_build" || exit 1
-  cmake -S "$pybind11_src" -B "$pybind11_build" -DCMAKE_CXX_COMPILER="g++"
-  cmake --build "$pybind11_build"
-  cmake --install "$pybind11_build"
+  cmake -S "$pybind11_src" -B "$pybind11_build" -DCMAKE_CXX_COMPILER="g++" || exit 1
+  cmake --build "$pybind11_build" || exit 1
+  cmake --install "$pybind11_build" || exit 1
 fi
 
 mkdir -p "$build_dir" || exit 1
-cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="Release" -DCMAKE_CXX_COMPILER="g++" -DCMAKE_C_COMPILER="gcc"
-cmake --build "$build_dir"
-cmake --install "$build_dir"
+cmake -S "$source_dir" -B "$build_dir" -DBUILD_TYPE="Release" -DCMAKE_CXX_COMPILER="g++" -DCMAKE_C_COMPILER="gcc" || exit 1
+cmake --build "$build_dir" || exit 1
+cmake --install "$build_dir" || exit 1
 
 if [ ! -d "$root_dir/.venv" ]; then
-  python3 -m venv "$root_dir/.venv"
+  python3 -m venv "$root_dir/.venv" || exit 1
 fi
 
-source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir" --upgrade
+source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir[dev]" --upgrade || exit 1
+
+cd "$build_dir/bin" && stubgen --package wrappers --output "$build_dir/bin" && cd "$root_dir" || exit 1
+
+pyreverse "$source_dir/schaak_plezier" -o pdf --output-directory "$root_dir/notes" || exit 1

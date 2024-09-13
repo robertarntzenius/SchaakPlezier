@@ -2,9 +2,9 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QPushButton, QVBoxLayout
+from wrappers import Color, Piecetype, Square
 
 from schaak_plezier.interface.app import IGUI
-from schaak_plezier.interface.wrapper_types import Color, Piecetype, Square
 from schaak_plezier.model.piece import Piece
 
 
@@ -14,7 +14,7 @@ class ClickablePieceLabel(QLabel):
 
     def __init__(self, color: Color, type: Piecetype, parent=None):
         super().__init__(parent)
-        self.piece = Piece(Square("NoSquare"), type, color)
+        self.piece = Piece(Square.NoSquare, type, color)
 
         pixmap = QPixmap.fromImage(self.piece.image).scaled(50, 50)
         self.setPixmap(pixmap)
@@ -45,14 +45,14 @@ class EditBoardDialog(QDialog):
         piece_selection_layout = QGridLayout()
         self.piece_buttons = {}
 
-        colors = [Color("White"), Color("Black")]
+        colors = [Color.White, Color.Black]
         piece_types = [
-            Piecetype("Pawn"),
-            Piecetype("Knight"),
-            Piecetype("Bishop"),
-            Piecetype("Rook"),
-            Piecetype("Queen"),
-            Piecetype("King"),
+            Piecetype.Pawn,
+            Piecetype.Knight,
+            Piecetype.Bishop,
+            Piecetype.Rook,
+            Piecetype.Queen,
+            Piecetype.King,
         ]
 
         for col, color in enumerate(colors):

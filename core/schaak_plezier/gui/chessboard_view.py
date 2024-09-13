@@ -1,12 +1,12 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QPainter, QPen
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy
+from wrappers import Move, Piecetype, Square
 
 from schaak_plezier.interface.app import IGUI, Mode
 from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.game import IChessboard
 from schaak_plezier.interface.observe import ObserverWidget
-from schaak_plezier.interface.wrapper_types import Color, Move, Piecetype, Square
 from schaak_plezier.model.piece import Piece
 
 
@@ -96,14 +96,10 @@ class ChessboardView(IChessboardView):
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
 
     def drawPieces(self, qp):
-        for piece_entry in self.wpieces:
-            square, piece_type = piece_entry
-            piece = Piece(square, piece_type, Color("White"))
+        for piece in self.wpieces:
             piece.draw(qp, self.board_size)
 
-        for piece_entry in self.bpieces:
-            square, piece_type = piece_entry
-            piece = Piece(square, piece_type, Color("Black"))
+        for piece in self.bpieces:
             piece.draw(qp, self.board_size)
 
     def draw_selected_square(self, qp):
@@ -180,8 +176,9 @@ class ChessboardView(IChessboardView):
 
     def handle_edit_mode_events(self, event):
         clicked_square = self.getSquare(event.pos())
-        self.squareClickedInEditMode.emit(clicked_square)
-        self.update()
+        if clicked_square:
+            self.squareClickedInEditMode.emit(clicked_square)
+            self.update()
         event.accept()
 
     def handle_playing_mode_events(self, event):
@@ -197,7 +194,7 @@ class ChessboardView(IChessboardView):
                     if move.targetSquare == clicked_square:
                         if move.isPromotion:
                             # TODO implement
-                            move.promotionPiece = Piecetype("Queen").to_cpp_object()
+                            move.promotionPiece = Piecetype.Queen
 
                         self.selected_square = None
                         event.accept()

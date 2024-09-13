@@ -41,6 +41,8 @@ schaak_plezier = [
 dev = [
     "ruff       == 0.5.5",
     "pre-commit == 3.8.0",
+    "mypy",
+    "pylint",
 ]
 
 [tool.ruff]

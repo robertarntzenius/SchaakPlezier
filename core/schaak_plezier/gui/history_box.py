@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import QLabel, QListView, QSizePolicy, QVBoxLayout
 
 from schaak_plezier.interface.game import IChessboard
 from schaak_plezier.interface.observe import ObserverWidget
-from schaak_plezier.interface.wrapper_types import Move
 
 
 class HistoryBox(ObserverWidget):
@@ -29,5 +28,5 @@ class HistoryBox(ObserverWidget):
     def update_history_list(self, board: IChessboard):
         self.model.setStringList([])
         if board.history:
-            history_list = [f"{i + 1}. {Move(move)}" for i, move in enumerate(board.history)]
+            history_list = [f"{i + 1}. {move}" for i, move in enumerate(board.history)]
             self.model.setStringList(history_list)

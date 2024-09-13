@@ -1,14 +1,13 @@
 from abc import abstractmethod
 from typing import Protocol
 
-import wrappers
 from schaak_plezier.interface.observe import ObservableWidget
-from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, PlayerType
 from schaak_plezier.model.piece import Piece
+from wrappers import Board, Color, GameResult, Move, PlayerType
 
 
 class IChessboard(ObservableWidget):
-    _board: wrappers.Board
+    _board: Board
 
     @abstractmethod
     def do_move(self, move: Move) -> None: ...
@@ -49,7 +48,7 @@ class IChessboard(ObservableWidget):
 
 
 class IPlayer(Protocol):
-    player_type: PlayerType
+    player_type: PlayerType | str
 
     @abstractmethod
-    def decide_on_move(self, board: IChessboard) -> Move: ...
+    def decide_on_move(self, board: Board) -> Move: ...

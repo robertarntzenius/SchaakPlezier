@@ -1,11 +1,12 @@
 from typing import List
 
+from wrappers import Color, GameResult, Move, Piecetype, Square
+
 from schaak_plezier.gui.gui import Gui
 from schaak_plezier.interface.app import IApplication, Mode
 from schaak_plezier.interface.config import SETTINGS
 from schaak_plezier.interface.game import IPlayer
 from schaak_plezier.interface.log import SchaakPlezierLogging
-from schaak_plezier.interface.wrapper_types import Color, GameResult, Move, Piecetype, Square
 from schaak_plezier.model.chessboard import Chessboard
 from schaak_plezier.model.piece import Piece
 from schaak_plezier.model.player import HumanPlayer, Player
@@ -50,11 +51,9 @@ class SchaakPlezier(IApplication):
         self.gui.mode = Mode.PLAYING
         # self.notify_observers(sound=Sound.game_start)
 
-        while (self.board.game_result == GameResult("NOT_OVER")) and (
-            self.gui.mode == Mode.PLAYING
-        ):
+        while (self.board.game_result == GameResult.NOT_OVER) and (self.gui.mode == Mode.PLAYING):
             current_player = self.get_current_player()
-            player_move = current_player.decide_on_move(self.board)
+            player_move = current_player.decide_on_move(self.board._board)
             self.do_move(player_move)
             self.logger.debug(f"{current_player.player_type}: {player_move}")
 
@@ -65,9 +64,7 @@ class SchaakPlezier(IApplication):
         return self.board.game_result
 
     def get_current_player(self) -> IPlayer:
-        return (
-            self.white_player if self.board.active_player == Color("White") else self.black_player
-        )
+        return self.white_player if self.board.active_player == Color.White else self.black_player
 
     def set_players(self, white: str, black: str) -> None:
         self.white_player: IPlayer = (
@@ -119,7 +116,7 @@ class SchaakPlezier(IApplication):
 
     def set_piece_to_add(self, color: Color, type: Piecetype):
         # signal from edit board dialog
-        self.piece_to_add = Piece(Square("NoSquare"), type, color)
+        self.piece_to_add = Piece(Square.NoSquare, type, color)
 
     # def determine_sound(self, move: Move) -> Sound:
     #     if self.board.in_check:
@@ -129,7 +126,7 @@ class SchaakPlezier(IApplication):
     #     elif move.isCapture:
     #         return Sound.capture
     #     else:
-    #         if self.board.active_player == Color("White"):
+    #         if self.board.active_player == Color.White:
     #             return Sound.normal_white
     #         else:
     #             return Sound.normal_black

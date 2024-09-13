@@ -1,35 +1,30 @@
-import wrappers
 from PyQt5.QtCore import QEventLoop
+from wrappers import Board, Move, PlayerType, makePlayer
 
 from schaak_plezier.interface.app import IApplication
 from schaak_plezier.interface.game import IPlayer
-from schaak_plezier.interface.wrapper_types import Move, PlayerType
-from schaak_plezier.model.chessboard import Chessboard
 
 
 class Player(IPlayer):
-    def __init__(self, player_type: str):
-        if player_type.lower() == "human":
-            raise ValueError(
-                "Should not make Human players with this Player class. Use HumanPlayer() instead"
-            )
-        self.player_type = PlayerType(player_type)
-        self._player = wrappers.makePlayer(player_type)
+    def __init__(self, player_type: PlayerType):
+        if player_type == "human":
+            raise ValueError("Dont make human players with this class. Only cpp players")
+        self.player_type = player_type
+        self._player = makePlayer(player_type)
 
-    def decide_on_move(self, board: Chessboard) -> Move:
-        move = Move(self._player.decideOnMove(board._board, board._getPossibleMoves()))
-        return move
+    def decide_on_move(self, board: Board) -> Move:
+        return self._player.decideOnMove(board, board.getPossibleMoves())
 
 
 class HumanPlayer(IPlayer):
     def __init__(self, app: IApplication):
         super().__init__()
         self.app = app
-        self.player_type = PlayerType("Human")
+        self.player_type = "Human"
         app.gui.chessboard_view.validMoveClicked.connect(self.handle_valid_move_clicked)
         self.clicked_move = None
 
-    def decide_on_move(self, board: Chessboard) -> Move:
+    def decide_on_move(self, board: Board) -> Move:
         # This func gets called by app
         # Wait for the signal emitted by chessboard view: self.validMoveClicked.emit(move) (e.g. human decided on a move)
         # use the value of the signal to make the move.

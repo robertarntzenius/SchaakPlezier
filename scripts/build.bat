@@ -18,22 +18,13 @@ set "pybind11_build=%pybind11_src%\build"
 REM ====================
 REM Build and install pybind11 if not already built
 REM ====================
-git submodule update --init --recursive
+git submodule update --init --recursive || exit /b 1
 if not exist "%pybind11_build%" (
     mkdir "%pybind11_build%" || exit /b 1
     cmake -S "%pybind11_src%" -B "%pybind11_build%" -DCMAKE_CXX_COMPILER="g++" -G Ninja || exit /b 1
     cmake --build "%pybind11_build%" || exit /b 1
     cmake --install "%pybind11_build%" || exit /b 1
 )
-
-REM ====================
-REM Create and activate the virtual environment
-REM ====================
-if not exist "%root_dir%\.venv" (
-    python -m venv "%root_dir%\.venv"
-    call "%root_dir%\.venv\Scripts\activate.bat" && pip install -e "%root_dir%"
-)
-call "%root_dir%\.venv\Scripts\activate.bat"
 
 REM ====================
 REM Run CMake and Ninja
@@ -45,7 +36,26 @@ cmake -S "%source_dir%" -B "%build_dir%" -DBUILD_TYPE="Release" -DCMAKE_CXX_COMP
 cmake --build "%build_dir%" || exit /b 1
 cmake --install "%build_dir%" || exit /b 1
 
+REM ====================
+REM Create and activate the virtual environment
+REM ====================
+if not exist "%root_dir%\.venv" (
+    python -m venv "%root_dir%\.venv" || exit /b 1
+)
+call "%root_dir%\.venv\Scripts\activate.bat" || exit /b 1
+call pip install -e "%root_dir%[dev]" --upgrade || exit /b 1
+
+REM ====================
+REM Create .pyi type stubs
+REM ====================
+cd "%build_dir%\bin" || exit /b 1
+stubgen --package wrappers --output "%build_dir%\bin" || exit /b 1
 cd "%root_dir%" || exit /b 1
+
+REM ====================
+REM Create UML diagrams
+REM ====================
+pyreverse "%source_dir%\schaak_plezier" -o pdf --output-directory "%root_dir%\notes" || exit /b 1
 
 endlocal
 exit /b 0

@@ -2,8 +2,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "board.h"
-#include "game.h"
+#include "definitions.h"
 
 
 namespace py = pybind11;
@@ -198,7 +197,26 @@ void bindStructs(py::module& m) {
                 m.newEnPassant = t[9].cast<Square>();
                 return m;
             }
-        ));
+        ))
+        .def("__repr__", [](const Move &m) {
+        std::ostringstream oss;
+        oss << "Move(playerPiece=" << static_cast<int>(m.playerPiece)
+            << ", fromSquare=" << static_cast<int>(m.fromSquare)
+            << ", targetSquare=" << static_cast<int>(m.targetSquare)
+            << ", isCastling=" << m.isCastling
+            << ", isCapture=" << m.isCapture
+            << ", isPromotion=" << m.isPromotion
+            << ", promotionPiece=" << static_cast<int>(m.promotionPiece)
+            << ", capturePiece=" << static_cast<int>(m.capturePiece)
+            << ", captureSquare=" << static_cast<int>(m.captureSquare)
+            << ", newEnPassant=" << static_cast<int>(m.newEnPassant) << ")";
+        return oss.str();
+        })
+        .def("__str__", [](const Move &m) {
+        std::ostringstream oss;
+        oss << m.fromSquare << m.targetSquare << " - " << m.playerPiece;
+        return oss.str();
+        });
 
     // Binding for BoardState struct
     py::class_<BoardState>(m, "BoardState")
@@ -211,145 +229,4 @@ void bindStructs(py::module& m) {
         .def_readwrite("fullMoveNumber", &BoardState::fullMoveNumber)
         .def_readwrite("halfMoveClock", &BoardState::halfMoveClock)
         .def_readwrite("hash", &BoardState::hash);
-}
-
-void bindMaps(py::module& m) {
-    m.def("string_piecetype_map", []() {
-        py::dict map;
-        for (const auto& pair : stringPiecetypeMap) {
-            map[py::str(pair.first)] = pair.second;
-        }
-        return map;
-    });
-}
-
-void bindBoardGetters(py::class_<Board>& boardClass) {
-    boardClass.def("getPieceMaps", [](Board& board) {
-        auto whitePieceMap = board.getPieceMap(Color::White);
-        auto blackPieceMap = board.getPieceMap(Color::Black);
-
-        // Convert C++ unordered_map to Python list of tuples
-        auto convertPieceMap = [](const std::unordered_map<Square, Piecetype>& pieceMap) {
-            std::vector<std::pair<Square, Piecetype>> result;
-            for (const auto& entry : pieceMap) {
-                result.emplace_back(entry.first, entry.second);
-            }
-            return result;
-        };
-        // Convert white and black piece maps
-        auto whiteList = convertPieceMap(whitePieceMap);
-        auto blackList = convertPieceMap(blackPieceMap);
-
-        // Return as a tuple of two lists
-        return std::make_tuple(whiteList, blackList);
-    }, "getPieceMaps");
-
-    boardClass.def("getGameResult", &Board::getGameResult, py::arg("noLegalMoves"));
-    boardClass.def("getBoardState", &Board::getBoardState);
-    boardClass.def("clearBoard", &Board::clearBoard);
-    boardClass.def("initFromFEN", &Board::initFromFEN, py::arg("fen_string"));
-
-    boardClass.def("getPossibleMoves", [](Board& board) {
-        std::vector<Move> moves;
-        board.getPossibleMoves(moves);
-        return moves;
-    }, "getPossibleMoves");
-
-    boardClass.def("doMove", [](Board& board, Square fromSquare, Square targetSquare, Piecetype promotionPiece = Piecetype::NoType) {
-        std::vector<Move> moves;
-        board.getPossibleMoves(moves);
-        for (const auto& move : moves) {
-            if ((move.fromSquare == fromSquare) && (move.targetSquare == targetSquare) && (move.promotionPiece == promotionPiece)) {
-                board.doMove(move);
-                break;
-            }
-        }
-    }, "doMove");
-
-    boardClass.def("addPiece", [](Board& board, int pycolor, int pytype, int pysquare) {
-        assert((pycolor >= 0) && (pycolor < Color::NrColors));
-        Color color = static_cast<Color>(pycolor);
-
-        assert((pytype >= 0) && (pytype < Piecetype::NrPiecetypes));
-        Piecetype type = static_cast<Piecetype>(pytype);
-
-        assert((pysquare >= 0) && (pysquare < Square::NrSquares));
-        Square square = static_cast<Square>(pysquare);
-
-        board.addPiece(color, type, square);
-    }, "addPiece");
-
-    boardClass.def("removePiece", [](Board& board, int pycolor, int pytype, int pysquare) {
-        assert((pycolor >= 0) && (pycolor < Color::NrColors));
-        Color color = static_cast<Color>(pycolor);
-
-        assert((pytype >= 0) && (pytype < Piecetype::NrPiecetypes));
-        Piecetype type = static_cast<Piecetype>(pytype);
-
-        assert((pysquare >= 0) && (pysquare < Square::NrSquares));
-        Square square = static_cast<Square>(pysquare);
-
-        board.removePiece(color, type, square);
-    }, "removePiece");
-
-
-    boardClass.def("validate", [](Board& board) {
-        return board.try_validate();
-    }, "validate");
-
-    boardClass.def("undoMove", [](Board& board) {
-        board.undoMove();
-    }, "undoMove");
-
-    boardClass.def("inCheck", [](Board& board) {
-        return board.inCheck();
-    }, "inCheck");
-
-    boardClass.def("getHistory", [](Board& board) {
-        std::stack<MoveCommand> originalHistory = board.getHistory();
-
-        std::vector<Move> _history;
-        while (!originalHistory.empty()) {
-            _history.push_back(originalHistory.top().move);
-            originalHistory.pop();
-        }
-
-        std::reverse(_history.begin(), _history.end());
-
-        return _history;
-    }, "getHistory");
-
-
-}
-
-void bindBoard(py::module& m) {
-    py::class_<Board> myBoard(m, "Board");
-    myBoard.def(py::init<const char *, std::string &>());
-    bindBoardGetters(myBoard);
-}
-
-void bindGame(py::module& m) {
-    py::class_<Game> myGame(m, "Game");
-    myGame.def(py::init<const std::string&, const std::string&, const char*>(), py::arg("whitePlayer"), py::arg("blackPlayer"), py::arg("FENString"));
-    // bindGameFunctions(myGame);
-}
-
-void bindPlayer(py::module& m) {
-    py::class_<Player, std::unique_ptr<Player>> myPlayer(m, "Player");
-
-    myPlayer.def("decideOnMove", &Player::decideOnMove);
-
-    myPlayer.def("getPlayerType", &Player::getPlayerType);
-
-    m.def("makePlayer", [](const std::string& playerTypeString) { return PlayerFactory::makePlayer(playerTypeString); });
-
-    py::enum_<PlayerType>(m, "PlayerType")
-        .value("Human", PlayerType::Human)
-        .value("Random", PlayerType::Random)
-        .value("MinMax", PlayerType::MinMax)
-        .value("MonteCarlo", PlayerType::MonteCarlo)
-        .value("AlphaBeta", PlayerType::AlphaBeta);
-
-    // m.attr("player_type_map") = py::dict(stringPlayerTypeMap);
-    // m.attr("player_type_str_map") = py::dict(playerTypeStringMap);
 }
