@@ -1,10 +1,10 @@
 import logging
-import os
 import sys
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Optional
 
-from schaak_plezier.interface.config import SETTINGS
+from schaak_plezier.config import SETTINGS
 
 
 class FixedWidthFormatter(logging.Formatter):
@@ -22,7 +22,7 @@ class SchaakPlezierLogging:
 
     def __init__(
         self,
-        file_path: str = SETTINGS.log_file,
+        file_path: Optional[Path] = SETTINGS.log_file,
         loglevel_console: int = SETTINGS.log_level,
         loglevel_root: int = SETTINGS.log_level,
         loglevel_files: int = SETTINGS.log_level,
@@ -46,36 +46,34 @@ class SchaakPlezierLogging:
     @classmethod
     def add_file_handler(
         cls,
-        file_path: str,
+        file_path: Path,
         loglevel: int = logging.DEBUG,
-        formatter: logging.Formatter = None,
+        formatter: logging.Formatter = _DEFAULT_FORMATTER,
     ) -> None:
         """Add a file handler to the logger that directs outputs to a the file."""
         path = Path(file_path).resolve()
-
         if not path.parent.exists():
             path.parent.mkdir()
 
         file_handler = logging.FileHandler(filename=path, mode="w+")
         file_handler.setLevel(loglevel)
-
-        formatter = formatter or cls._DEFAULT_FORMATTER
         file_handler.setFormatter(formatter)
-        cls.getLogger().debug(f"Added file handler. Writing to {path}")
+
         cls.getLogger().addHandler(file_handler)
+        cls.getLogger().debug(f"Added file handler. Writing to {path}")
 
     @classmethod
-    def remove_file_handler(cls, file_path: str) -> None:
+    def remove_file_handler(cls, file_path: Path) -> None:
         """Remove a file handler from the logger, which stops sending logs to that file and closes it."""
         for handler in cls.getLogger().handlers:
-            if isinstance(handler, logging.FileHandler) and handler.baseFilename == os.path.abspath(
-                file_path
+            if isinstance(handler, logging.FileHandler) and handler.baseFilename == str(
+                file_path.resolve()
             ):
                 handler.close()
                 cls.getLogger().removeHandler(handler)
 
     @classmethod
-    def getLogger(cls, name: str = None, level: int = None) -> logging.Logger:
+    def getLogger(cls, name: Optional[str] = None, level: Optional[int] = None) -> logging.Logger:
         """Get a logger with the specified name. If no name is provided, return the root logger.
 
         If the logger does not exist, it is created with the specified level. If no level is provided, the logger inherits the level of the root logger.
@@ -118,7 +116,7 @@ class SchaakPlezierLogging:
     def to_file(
         cls,
         *,
-        file_path: str = None,
+        file_path: Path,
         loglevel: int = logging.DEBUG,
         formatter: logging.Formatter = _DEFAULT_FORMATTER,
     ):

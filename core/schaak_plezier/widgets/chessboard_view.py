@@ -1,33 +1,34 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QPainter, QPen
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy
+from typing import Optional
+
+from PyQt5.QtCore import QPoint, Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPen
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy, QWidget
 from wrappers import Move, Piecetype, Square
 
-from schaak_plezier.interface.app import IGUI, Mode
-from schaak_plezier.interface.config import SETTINGS
-from schaak_plezier.interface.game import IChessboard
+from schaak_plezier.config import SETTINGS
+from schaak_plezier.gui import Mode
 from schaak_plezier.interface.observe import ObserverWidget
-from schaak_plezier.model.piece import Piece
+from schaak_plezier.objects.chessboard import Chessboard
+from schaak_plezier.widgets.piece import Piece
 
 
-class IChessboardView(ObserverWidget):
-    gui: IGUI
-
+class ChessboardView(ObserverWidget):
     validMoveClicked = pyqtSignal(Move)
     squareClickedInEditMode = pyqtSignal(Square)
+    addPiece = pyqtSignal(Piece)
 
-    selected_square: Square
-    previous_move: Move
+    selected_square: Optional[Square]
+    previous_move: Optional[Move]
     selected_piece_moves: list[Move]
     wpieces: list[Piece]
     bpieces: list[Piece]
     legal_moves: list[Move]
 
+    mode: Mode
 
-class ChessboardView(IChessboardView):
-    def __init__(self, board: IChessboard, gui: IGUI, parent=None):
-        super().__init__(observable_list=[board], parent=parent)
-        self.gui: IGUI = gui
+    def __init__(self, board: Chessboard, parent: Optional[QWidget]):
+        ObserverWidget.__init__(self, observable=board, parent=parent)
+        self.mode = Mode.IDLE
 
         self.setMinimumSize(500, 500)
         self.setMaximumSize(1000, 1000)
@@ -41,18 +42,16 @@ class ChessboardView(IChessboardView):
         self.board_size = min(self.width(), self.height())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.selected_square = None
-        self.previous_move: Move = None
+        self.selected_square: Optional[Square] = None
+        self.previous_move: Optional[Move] = None
         self.selected_piece_moves: list[Move] = []
         self.wpieces: list[Piece] = []
         self.bpieces: list[Piece] = []
         self.legal_moves: list[Move] = []
         self.repaint()
 
-        self.squareClickedInEditMode.connect(lambda square: self.gui.try_add_piece(square))
-
     ##### DRAWING EVENTS #####
-    def notify(self, board: IChessboard = None, **kwargs):
+    def notify(self, board: Optional[Chessboard] = None, **kwargs):
         """Called by board when it changes"""
         if board is not None:
             self.wpieces = board.wpieces
@@ -61,8 +60,8 @@ class ChessboardView(IChessboardView):
             self.previous_move = board.history[-1] if len(board.history) > 0 else None
             self.update()
 
-    def update(self):
-        """Called by Widget when an event happens/change occurs that changes the visuals, but not the underlying board object"""
+    def update(self, *args, **kwargs):
+        """Called when an event happens/change occurs that changes the visuals, but not the underlying board object"""
         self.selected_piece_moves = (
             [move for move in self.legal_moves if move.fromSquare == self.selected_square]
             if self.selected_square is not None
@@ -70,7 +69,7 @@ class ChessboardView(IChessboardView):
         )
         self.repaint()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event, *args, **kwargs):
         """What is executed when a draw call is made"""
         qp = QPainter(self)
         self.drawChessBoard(qp)
@@ -78,12 +77,12 @@ class ChessboardView(IChessboardView):
         self.drawPieces(qp)
         qp.end()
 
-    def drawEventIndicators(self, qp):
+    def drawEventIndicators(self, qp: QPainter):
         self.draw_previous_move(qp)
         self.draw_selected_piece_moves(qp)
         self.draw_selected_square(qp)
 
-    def drawChessBoard(self, qp):
+    def drawChessBoard(self, qp: QPainter):
         self.board_size = min(self.width(), self.height())
         cell_size = self.board_size // 8
 
@@ -95,14 +94,14 @@ class ChessboardView(IChessboardView):
                     color = QColor(SETTINGS.colors.dark_color.value)
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
 
-    def drawPieces(self, qp):
+    def drawPieces(self, qp: QPainter):
         for piece in self.wpieces:
             piece.draw(qp, self.board_size)
 
         for piece in self.bpieces:
             piece.draw(qp, self.board_size)
 
-    def draw_selected_square(self, qp):
+    def draw_selected_square(self, qp: QPainter):
         if self.selected_square is None:
             return
         self.drawSquare(
@@ -112,7 +111,7 @@ class ChessboardView(IChessboardView):
             fill_col=QColor(*SETTINGS.colors.selected_square.fill.values),
         )
 
-    def draw_selected_piece_moves(self, qp):
+    def draw_selected_piece_moves(self, qp: QPainter):
         if not self.selected_piece_moves:
             return
 
@@ -124,7 +123,7 @@ class ChessboardView(IChessboardView):
                 fill_col=QColor(*SETTINGS.colors.possible_moves.fill.values),
             )
 
-    def draw_previous_move(self, qp):
+    def draw_previous_move(self, qp: QPainter):
         if self.previous_move is None:
             return
 
@@ -142,11 +141,14 @@ class ChessboardView(IChessboardView):
         )
 
     def drawSquare(
-        self, qp, square, border_col: QColor = None, border_width: int = 3, fill_col: QColor = None
+        self,
+        qp: QPainter,
+        square: Square,
+        border_col: QColor = Qt.blue,
+        border_width: int = 3,
+        fill_col: Optional[QColor] = None,
     ):
         square_size = self.board_size // 8
-
-        border_col = border_col or Qt.blue
 
         pen = QPen(border_col)
         pen.setWidth(border_width)
@@ -160,8 +162,8 @@ class ChessboardView(IChessboardView):
         qp.drawRect(col * square_size, row * square_size, square_size, square_size)
 
     ##### MOUSE EVENTS #####
-    def mousePressEvent(self, event):
-        match self.gui.mode:
+    def mousePressEvent(self, event: QMouseEvent, *args, **kwargs):
+        match self.mode:
             case Mode.EDIT:
                 self.handle_edit_mode_events(event)
             case Mode.PLAYING:
@@ -169,12 +171,12 @@ class ChessboardView(IChessboardView):
             case Mode.IDLE:
                 self.handle_idle_mode_events(event)
             case _:
-                raise ValueError(f"Invalid mode: {self.gui.mode}")
+                raise ValueError(f"Invalid mode: {self.mode}")
 
-    def handle_idle_mode_events(self, event):
+    def handle_idle_mode_events(self, event: QMouseEvent):
         pass
 
-    def handle_edit_mode_events(self, event):
+    def handle_edit_mode_events(self, event: QMouseEvent):
         clicked_square = self.getSquare(event.pos())
         if clicked_square:
             self.squareClickedInEditMode.emit(clicked_square)
@@ -206,8 +208,8 @@ class ChessboardView(IChessboardView):
                 self.update()
                 event.accept()
 
-    def mouseReleaseEvent(self, event):
-        if not self.gui.mode == Mode.PLAYING:
+    def mouseReleaseEvent(self, event: QMouseEvent, *args, **kwargs):
+        if not self.mode == Mode.PLAYING:
             return
         if event.button() == Qt.RightButton:
             self.selected_square = None
@@ -217,7 +219,7 @@ class ChessboardView(IChessboardView):
         else:
             event.ignore()
 
-    def getSquare(self, pos):
+    def getSquare(self, pos: QPoint):
         square_size = self.board_size // 8
         col = pos.x() // square_size
         row = pos.y() // square_size

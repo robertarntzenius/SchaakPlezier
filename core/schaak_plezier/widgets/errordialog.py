@@ -1,9 +1,11 @@
-from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout
+from typing import Optional
+
+from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QWidget
 
 
 class ErrorDialog(QDialog):
-    def __init__(self, error_message, parent=None):
-        super().__init__(parent)
+    def __init__(self, error_message: str, parent: Optional[QWidget]):
+        super().__init__(parent=parent)
         self.setWindowTitle("Error")
 
         layout = QVBoxLayout()

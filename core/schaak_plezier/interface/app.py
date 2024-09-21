@@ -1,55 +1,20 @@
-import logging
 from abc import abstractmethod
-from enum import Enum
 
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from schaak_plezier.interface.game import IChessboard, IPlayer
-from schaak_plezier.interface.observe import ObserverWidget
-
-
-class Mode(str, Enum):
-    IDLE = "IDLE"
-    PLAYING = "PLAYING"
-    EDIT = "EDIT"
-
-
-class IGUI(QMainWindow):
-    mode: Mode
-    chessboard_view: ObserverWidget
-
-    @abstractmethod
-    def build(self): ...
-
-    @abstractmethod
-    def toggle_edit_mode(self): ...
-
-    @abstractmethod
-    def update(self): ...
+from schaak_plezier.interface.player import IPlayer
+from schaak_plezier.objects.chessboard import Chessboard
 
 
 class IApplication(QApplication):
-    logger: logging.Logger
+    """Container for the GUI and the models responsible for connecting the gui's signals to the slots of the models."""
 
-    view: IGUI
-
+    gui: QMainWindow
     white_player: IPlayer
     black_player: IPlayer
-    board: IChessboard
+    board: Chessboard
 
     @abstractmethod
     def build(self): ...
 
     @abstractmethod
     def run(self): ...
-
-    @abstractmethod
-    def undo_move(self): ...
-
-    @abstractmethod
-    def redo_move(self): ...
-
-    @abstractmethod
-    def start_game(self): ...
-
-    @abstractmethod
-    def set_players(white_player: str, black_player: str): ...

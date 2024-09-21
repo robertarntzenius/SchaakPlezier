@@ -1,9 +1,21 @@
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from typing import Optional
+
+from PyQt5.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from schaak_plezier.config import DEFAULT_STARTING_POSITION
 
 
 class EditFenDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent: Optional[QWidget]):
+        super().__init__(parent=parent)
         self.setWindowTitle("Edit FEN")
 
         layout = QVBoxLayout()
@@ -29,4 +41,4 @@ class EditFenDialog(QDialog):
         return self.fen_edit.text()
 
     def set_default_fen(self):
-        self.fen_edit.setText("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        self.fen_edit.setText(DEFAULT_STARTING_POSITION)

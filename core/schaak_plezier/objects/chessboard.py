@@ -2,19 +2,18 @@ from typing import Tuple
 
 from wrappers import Board, Color, GameResult, Move, Piecetype, Square
 
-from schaak_plezier.interface.config import SETTINGS
+from schaak_plezier.config import SETTINGS
 from schaak_plezier.interface.log import SchaakPlezierLogging
-from schaak_plezier.interface.observe import ObservableWidget
-from schaak_plezier.model.piece import Piece
+from schaak_plezier.interface.observe import Observable
+from schaak_plezier.widgets.piece import Piece
 
 
-class Chessboard(ObservableWidget):
-    _board: Board
-
+class Chessboard(Observable):
     def __init__(self):
         super().__init__()
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self._board = Board(SETTINGS.fen_string, SETTINGS.log_file.as_posix())
+        log_file = str(SETTINGS.log_file) if SETTINGS.log_file else ""
+        self._board = Board(SETTINGS.fen_string, log_file)
         self.redo_list = []
         self.notify_observers(board=self)
         self.logger.info("Created chessboard")
@@ -68,7 +67,7 @@ class Chessboard(ObservableWidget):
 
     def initialize_from_fen(self, fen_string: str) -> None:
         try:
-            _ = Board(fen_string, "tmp.log")
+            _ = Board(fen_string, "")
         except Exception:
             raise ValueError(f"Invalid FEN string: {fen_string}")
         self._board.clearBoard()
@@ -76,14 +75,11 @@ class Chessboard(ObservableWidget):
         self.notify_observers(board=self)
 
     def validate(self) -> Tuple[bool, list[str]]:
-        check = self._board.validate()
-
-        valid: bool = check[0]
-        error_description: str = check[1]
+        valid, error_list = self._board.validate()
 
         if valid:
             self.notify_observers(board=self)
-        return (valid, error_description)
+        return (valid, error_list)
 
     def add_piece(self, color: Color, piecetype: Piecetype, square: Square) -> None:
         self.logger.debug(f"{color}, {piecetype}, {square}")

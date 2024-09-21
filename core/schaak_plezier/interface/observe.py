@@ -1,30 +1,27 @@
-from abc import ABC, ABCMeta, abstractmethod
+from abc import abstractmethod
+from typing import Optional
 
 from PyQt5.QtWidgets import QWidget
 
 
-class QABCMeta(ABCMeta, type(QWidget)):
-    """Create a meta class that combines ABC and the Qt meta class"""
+class Observer:
+    def __init__(self, observable: "Observable") -> None:
+        observable.register_observer(self)
 
-    pass
-
-
-class ABC_Widget(ABC, metaclass=QABCMeta):
-    """Abstract class, to be multi-inherited together with a Qt item"""
-
-    def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+    @abstractmethod
+    def notify(self, **kwargs): ...
 
 
-class IObserver(ABC_Widget):
-    def notify(): ...
+class Observable:
+    _observers: list[Observer]
 
+    def __init__(self):
+        self._observers: list[Observer] = []
 
-class IObservable(ABC):
-    def register_observer(self, observer: IObserver):
+    def register_observer(self, observer: Observer):
         self._observers.append(observer)
 
-    def unregister_observer(self, observer: IObserver):
+    def unregister_observer(self, observer: Observer):
         self._observers.remove(observer)
 
     def notify_observers(self, **kwargs):
@@ -32,19 +29,7 @@ class IObservable(ABC):
             obs.notify(**kwargs)
 
 
-class ObservableWidget(IObservable):
-    _observers: list[IObserver]
-
-    def __init__(self, parent=None):
-        self._observers: list[IObserver] = []
-
-
-class ObserverWidget(IObserver, QWidget):
-    def __init__(self, observable_list: list[IObservable], parent=None):
+class ObserverWidget(Observer, QWidget):
+    def __init__(self, observable: Observable, parent: Optional[QWidget]):
         QWidget.__init__(self, parent=parent)
-
-        for observable in observable_list:
-            observable.register_observer(self)
-
-    @abstractmethod
-    def notify(self, **kwargs): ...
+        Observer.__init__(self, observable)
