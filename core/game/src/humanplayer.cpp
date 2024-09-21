@@ -4,7 +4,7 @@
 Move HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
     std::string input;
     size_t playerMoveIndex = 0;
-    ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");
+    ChessLogger &logger = ChessLogger::getInstance();
 
 
     // FIXME

@@ -24,9 +24,11 @@ enum LogLevel {
 
 class ChessLogger {
 public:
-    static ChessLogger& getInstance(const std::string &logFileName = "Schaakplezier.log") {
+    static ChessLogger& getInstance(const std::string &logFileName = "") {
         static ChessLogger instance;
-        instance.setLogFile(logFileName);
+        if (logFileName != "") {
+            instance.setLogFile(logFileName);
+        }
         return instance;
     }
 

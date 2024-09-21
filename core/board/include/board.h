@@ -12,7 +12,7 @@
 class Board {
     public:
         ~Board() = default;
-        Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "Schaakplezier.log");
+        Board(const char *FENString = defaultStartingFEN, const std::string &logFile = "");
 
         /**
          * @brief initialize the board from the FENstring provided.
