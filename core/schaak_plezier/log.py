@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
 
-from schaak_plezier.config import SETTINGS
+from schaak_plezier.config import LogConfig
 
 
 class FixedWidthFormatter(logging.Formatter):
@@ -22,24 +22,21 @@ class SchaakPlezierLogging:
 
     def __init__(
         self,
-        file_path: Optional[Path] = SETTINGS.log_file,
-        loglevel_console: int = SETTINGS.log_level,
-        loglevel_root: int = SETTINGS.log_level,
-        loglevel_files: int = SETTINGS.log_level,
+        settings: LogConfig = LogConfig(),
         formatter: logging.Formatter = _DEFAULT_FORMATTER,
     ) -> None:
         """Initialize the logging system for the SchaakPlezier."""
         self._formatter = formatter
 
-        self._root_logger.setLevel(loglevel_root)
+        self._root_logger.setLevel(settings.log_level)
 
         # Add file handler if provided
-        if file_path is not None:
-            self.add_file_handler(file_path, loglevel_files, formatter)
+        if settings.log_file is not None:
+            self.add_file_handler(settings.log_file, settings.log_level, formatter)
 
         # Add console handler
         console_handler = logging.StreamHandler(stream=sys.stdout)
-        console_handler.setLevel(loglevel_console)
+        console_handler.setLevel(settings.log_level)
         console_handler.setFormatter(formatter)
         self.getLogger().addHandler(console_handler)
 

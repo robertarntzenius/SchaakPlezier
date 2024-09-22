@@ -1,21 +1,25 @@
-from typing import Tuple
+from pathlib import Path
+from typing import Optional, Tuple
 
-from wrappers import Board, Color, GameResult, Move, Piecetype, Square
+from PyQt5.QtCore import QObject, pyqtSignal
+from wrappers import Board, Color, GameResult, Move, Square
 
-from schaak_plezier.config import SETTINGS
-from schaak_plezier.interface.log import SchaakPlezierLogging
-from schaak_plezier.interface.observe import Observable
+from schaak_plezier.log import SchaakPlezierLogging
 from schaak_plezier.widgets.piece import Piece
 
 
-class Chessboard(Observable):
-    def __init__(self):
+class Chessboard(QObject):
+    boardChanged = pyqtSignal(QObject)  # self emitter
+
+    redo_list: list[Move] = []
+
+    def __init__(self, fen_string: str, log_file: Optional[Path] = None):
         super().__init__()
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        log_file = str(SETTINGS.log_file) if SETTINGS.log_file else ""
-        self._board = Board(SETTINGS.fen_string, log_file)
-        self.redo_list = []
-        self.notify_observers(board=self)
+
+        _file = str(log_file) if log_file else ""
+        self._board = Board(fen_string, _file)
+        self.boardChanged.emit(self)
         self.logger.info("Created chessboard")
 
     @property
@@ -49,13 +53,13 @@ class Chessboard(Observable):
 
     def do_move(self, move: Move) -> None:
         self._board.doMove(move.fromSquare, move.targetSquare, move.promotionPiece)
-        self.notify_observers(board=self)
+        self.boardChanged.emit(self)
 
     def undo_move(self) -> None:
         if len(self.history) > 0:
             self.redo_list.append(self.history[-1])
             self._board.undoMove()
-            self.notify_observers(board=self)
+            self.boardChanged.emit(self)
 
     def redo_move(self) -> None:
         if len(self.redo_list) > 0:
@@ -63,7 +67,7 @@ class Chessboard(Observable):
 
     def clear_board(self) -> None:
         self._board.clearBoard()
-        self.notify_observers(board=self)
+        self.boardChanged.emit(self)
 
     def initialize_from_fen(self, fen_string: str) -> None:
         try:
@@ -72,19 +76,19 @@ class Chessboard(Observable):
             raise ValueError(f"Invalid FEN string: {fen_string}")
         self._board.clearBoard()
         self._board.initFromFEN(fen_string)
-        self.notify_observers(board=self)
+        self.boardChanged.emit(self)
 
     def validate(self) -> Tuple[bool, list[str]]:
         valid, error_list = self._board.validate()
 
         if valid:
-            self.notify_observers(board=self)
+            self.boardChanged.emit(self)
         return (valid, error_list)
 
-    def add_piece(self, color: Color, piecetype: Piecetype, square: Square) -> None:
-        self.logger.debug(f"{color}, {piecetype}, {square}")
-        self._board.addPiece(color=color, piecetype=piecetype, square=square)
-        self.notify_observers(board=self)
+    def add_piece(self, piece: Piece) -> None:
+        self.logger.debug(f"{piece.color}, {piece.piece_type}, {piece.square}")
+        self._board.addPiece(color=piece.color, piecetype=piece.piece_type, square=piece.square)
+        self.boardChanged.emit(self)
 
     def find_piece(self, square: Square) -> Piece | None:
         if self._board.findPiece(square):
@@ -95,7 +99,7 @@ class Chessboard(Observable):
         if self.find_piece(square):
             color, ptype, square = self._board.getPiece(square)
             self._board.removePiece(color=color, piecetype=ptype, square=square)
-            self.notify_observers(board=self)
+            self.boardChanged.emit(self)
 
     def _getPieceList(self, color: Color) -> list[Piece]:
         return [

@@ -1,6 +1,6 @@
-from enum import Enum
+from typing import Optional, Tuple
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
     QAction,
     QDialog,
@@ -16,17 +16,16 @@ from wrappers import (
     Color,
     GameResult,
     Move,
-    Piecetype,
     PlayerType,
     Square,
-    makePlayer,
 )
 
-from schaak_plezier.config import SETTINGS
+from schaak_plezier.config import GUIConfig, Mode
 from schaak_plezier.interface.app import IApplication
-from schaak_plezier.interface.log import SchaakPlezierLogging
 from schaak_plezier.interface.player import IPlayer
-from schaak_plezier.objects.player import HumanPlayer
+from schaak_plezier.log import SchaakPlezierLogging
+from schaak_plezier.objects.chessboard import Chessboard
+from schaak_plezier.objects.player import CppPlayer, HumanPlayer
 from schaak_plezier.widgets.chessboard_view import ChessboardView
 from schaak_plezier.widgets.edit_board_dialog import EditBoardDialog
 from schaak_plezier.widgets.edit_fen_dialog import EditFenDialog
@@ -36,49 +35,51 @@ from schaak_plezier.widgets.history_box import HistoryBox
 from schaak_plezier.widgets.piece import Piece
 
 
-class Mode(str, Enum):
-    IDLE = "IDLE"
-    PLAYING = "PLAYING"
-    EDIT = "EDIT"
-
-
 class Gui(QMainWindow):
-    def __init__(self, app: IApplication, parent=None):
+    modeChanged = pyqtSignal(Mode)
+    playersChanged = pyqtSignal(PlayerType, PlayerType)
+
+    doMove = pyqtSignal(Move)
+    undoMove = pyqtSignal()
+    redoMove = pyqtSignal()
+    addPiece = pyqtSignal(Piece)
+    clearBoard = pyqtSignal()
+    tryValidate = pyqtSignal(Chessboard)
+    resign = pyqtSignal()
+
+    _mode: Mode = Mode.IDLE
+
+    def __init__(
+        self, app: IApplication, settings: GUIConfig = GUIConfig(), parent: Optional[QWidget] = None
+    ):
         super().__init__(parent)
-        self.app = app
+
+        self.resign.connect(lambda: self.resign_active_player(app.board))
+
+        self.settings = settings
+
         self.logger = SchaakPlezierLogging.getLogger(__name__)
-        self._mode = Mode.IDLE
 
-    @property
-    def mode(self) -> Mode:
-        return self._mode
-
-    @mode.setter
-    def mode(self, mode: Mode):
-        self._mode = mode
-        self.chessboard_view.mode = mode
-
-    def build(self):
-        self.setWindowTitle(SETTINGS.title)
+        self.setWindowTitle(self.settings.title)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QGridLayout(central_widget)
 
         # OBSERVERS
-        self.history_box = HistoryBox(self.app.board, self)
+        self.history_box = HistoryBox(app.board, self)
 
-        self.chessboard_view = ChessboardView(self.app.board, self)
+        self.chessboard_view = ChessboardView(app.board, self.settings.colors, self)
+        self.modeChanged.connect(lambda mode: self.chessboard_view.set_mode(mode))
         self.chessboard_view.squareClickedInEditMode.connect(
             lambda square: self.try_add_piece(square)
         )
 
         self.edit_board_dialog = EditBoardDialog(parent=self)
-        self.edit_board_dialog.pieceToAdd_signal.connect(lambda piece: self.set_piece_to_add(piece))
-        self.edit_board_dialog.hide()
+        self.edit_board_dialog.PieceToAddChanged.connect(lambda piece: self.set_piece_to_add(piece))
+        self.edit_board_dialog.TryValidatePressed.connect(lambda: self.try_validate(app.board))
+        self.edit_board_dialog.BoardClearPressed.connect(lambda: self.clearBoard.emit())
 
-        # INIT BOARD HERE?
-        self.set_players(SETTINGS.white_player, SETTINGS.black_player)
-        self.initialize_from_fen(SETTINGS.fen_string)
+        self.edit_board_dialog.hide()
 
         main_layout.addWidget(self.history_box, 0, 0, 3, 1)
         main_layout.addWidget(self.chessboard_view, 0, 1, 5, 5)
@@ -86,25 +87,27 @@ class Gui(QMainWindow):
 
         # BUTTONS
         start_button = QPushButton("Start Game")
-        start_button.clicked.connect(self.start_game)
+        start_button.clicked.connect(
+            lambda: self.start_game(app.board, app.white_player, app.black_player)
+        )
 
         edit_players_button = QPushButton("Edit Players")
         edit_players_button.clicked.connect(self.show_edit_players_dialog)
 
         edit_fen_button = QPushButton("Edit FEN")
-        edit_fen_button.clicked.connect(self.show_edit_fen_dialog)
+        edit_fen_button.clicked.connect(lambda board: self.show_edit_fen_dialog(app.board))
 
         edit_board_button = QPushButton("Edit Board")
         edit_board_button.clicked.connect(self.toggle_edit_mode)
 
         undo_board_button = QPushButton("Undo")
-        undo_board_button.clicked.connect(self.undo_move)
+        undo_board_button.clicked.connect(lambda: self.undoMove.emit())
 
         redo_board_button = QPushButton("Redo")
-        redo_board_button.clicked.connect(self.redo_move)
+        redo_board_button.clicked.connect(lambda: self.redoMove.emit())
 
         quit_button = QPushButton("Resign")
-        quit_button.clicked.connect(self.resign)
+        quit_button.clicked.connect(lambda: self.resign.emit())
 
         main_layout.addWidget(start_button, 5, 1)
         main_layout.addWidget(edit_fen_button, 5, 2)
@@ -122,8 +125,8 @@ class Gui(QMainWindow):
                 file_menu.addAction(exit_action)
 
         # Display player types
-        self.white_player_label = QLabel("White Player: " + SETTINGS.white_player.name)
-        self.black_player_label = QLabel("Black Player: " + SETTINGS.black_player.name)
+        self.white_player_label = QLabel("White Player: ")
+        self.black_player_label = QLabel("Black Player: ")
 
         main_layout.addWidget(self.black_player_label, 0, 6, alignment=Qt.AlignTop | Qt.AlignRight)
         main_layout.addWidget(
@@ -132,6 +135,16 @@ class Gui(QMainWindow):
 
         self.show()
         self.logger.info("Built GUI")
+
+    @property
+    def mode(self) -> Mode:
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode: Mode):
+        if mode != self._mode:
+            self._mode = mode
+            self.modeChanged.emit(mode)
 
     ##### EDIT MODE CALLBACKS #####
     def toggle_edit_mode(self):
@@ -142,82 +155,73 @@ class Gui(QMainWindow):
             self.mode = Mode.EDIT
             self.edit_board_dialog.show()
 
-    def start_game(self):
+    def start_game(self, board: Chessboard, white_player: IPlayer, black_player: IPlayer):
         if self.mode != Mode.IDLE:
             self.logger.warning(f"Can only start a game when in IDLE mode. {self.mode}")
             return
 
-        self.logger.debug(
-            f"Starting game with players: {self.app.white_player} and {self.app.black_player}"
-        )
+        self.logger.debug(f"Starting game with players: {white_player} and {black_player}")
         self.mode = Mode.PLAYING
         # self.notify_observers(sound=Sound.game_start)
 
-        while (self.app.board.game_result == GameResult.NOT_OVER) and (self.mode == Mode.PLAYING):
-            player = self.get_current_player()
-            board = self.app.board._board
-            player_move = player.decideOnMove(board, board.getPossibleMoves())
-            self.do_move(player_move)
+        while (board.game_result == GameResult.NOT_OVER) and (self.mode == Mode.PLAYING):
+            if board.active_player == Color.White:
+                player = white_player
+            else:
+                player = black_player
+
+            player_move = player.decideOnMove(board._board)
+            self.doMove.emit(player_move)
             self.logger.debug(f"{player}: {player_move}")
 
-        self.logger.debug(f"Game over: {self.app.board.game_result}")
+        self.logger.debug(f"Game over: {board.game_result}")
         # self.notify_observers(sound=Sound.game_end)
         self.mode = Mode.IDLE
 
-    def get_current_player(self) -> IPlayer:
-        return (
-            self.app.white_player
-            if self.app.board.active_player == Color.White
-            else self.app.black_player
+    def create_players(
+        self, white_player: PlayerType, black_player: PlayerType
+    ) -> Tuple[IPlayer, IPlayer]:
+        white = (
+            CppPlayer(white_player)
+            if white_player != PlayerType.Human
+            else HumanPlayer(self.chessboard_view)
         )
+        black = (
+            CppPlayer(black_player)
+            if black_player != PlayerType.Human
+            else HumanPlayer(self.chessboard_view)
+        )
+        self.white_player_label.setText("White Player: " + white_player.name)
+        self.black_player_label.setText("Black Player: " + black_player.name)
+        return white, black
 
     def decide_on_move(self, player: IPlayer, board: Board) -> Move:
         return player.decideOnMove(board, board.getPossibleMoves())
 
-    def set_players(self, white_player: PlayerType, black_player: PlayerType):
-        self.app.white_player = (
-            makePlayer(white_player.name)
-            if white_player != PlayerType.Human
-            else HumanPlayer(self.chessboard_view)
-        )
-        self.app.black_player = (
-            makePlayer(black_player.name)
-            if black_player != PlayerType.Human
-            else HumanPlayer(self.chessboard_view)
-        )
-
-    def initialize_from_fen(self, fen_string: str) -> None:
-        self.app.board.initialize_from_fen(fen_string)
-
     def do_move(self, move: Move):
-        self.app.board.do_move(move)
-        # self.notify_observers(sound=self.determine_sound(move))
+        self.doMove.emit(move)
 
     def undo_move(self):
-        # move = self.app.board.history[-1]
-        # self.notify_observers(sound=self.determine_sound(move))
-        self.app.board.undo_move()
+        self.undoMove.emit()
 
     def redo_move(self):
-        return self.app.board.redo_move()
+        self.redoMove.emit()
 
     def try_add_piece(self, square: Square):
         # signal from chessboardboard_view
+        if self.mode != Mode.EDIT:
+            return
         if self.piece_to_add is not None:
-            color: Color = self.piece_to_add.color
-            type: Piecetype = self.piece_to_add.piece_type
-            self.app.board.add_piece(color, type, square)
+            piece = Piece(square, self.piece_to_add.piece_type, self.piece_to_add.color)
+            self.addPiece.emit(piece)
 
     def set_piece_to_add(self, piece: Piece):
         # signal from edit board dialog
         self.piece_to_add = piece
 
     ##### BUTTON CALLBACKS #####
-    def clear_board(self):
-        self.app.board.clear_board()
-
-    def try_validate(self):
-        valid, error_list = self.app.board.validate()
+    def try_validate(self, board: Chessboard):
+        valid, error_list = board.validate()
 
         if valid:
             self.logger.info("Board validated")
@@ -225,17 +229,14 @@ class Gui(QMainWindow):
         else:
             self.logger.warning("\n ".join(error_list))
 
-    def resign(self):
+    def resign_active_player(self, board: Chessboard):
+        self.selected_square = None
         if self.mode == Mode.PLAYING:
             self.mode = Mode.IDLE
-            # self.notify_observers(sound=Sound.game_end)
-        self.selected_square = None
-        self.selected_piece_moves = []
-        if self.mode == Mode.PLAYING:
-            QMessageBox.information(self, "Game Over", f"{self.app.board.active_player} resigned.")
+            QMessageBox.information(self, "Game Over", f"{board.active_player.name} resigned.")
         self.update()
 
-    def show_edit_fen_dialog(self):
+    def show_edit_fen_dialog(self, board: Chessboard):
         if self.mode != Mode.IDLE:
             error_dialog = ErrorDialog(f"Can only edit the fen in IDLE mode: {self.mode}", self)
             error_dialog.exec_()
@@ -245,7 +246,7 @@ class Gui(QMainWindow):
             if dialog.exec_() == QDialog.Accepted:
                 fen_string = dialog.get_fen_string()
                 try:
-                    self.initialize_from_fen(fen_string)
+                    board.initialize_from_fen(fen_string)
                     break
                 except ValueError as e:
                     error_dialog = ErrorDialog(str(e), self)
@@ -253,7 +254,7 @@ class Gui(QMainWindow):
             else:  # Cancel
                 break
 
-    def show_edit_players_dialog(self):
+    def show_edit_players_dialog(self) -> None:
         if self.mode != Mode.IDLE:
             error_dialog = ErrorDialog(f"Can only edit the players in IDLE mode: {self.mode}", self)
             error_dialog.exec_()
@@ -262,9 +263,9 @@ class Gui(QMainWindow):
             dialog = EditPlayersDialog(self)
             if dialog.exec_() == QDialog.Accepted:
                 white_player, black_player = dialog.get_player_types()
-                self.set_players(white_player, black_player)
                 self.white_player_label.setText("White Player: " + white_player.name)
                 self.black_player_label.setText("Black Player: " + black_player.name)
+                self.playersChanged.emit(white_player, black_player)
                 break
             else:  # Cancel
                 break

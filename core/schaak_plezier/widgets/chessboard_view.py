@@ -1,34 +1,36 @@
 from typing import Optional
 
-from PyQt5.QtCore import QPoint, Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPen
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy, QWidget
 from wrappers import Move, Piecetype, Square
 
-from schaak_plezier.config import SETTINGS
-from schaak_plezier.gui import Mode
-from schaak_plezier.interface.observe import ObserverWidget
+from schaak_plezier.config import ColorConfig, Mode
 from schaak_plezier.objects.chessboard import Chessboard
 from schaak_plezier.widgets.piece import Piece
 
 
-class ChessboardView(ObserverWidget):
+class ChessboardView(QWidget):
     validMoveClicked = pyqtSignal(Move)
+    squareClicked = pyqtSignal(Square)
     squareClickedInEditMode = pyqtSignal(Square)
-    addPiece = pyqtSignal(Piece)
 
-    selected_square: Optional[Square]
     previous_move: Optional[Move]
-    selected_piece_moves: list[Move]
     wpieces: list[Piece]
     bpieces: list[Piece]
     legal_moves: list[Move]
 
-    mode: Mode
+    colors: ColorConfig
+    mode: Mode = Mode.IDLE
 
-    def __init__(self, board: Chessboard, parent: Optional[QWidget]):
-        ObserverWidget.__init__(self, observable=board, parent=parent)
-        self.mode = Mode.IDLE
+    _selected_piece_moves: list[Move] = []
+    _selected_square: Optional[Square] = None
+
+    def __init__(self, board: Chessboard, color_config: ColorConfig, parent: Optional[QWidget]):
+        QWidget.__init__(self, parent=parent)
+        board.boardChanged.connect(lambda board: self.handle_board_changed(board))
+
+        self.colors = color_config
 
         self.setMinimumSize(500, 500)
         self.setMaximumSize(1000, 1000)
@@ -42,31 +44,48 @@ class ChessboardView(ObserverWidget):
         self.board_size = min(self.width(), self.height())
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.selected_square: Optional[Square] = None
-        self.previous_move: Optional[Move] = None
-        self.selected_piece_moves: list[Move] = []
-        self.wpieces: list[Piece] = []
-        self.bpieces: list[Piece] = []
-        self.legal_moves: list[Move] = []
+        self.previous_move = board.history[-1] if len(board.history) > 0 else None
+        self.wpieces = board.wpieces
+        self.bpieces = board.bpieces
+        self.legal_moves = board.possible_moves
+
+        self.squareClicked.connect(lambda square: self.handle_square_clicked(square))
+
+        self.repaint()
+
+    def set_mode(self, mode: Mode):
+        self.mode = mode
+
+    @property
+    def selected_piece_moves(self) -> list[Move]:
+        return self._selected_piece_moves
+
+    @selected_piece_moves.setter
+    def selected_piece_moves(self, moves: list[Move]):
+        self._selected_piece_moves = moves
+
+    @property
+    def selected_square(self) -> Optional[Square]:
+        return self._selected_square
+
+    @selected_square.setter
+    def selected_square(self, square: Optional[Square]):
+        if square == self._selected_square:
+            return
+        self._selected_square = square
+        self.selected_piece_moves = [move for move in self.legal_moves if move.fromSquare == square]
         self.repaint()
 
     ##### DRAWING EVENTS #####
-    def notify(self, board: Optional[Chessboard] = None, **kwargs):
-        """Called by board when it changes"""
-        if board is not None:
-            self.wpieces = board.wpieces
-            self.bpieces = board.bpieces
-            self.legal_moves = board.possible_moves
-            self.previous_move = board.history[-1] if len(board.history) > 0 else None
-            self.update()
+    def handle_board_changed(self, board: Chessboard):
+        self.wpieces = board.wpieces
+        self.bpieces = board.bpieces
+        self.legal_moves = board.possible_moves
+        self.previous_move = board.history[-1] if len(board.history) > 0 else None
 
-    def update(self, *args, **kwargs):
-        """Called when an event happens/change occurs that changes the visuals, but not the underlying board object"""
-        self.selected_piece_moves = (
-            [move for move in self.legal_moves if move.fromSquare == self.selected_square]
-            if self.selected_square is not None
-            else []
-        )
+        self.selected_square = None
+
+        self.update()
         self.repaint()
 
     def paintEvent(self, event, *args, **kwargs):
@@ -89,9 +108,9 @@ class ChessboardView(ObserverWidget):
         for row in range(8):
             for col in range(8):
                 if (row + col) % 2 == 0:
-                    color = QColor(SETTINGS.colors.light_color.value)
+                    color = QColor(self.colors.light_color.value)
                 else:
-                    color = QColor(SETTINGS.colors.dark_color.value)
+                    color = QColor(self.colors.dark_color.value)
                 qp.fillRect(row * cell_size, col * cell_size, cell_size, cell_size, color)
 
     def drawPieces(self, qp: QPainter):
@@ -107,8 +126,8 @@ class ChessboardView(ObserverWidget):
         self.drawSquare(
             qp,
             self.selected_square,
-            border_col=QColor(*SETTINGS.colors.selected_square.border.values),
-            fill_col=QColor(*SETTINGS.colors.selected_square.fill.values),
+            border_col=QColor(*self.colors.selected_square.border.values),
+            fill_col=QColor(*self.colors.selected_square.fill.values),
         )
 
     def draw_selected_piece_moves(self, qp: QPainter):
@@ -119,8 +138,8 @@ class ChessboardView(ObserverWidget):
             self.drawSquare(
                 qp,
                 square=move.targetSquare,
-                border_col=QColor(*SETTINGS.colors.possible_moves.border.values),
-                fill_col=QColor(*SETTINGS.colors.possible_moves.fill.values),
+                border_col=QColor(*self.colors.possible_moves.border.values),
+                fill_col=QColor(*self.colors.possible_moves.fill.values),
             )
 
     def draw_previous_move(self, qp: QPainter):
@@ -130,14 +149,14 @@ class ChessboardView(ObserverWidget):
         self.drawSquare(
             qp,
             self.previous_move.fromSquare,
-            border_col=QColor(*SETTINGS.colors.previous_move.border.values),
-            fill_col=QColor(*SETTINGS.colors.previous_move.fill.values),
+            border_col=QColor(*self.colors.previous_move.border.values),
+            fill_col=QColor(*self.colors.previous_move.fill.values),
         )
         self.drawSquare(
             qp,
             self.previous_move.targetSquare,
-            border_col=QColor(*SETTINGS.colors.previous_move.border.values),
-            fill_col=QColor(*SETTINGS.colors.previous_move.fill.values),
+            border_col=QColor(*self.colors.previous_move.border.values),
+            fill_col=QColor(*self.colors.previous_move.fill.values),
         )
 
     def drawSquare(
@@ -163,66 +182,48 @@ class ChessboardView(ObserverWidget):
 
     ##### MOUSE EVENTS #####
     def mousePressEvent(self, event: QMouseEvent, *args, **kwargs):
+        if not (clicked_square := self.get_square_from_mouse_event(event)):
+            return
+        self.squareClicked.emit(clicked_square)
+
+        self.update()
+        self.repaint()
+        event.accept()
+
+    #### EVENT HANDLERS #####
+    def handle_square_clicked(self, square: Square):
         match self.mode:
-            case Mode.EDIT:
-                self.handle_edit_mode_events(event)
             case Mode.PLAYING:
-                self.handle_playing_mode_events(event)
+                if move := self.can_play_move(square):
+                    self.validMoveClicked.emit(move)
+                    self.selected_square = None
+                else:
+                    self.selected_square = square
+            case Mode.EDIT:
+                self.squareClickedInEditMode.emit(square)
             case Mode.IDLE:
-                self.handle_idle_mode_events(event)
+                pass
             case _:
                 raise ValueError(f"Invalid mode: {self.mode}")
 
-    def handle_idle_mode_events(self, event: QMouseEvent):
-        pass
-
-    def handle_edit_mode_events(self, event: QMouseEvent):
-        clicked_square = self.getSquare(event.pos())
-        if clicked_square:
-            self.squareClickedInEditMode.emit(clicked_square)
-            self.update()
-        event.accept()
-
-    def handle_playing_mode_events(self, event):
-        clicked_square = self.getSquare(event.pos())
-        if self.selected_square is None:
-            self.selected_square = clicked_square
-            self.update()
-            event.accept()
-        else:
-            moveSquares = [move.targetSquare for move in self.selected_piece_moves]
-            if clicked_square in moveSquares:
-                for move in self.selected_piece_moves:
-                    if move.targetSquare == clicked_square:
-                        if move.isPromotion:
-                            # TODO implement
-                            move.promotionPiece = Piecetype.Queen
-
-                        self.selected_square = None
-                        event.accept()
-                        self.update()
-                        self.validMoveClicked.emit(move)
-                        break
-            else:
-                self.selected_square = clicked_square
-                self.update()
-                event.accept()
-
-    def mouseReleaseEvent(self, event: QMouseEvent, *args, **kwargs):
-        if not self.mode == Mode.PLAYING:
+    def can_play_move(self, clicked_square: Square) -> Move | None:
+        if clicked_square not in [move.targetSquare for move in self.selected_piece_moves]:
             return
-        if event.button() == Qt.RightButton:
-            self.selected_square = None
-            self.selected_piece_moves = []
-            self.update()
-            event.accept()
-        else:
-            event.ignore()
 
-    def getSquare(self, pos: QPoint):
+        # TODO implement promotion
+        move = [move for move in self.selected_piece_moves if move.targetSquare == clicked_square][
+            0
+        ]
+        if move.isPromotion:
+            move.promotionPiece = Piecetype.Queen
+
+        return move
+
+    def get_square_from_mouse_event(self, event: QMouseEvent) -> Square | None:
         square_size = self.board_size // 8
-        col = pos.x() // square_size
-        row = pos.y() // square_size
+
+        col = event.pos().x() // square_size
+        row = event.pos().y() // square_size
 
         if 0 <= row < 8 and 0 <= col < 8:
             return Square(8 * row + col)

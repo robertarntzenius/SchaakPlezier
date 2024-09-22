@@ -1,9 +1,16 @@
 import logging
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel as pydantic_BaseModel
+from pydantic import Field, field_validator
 from wrappers import PlayerType
+
+
+class BaseModel(pydantic_BaseModel):
+    class Config:
+        arbitrary_types_allowed = True  # required to allow PlayerType as a type here
 
 
 class RGBAColor(BaseModel):
@@ -78,18 +85,31 @@ class ColorConfig(BaseModel):
 
 
 class GUIConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True  # required to allow PlayerType as a type here
-
     title: str = Field(default="SchaakPlezier")
-    fen_string: str = Field(default=DEFAULT_STARTING_POSITION)
+    colors: ColorConfig = Field(default=ColorConfig())
+
+
+class LogConfig(BaseModel):
     log_file: Optional[Path] = Field(default=None)
     log_level: int = Field(
         default=logging.INFO, multiple_of=10, ge=logging.NOTSET, le=logging.CRITICAL
     )
+
+
+class BoardConfig(BaseModel):
+    fen_string: str = Field(default=DEFAULT_STARTING_POSITION)
     white_player: PlayerType = Field(default=PlayerType.Human)
     black_player: PlayerType = Field(default=PlayerType.AlphaBeta)
-    colors: ColorConfig = Field(default=ColorConfig())
+    log_file: Optional[Path] = Field(default=None)
 
 
-SETTINGS = GUIConfig()
+class AppConfig(BaseModel):
+    gui: GUIConfig = Field(default=GUIConfig())
+    log: LogConfig = Field(default=LogConfig())
+    board: BoardConfig = Field(default=BoardConfig())
+
+
+class Mode(str, Enum):
+    IDLE = "IDLE"
+    PLAYING = "PLAYING"
+    EDIT = "EDIT"

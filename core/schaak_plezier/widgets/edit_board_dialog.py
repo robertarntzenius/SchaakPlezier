@@ -19,31 +19,44 @@ class ClickablePieceLabel(QLabel):
         pixmap = QPixmap.fromImage(self.piece.image).scaled(50, 50)
         self.setPixmap(pixmap)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Resizing
 
     def mousePressEvent(self, event: QMouseEvent, *args, **kwargs):
         self.clicked.emit(self.piece)
 
 
 class EditBoardDialog(QDialog):
-    pieceToAdd_signal = pyqtSignal(Piece)  # Signal emitted when a piece is placed
-    boardCleared_signal = pyqtSignal()
-    tryValidate_signal = pyqtSignal()
+    PieceToAddChanged = pyqtSignal(Piece)  # Signal emitted when a piece is placed
+    BoardClearPressed = pyqtSignal()
+    TryValidatePressed = pyqtSignal()
+
+    piece_buttons: dict[Piece, ClickablePieceLabel]
 
     def __init__(self, parent: Optional[QWidget]):
         super().__init__(parent=parent)
-        self.gui = parent
 
         self.setWindowTitle("Edit Board")
 
         layout = QVBoxLayout()
 
         clear_button = QPushButton("Clear Board")
-        clear_button.clicked.connect(lambda: self.boardCleared_signal.emit())
+        clear_button.clicked.connect(lambda: self.BoardClearPressed.emit())
         layout.addWidget(clear_button)
 
         # Piece selection grid
+        piece_selection_layout = self.create_piece_selection_grid()
+        layout.addLayout(piece_selection_layout)
+
+        # Validate button
+        self.validate_button = QPushButton("Validate")
+        self.validate_button.clicked.connect(lambda: self.TryValidatePressed.emit())
+        layout.addWidget(self.validate_button)
+
+        self.setLayout(layout)
+
+    def create_piece_selection_grid(self) -> QGridLayout:
         piece_selection_layout = QGridLayout()
-        self.piece_buttons: dict[Piece, ClickablePieceLabel] = {}
+        self.piece_buttons = {}
 
         colors = [Color.White, Color.Black]
         piece_types = [
@@ -62,21 +75,15 @@ class EditBoardDialog(QDialog):
                 label.clicked.connect(self.select_piece)
                 piece_selection_layout.addWidget(label, row, col)
                 self.piece_buttons[label.piece] = label
-
-        layout.addLayout(piece_selection_layout)
-
-        # Validate button
-        self.validate_button = QPushButton("Validate")
-        self.validate_button.clicked.connect(lambda: self.tryValidate_signal.emit())
-        layout.addWidget(self.validate_button)
-
-        self.setLayout(layout)
+        return piece_selection_layout
 
     def select_piece(self, piece: Piece):
-        if self.piece_to_add:
+        if self.piece_to_add == piece:
+            return
+        elif self.piece_to_add:
             old_piece_label = self.piece_buttons[self.piece_to_add]
             old_piece_label.setStyleSheet("")
         self.piece_to_add = piece
         piece_label = self.piece_buttons[self.piece_to_add]
         piece_label.setStyleSheet("border: 2px solid red;")
-        self.pieceToAdd_signal.emit(self.piece_to_add)
+        self.PieceToAddChanged.emit(self.piece_to_add)
