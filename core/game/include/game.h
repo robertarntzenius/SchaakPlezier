@@ -8,6 +8,10 @@
 #include <vector>
 #include <string>
 
+extern "C" PlayerFactory* getPlayerFactory() {
+    static PlayerFactory factory;
+    return &factory;
+}
 
 class Game {
     public:

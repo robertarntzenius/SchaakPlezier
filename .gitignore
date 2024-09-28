@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Excludes
+!/build/Release/bin/libGame*.so
+
 # Compiled Object files
 *.slo
 *.lo

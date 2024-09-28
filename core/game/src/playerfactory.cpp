@@ -6,7 +6,7 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
 
 std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeString, PlayerSettings settings) {
     if (!stringPlayerTypeMap.contains(playerTypeString)) {
-        throw std::invalid_argument("Unknown player type");
+        throw std::invalid_argument("Unknown player type string " + playerTypeString);
     }
 
     PlayerType playerType = stringPlayerTypeMap.at(playerTypeString);
@@ -23,6 +23,7 @@ std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeS
     case MonteCarlo:
         return std::make_unique<MonteCarloPlayer>(settings);
     default:
+        std::cerr << playerType << std::endl;
         throw std::invalid_argument("Unknown player type");
     }
 }
