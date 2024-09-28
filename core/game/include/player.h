@@ -17,7 +17,7 @@ enum PlayerType {
     AlphaBeta
 };
 
-// TODO refactor?
+// TODO refactor? maybe config file?
 struct PlayerSettings {
     int MonteCarlo_Depth = 10;
     int MonteCarlo_Breadth = 10;
