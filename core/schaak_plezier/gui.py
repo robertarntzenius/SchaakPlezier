@@ -51,6 +51,8 @@ class Gui(QMainWindow):
     black_player: IPlayer
     board: Chessboard
 
+    piece_to_add: Optional[Piece] = None
+
     def __init__(self, settings: Settings = Settings(), parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.logger = SchaakPlezierLogging.getLogger(

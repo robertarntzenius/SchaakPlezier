@@ -19,7 +19,9 @@ public:
             if (isMaximize) {
                 currentEval = alphaBetaMin(board, maxDepth - 1, alpha, beta);
                 if (currentEval > alpha) {
-                    std::cout << "alpha: " << alpha << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
+
+                    // std::cout << "alpha: " << alpha << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
+
                     alpha = currentEval;
                     bestMoveIndex = i;
                 }
@@ -27,7 +29,7 @@ public:
             else {
                 currentEval = alphaBetaMax(board, maxDepth - 1, alpha, beta);
                 if (currentEval < beta) {
-                    std::cout << "beta: " << beta << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
+                    // std::cout << "beta: " << beta << "\ncurrentEval: "<<  currentEval << "\nmove: " << moves[i] << std::endl;
                     beta = currentEval;
                     bestMoveIndex = i;
                 }
@@ -36,8 +38,8 @@ public:
 
         }
 
-        std::cout << "Positions evaluated: " << positionsEvaluated << std::endl;
-        std::cout << "\nbestMoveIndex: "<<  bestMoveIndex << "\nmove: " << moves[bestMoveIndex] << std::endl;
+        // std::cout << "Positions evaluated: " << positionsEvaluated << std::endl;
+        // std::cout << "\nbestMoveIndex: "<<  bestMoveIndex << "\nmove: " << moves[bestMoveIndex] << std::endl;
         return moves[bestMoveIndex];
     }
 

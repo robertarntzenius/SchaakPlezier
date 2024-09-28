@@ -57,16 +57,6 @@ GameResult Game::start(bool print)
 
         // Player interaction
         Move move = players[board.getActivePlayer()]->decideOnMove(board, moves);
-//        if (playerChoice == SIZE_MAX) {
-//            if (board.getActivePlayer() == White) {
-//                return BLACK_WIN_BY_FORFEIT; // Quit
-//            }
-//            return WHITE_WIN_BY_FORFEIT; // Quit
-//        }
-
-//        move = moves[playerChoice];
-
-//    logger.verbose(playerChoice, ": ", move);
 
 	board.doMove(move);
 
