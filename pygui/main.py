@@ -1,6 +1,6 @@
 import sys
 
-from schaak_plezier.app import SchaakPlezier
+from pygui.app import SchaakPlezier
 
 
 def main():

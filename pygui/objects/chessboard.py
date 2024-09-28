@@ -4,9 +4,9 @@ from typing import Optional, Tuple
 from PyQt5.QtCore import QObject, pyqtSignal
 from wrappers import Board, Color, GameResult, Move, Square
 
-from schaak_plezier.config import BoardConfig, FENString
-from schaak_plezier.log import SchaakPlezierLogging
-from schaak_plezier.widgets.piece import Piece
+from pygui.config import BoardConfig, FENString
+from pygui.log import SchaakPlezierLogging
+from pygui.widgets.piece import Piece
 
 
 class Chessboard(QObject):

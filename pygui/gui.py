@@ -20,16 +20,16 @@ from wrappers import (
     Square,
 )
 
-from schaak_plezier.config import Mode, Settings
-from schaak_plezier.log import LoggerType, SchaakPlezierLogging
-from schaak_plezier.objects.chessboard import Chessboard
-from schaak_plezier.objects.player import CppPlayer, HumanPlayer, IPlayer
-from schaak_plezier.widgets.chessboard_view import ChessboardView
-from schaak_plezier.widgets.edit_board_dialog import EditBoardDialog
-from schaak_plezier.widgets.edit_fen_dialog import EditFenDialog
-from schaak_plezier.widgets.edit_players_dialog import EditPlayersDialog
-from schaak_plezier.widgets.history_box import HistoryBox
-from schaak_plezier.widgets.piece import Piece
+from pygui.config import Mode, Settings
+from pygui.log import LoggerType, SchaakPlezierLogging
+from pygui.objects.chessboard import Chessboard
+from pygui.objects.player import CppPlayer, HumanPlayer, IPlayer
+from pygui.widgets.chessboard_view import ChessboardView
+from pygui.widgets.edit_board_dialog import EditBoardDialog
+from pygui.widgets.edit_fen_dialog import EditFenDialog
+from pygui.widgets.edit_players_dialog import EditPlayersDialog
+from pygui.widgets.history_box import HistoryBox
+from pygui.widgets.piece import Piece
 
 
 class Gui(QMainWindow):

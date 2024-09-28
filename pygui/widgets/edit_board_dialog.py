@@ -5,7 +5,7 @@ from PyQt5.QtGui import QMouseEvent, QPixmap
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 from wrappers import Color, Piecetype, Square
 
-from schaak_plezier.widgets.piece import Piece
+from pygui.widgets.piece import Piece
 
 
 class ClickablePieceLabel(QLabel):

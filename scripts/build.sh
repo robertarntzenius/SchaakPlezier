@@ -22,10 +22,11 @@ cmake --install "$build_dir" || exit 1
 
 if [ ! -d "$root_dir/.venv" ]; then
   python3 -m venv "$root_dir/.venv" || exit 1
+  source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir[dev]" --upgrade || exit 1
 fi
 
-source "$root_dir/.venv/bin/activate" && pip install -e "$root_dir[dev]" --upgrade || exit 1
+source "$root_dir/.venv/bin/activate" || exit 1
 
-cd "$build_dir/bin" && stubgen --package wrappers --output "$build_dir/bin" && cd "$root_dir" || exit 1
+cd "$build_dir/lib" && stubgen --package wrappers --output "$build_dir/lib" && cd "$root_dir" || exit 1
 
 pyreverse "$source_dir/schaak_plezier" -o pdf --output-directory "$root_dir/notes" || exit 1

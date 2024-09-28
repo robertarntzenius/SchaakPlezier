@@ -1,9 +1,6 @@
 # Prerequisites
 *.d
 
-# Excludes
-!/build/Release/bin/libGame*.so
-
 # Compiled Object files
 *.slo
 *.lo
@@ -44,7 +41,8 @@ __pycache__
 *.egg-info
 .ruff_cache
 
-build
+/build/Release/*
+!/build/Release/bin/libGame*.so
 dist
 
 .idea
@@ -53,3 +51,5 @@ dist
 
 cmake-build-debug
 testFENS.txt
+
+# Excludes

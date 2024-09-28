@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from schaak_plezier.config import FENString
+from pygui.config import FENString
 
 
 class EditFenDialog(QDialog):
