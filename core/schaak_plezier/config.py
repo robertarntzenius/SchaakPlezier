@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel as pydantic_BaseModel
 from pydantic import Field, field_validator
-from wrappers import PlayerType
+from wrappers import Board, PlayerType
 
 
 class BaseModel(pydantic_BaseModel):
@@ -46,7 +46,21 @@ class HexColor(BaseModel):
         return RGBAColor(values=[r, g, b, a])
 
 
-DEFAULT_STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+class FENString(BaseModel):
+    string: str = Field(
+        default="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", validate_default=True
+    )
+
+    @field_validator("string", mode="before")
+    @classmethod
+    def valid_position(cls, value):
+        try:
+            _ = Board(value, "")
+            return value
+        except Exception as e:
+            raise ValueError(f"Invalid FENstring: {value}. Validation failed: {e}")
+
+
 DARK_BROWN = HexColor(value="#946f51")
 LIGHT_BROWN = HexColor(value="#f0d9b5")
 YELLOW = RGBAColor(values=[255, 255, 0, 100])
@@ -91,19 +105,29 @@ class GUIConfig(BaseModel):
 
 class LogConfig(BaseModel):
     log_file: Optional[Path] = Field(default=None)
-    log_level: int = Field(
+    log_level_dialog: int = Field(
+        default=logging.INFO, multiple_of=10, ge=logging.NOTSET, le=logging.CRITICAL
+    )
+    log_level_files: int = Field(
+        default=logging.DEBUG, multiple_of=10, ge=logging.NOTSET, le=logging.CRITICAL
+    )
+    log_level_console: int = Field(
         default=logging.INFO, multiple_of=10, ge=logging.NOTSET, le=logging.CRITICAL
     )
 
 
 class BoardConfig(BaseModel):
-    fen_string: str = Field(default=DEFAULT_STARTING_POSITION)
+    fen_string: FENString = Field(default=FENString())
     white_player: PlayerType = Field(default=PlayerType.Human)
     black_player: PlayerType = Field(default=PlayerType.AlphaBeta)
+
     log_file: Optional[Path] = Field(default=None)
+    log_level: int = Field(
+        default=logging.INFO, multiple_of=10, ge=logging.NOTSET, le=logging.CRITICAL
+    )
 
 
-class AppConfig(BaseModel):
+class Settings(BaseModel):
     gui: GUIConfig = Field(default=GUIConfig())
     log: LogConfig = Field(default=LogConfig())
     board: BoardConfig = Field(default=BoardConfig())

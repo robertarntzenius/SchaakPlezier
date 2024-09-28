@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from schaak_plezier.config import DEFAULT_STARTING_POSITION
+from schaak_plezier.config import FENString
 
 
 class EditFenDialog(QDialog):
@@ -37,8 +37,8 @@ class EditFenDialog(QDialog):
 
         self.setLayout(layout)
 
-    def get_fen_string(self):
+    def get_fen_string(self) -> str:
         return self.fen_edit.text()
 
     def set_default_fen(self):
-        self.fen_edit.setText(DEFAULT_STARTING_POSITION)
+        self.fen_edit.setText(FENString().string)

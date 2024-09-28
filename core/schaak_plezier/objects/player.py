@@ -1,10 +1,18 @@
-from typing import Optional
+from abc import abstractmethod
+from typing import Optional, Protocol
 
 from PyQt5.QtCore import QEventLoop
 from wrappers import Board, Move, PlayerType, makePlayer
 
-from schaak_plezier.interface.player import IPlayer
 from schaak_plezier.widgets.chessboard_view import ChessboardView
+
+
+class IPlayer(Protocol):
+    @abstractmethod
+    def getPlayerType(self) -> PlayerType: ...
+
+    @abstractmethod
+    def decideOnMove(self, board: Board) -> Move: ...
 
 
 class CppPlayer(IPlayer):

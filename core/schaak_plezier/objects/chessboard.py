@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 from PyQt5.QtCore import QObject, pyqtSignal
 from wrappers import Board, Color, GameResult, Move, Square
 
+from schaak_plezier.config import BoardConfig, FENString
 from schaak_plezier.log import SchaakPlezierLogging
 from schaak_plezier.widgets.piece import Piece
 
@@ -13,12 +14,17 @@ class Chessboard(QObject):
 
     redo_list: list[Move] = []
 
-    def __init__(self, fen_string: str, log_file: Optional[Path] = None):
+    def __init__(
+        self,
+        fen_string: FENString,
+        log_file: Optional[Path] = None,
+        settings: BoardConfig = BoardConfig(),
+    ):
         super().__init__()
-        self.logger = SchaakPlezierLogging.getLogger(__name__)
+        self.logger = SchaakPlezierLogging.getLogger(__name__, settings.log_level)
 
         _file = str(log_file) if log_file else ""
-        self._board = Board(fen_string, _file)
+        self._board = Board(fen_string.string, _file)
         self.boardChanged.emit(self)
         self.logger.info("Created chessboard")
 
@@ -69,13 +75,12 @@ class Chessboard(QObject):
         self._board.clearBoard()
         self.boardChanged.emit(self)
 
-    def initialize_from_fen(self, fen_string: str) -> None:
-        try:
-            _ = Board(fen_string, "")
-        except Exception:
-            raise ValueError(f"Invalid FEN string: {fen_string}")
+    def initialize_from_fen(self, fen_string: FENString | str) -> None:
+        if isinstance(fen_string, str):
+            fen_string = FENString(string=fen_string)
+
         self._board.clearBoard()
-        self._board.initFromFEN(fen_string)
+        self._board.initFromFEN(fen_string.string)
         self.boardChanged.emit(self)
 
     def validate(self) -> Tuple[bool, list[str]]:

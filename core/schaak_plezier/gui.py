@@ -1,5 +1,6 @@
-from typing import Optional, Tuple
+from typing import Optional
 
+from pydantic import ValidationError
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
     QAction,
@@ -7,12 +8,11 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QLabel,
     QMainWindow,
-    QMessageBox,
+    QMenuBar,
     QPushButton,
     QWidget,
 )
 from wrappers import (
-    Board,
     Color,
     GameResult,
     Move,
@@ -20,17 +20,14 @@ from wrappers import (
     Square,
 )
 
-from schaak_plezier.config import GUIConfig, Mode
-from schaak_plezier.interface.app import IApplication
-from schaak_plezier.interface.player import IPlayer
-from schaak_plezier.log import SchaakPlezierLogging
+from schaak_plezier.config import Mode, Settings
+from schaak_plezier.log import LoggerType, SchaakPlezierLogging
 from schaak_plezier.objects.chessboard import Chessboard
-from schaak_plezier.objects.player import CppPlayer, HumanPlayer
+from schaak_plezier.objects.player import CppPlayer, HumanPlayer, IPlayer
 from schaak_plezier.widgets.chessboard_view import ChessboardView
 from schaak_plezier.widgets.edit_board_dialog import EditBoardDialog
 from schaak_plezier.widgets.edit_fen_dialog import EditFenDialog
 from schaak_plezier.widgets.edit_players_dialog import EditPlayersDialog
-from schaak_plezier.widgets.errordialog import ErrorDialog
 from schaak_plezier.widgets.history_box import HistoryBox
 from schaak_plezier.widgets.piece import Piece
 
@@ -49,26 +46,41 @@ class Gui(QMainWindow):
 
     _mode: Mode = Mode.IDLE
 
-    def __init__(
-        self, app: IApplication, settings: GUIConfig = GUIConfig(), parent: Optional[QWidget] = None
-    ):
+    settings: Settings
+    white_player: IPlayer
+    black_player: IPlayer
+    board: Chessboard
+
+    def __init__(self, settings: Settings = Settings(), parent: Optional[QWidget] = None):
         super().__init__(parent)
-
-        self.resign.connect(lambda: self.resign_active_player(app.board))
-
+        self.logger = SchaakPlezierLogging.getLogger(
+            __name__, level=settings.log.log_level_dialog, type=LoggerType.DIALOG
+        )
         self.settings = settings
 
-        self.logger = SchaakPlezierLogging.getLogger(__name__)
+        self.board = Chessboard(self.settings.board.fen_string, self.settings.board.log_file)
+        self.init_UI()
+        self.set_players(self.settings.board.white_player, self.settings.board.black_player)
 
-        self.setWindowTitle(self.settings.title)
+        # SIGNALS
+        self.playersChanged.connect(lambda white, black: self.set_players(white, black))
+        self.doMove.connect(lambda move: self.board.do_move(move))
+        self.undoMove.connect(self.board.undo_move)
+        self.redoMove.connect(self.board.redo_move)
+        self.addPiece.connect(lambda piece: self.board.add_piece(piece))
+        self.clearBoard.connect(self.board.clear_board)
+        self.resign.connect(lambda: self.resign_active_player(self.board))
+
+    def init_UI(self):
+        self.setWindowTitle(self.settings.gui.title)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QGridLayout(central_widget)
 
-        # OBSERVERS
-        self.history_box = HistoryBox(app.board, self)
+        # WIDGETS
+        self.history_box = HistoryBox(self.board, self)
 
-        self.chessboard_view = ChessboardView(app.board, self.settings.colors, self)
+        self.chessboard_view = ChessboardView(self.board, self.settings.gui.colors, self)
         self.modeChanged.connect(lambda mode: self.chessboard_view.set_mode(mode))
         self.chessboard_view.squareClickedInEditMode.connect(
             lambda square: self.try_add_piece(square)
@@ -76,7 +88,7 @@ class Gui(QMainWindow):
 
         self.edit_board_dialog = EditBoardDialog(parent=self)
         self.edit_board_dialog.PieceToAddChanged.connect(lambda piece: self.set_piece_to_add(piece))
-        self.edit_board_dialog.TryValidatePressed.connect(lambda: self.try_validate(app.board))
+        self.edit_board_dialog.TryValidatePressed.connect(lambda: self.try_validate(self.board))
         self.edit_board_dialog.BoardClearPressed.connect(lambda: self.clearBoard.emit())
 
         self.edit_board_dialog.hide()
@@ -88,14 +100,14 @@ class Gui(QMainWindow):
         # BUTTONS
         start_button = QPushButton("Start Game")
         start_button.clicked.connect(
-            lambda: self.start_game(app.board, app.white_player, app.black_player)
+            lambda: self.start_game(self.board, self.white_player, self.black_player)
         )
 
         edit_players_button = QPushButton("Edit Players")
         edit_players_button.clicked.connect(self.show_edit_players_dialog)
 
         edit_fen_button = QPushButton("Edit FEN")
-        edit_fen_button.clicked.connect(lambda board: self.show_edit_fen_dialog(app.board))
+        edit_fen_button.clicked.connect(lambda board: self.show_edit_fen_dialog(self.board))
 
         edit_board_button = QPushButton("Edit Board")
         edit_board_button.clicked.connect(self.toggle_edit_mode)
@@ -118,11 +130,12 @@ class Gui(QMainWindow):
         main_layout.addWidget(quit_button, 5, 7)
 
         # Menu
-        if menu_bar := self.menuBar():
-            if file_menu := menu_bar.addMenu("File"):
-                exit_action = QAction("Exit", self)
-                exit_action.triggered.connect(self.closeEvent)
-                file_menu.addAction(exit_action)
+        menu_bar = QMenuBar(self)
+        if file_menu := menu_bar.addMenu("File"):
+            exit_action = QAction("Exit", self)
+            exit_action.triggered.connect(self.closeEvent)
+            file_menu.addAction(exit_action)
+        self.setMenuBar(menu_bar)
 
         # Display player types
         self.white_player_label = QLabel("White Player: ")
@@ -134,7 +147,7 @@ class Gui(QMainWindow):
         )
 
         self.show()
-        self.logger.info("Built GUI")
+        self.logger.debug("Built GUI")
 
     @property
     def mode(self) -> Mode:
@@ -157,10 +170,12 @@ class Gui(QMainWindow):
 
     def start_game(self, board: Chessboard, white_player: IPlayer, black_player: IPlayer):
         if self.mode != Mode.IDLE:
-            self.logger.warning(f"Can only start a game when in IDLE mode. {self.mode}")
+            self.logger.error(f"Can only start a game when in IDLE mode. {self.mode}")
             return
 
-        self.logger.debug(f"Starting game with players: {white_player} and {black_player}")
+        self.logger.info(
+            f"Starting game with players: {white_player.getPlayerType().name} and {black_player.getPlayerType().name}"
+        )
         self.mode = Mode.PLAYING
         # self.notify_observers(sound=Sound.game_start)
 
@@ -174,29 +189,23 @@ class Gui(QMainWindow):
             self.doMove.emit(player_move)
             self.logger.debug(f"{player}: {player_move}")
 
-        self.logger.debug(f"Game over: {board.game_result}")
+        self.logger.info(f"Game over: {board.game_result}")
         # self.notify_observers(sound=Sound.game_end)
         self.mode = Mode.IDLE
 
-    def create_players(
-        self, white_player: PlayerType, black_player: PlayerType
-    ) -> Tuple[IPlayer, IPlayer]:
-        white = (
+    def set_players(self, white_player: PlayerType, black_player: PlayerType) -> None:
+        self.white_player = (
             CppPlayer(white_player)
             if white_player != PlayerType.Human
             else HumanPlayer(self.chessboard_view)
         )
-        black = (
+        self.black_player = (
             CppPlayer(black_player)
             if black_player != PlayerType.Human
             else HumanPlayer(self.chessboard_view)
         )
         self.white_player_label.setText("White Player: " + white_player.name)
         self.black_player_label.setText("Black Player: " + black_player.name)
-        return white, black
-
-    def decide_on_move(self, player: IPlayer, board: Board) -> Move:
-        return player.decideOnMove(board, board.getPossibleMoves())
 
     def do_move(self, move: Move):
         self.doMove.emit(move)
@@ -227,37 +236,33 @@ class Gui(QMainWindow):
             self.logger.info("Board validated")
             self.toggle_edit_mode()
         else:
-            self.logger.warning("\n ".join(error_list))
+            self.logger.error("Could not validate board:\n ".join(error_list))
 
     def resign_active_player(self, board: Chessboard):
         self.selected_square = None
         if self.mode == Mode.PLAYING:
             self.mode = Mode.IDLE
-            QMessageBox.information(self, "Game Over", f"{board.active_player.name} resigned.")
+            self.logger.info(f"{board.active_player.name} resigned.")
         self.update()
 
     def show_edit_fen_dialog(self, board: Chessboard):
         if self.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(f"Can only edit the fen in IDLE mode: {self.mode}", self)
-            error_dialog.exec_()
+            self.logger.error(f"Can only edit the fen in IDLE mode: {self.mode}")
             return
         while True:
             dialog = EditFenDialog(self)
             if dialog.exec_() == QDialog.Accepted:
-                fen_string = dialog.get_fen_string()
                 try:
-                    board.initialize_from_fen(fen_string)
+                    board.initialize_from_fen(dialog.get_fen_string())
                     break
-                except ValueError as e:
-                    error_dialog = ErrorDialog(str(e), self)
-                    error_dialog.exec_()
+                except ValidationError as e:
+                    self.logger.error(e)
             else:  # Cancel
                 break
 
     def show_edit_players_dialog(self) -> None:
         if self.mode != Mode.IDLE:
-            error_dialog = ErrorDialog(f"Can only edit the players in IDLE mode: {self.mode}", self)
-            error_dialog.exec_()
+            self.logger.error(f"Can only edit the players in IDLE mode: {self.mode}")
             return
         while True:
             dialog = EditPlayersDialog(self)
@@ -272,5 +277,5 @@ class Gui(QMainWindow):
 
     def closeEvent(self, event, *args, **kwargs):
         self.mode = Mode.IDLE
-        self.logger.info("Closing application...")
+        self.logger.debug("Closing application...")
         event.accept()  # Accept the event and close the window

@@ -1,10 +1,18 @@
 import logging
 import sys
 from contextlib import contextmanager
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from PyQt5.QtWidgets import QMessageBox
+
 from schaak_plezier.config import LogConfig
+
+
+class LoggerType(Enum):
+    DEFAULT = "DEFAULT"
+    DIALOG = "DIALOG"
 
 
 class FixedWidthFormatter(logging.Formatter):
@@ -13,6 +21,40 @@ class FixedWidthFormatter(logging.Formatter):
         logger_name = f"{record.name:<40}"
         message = record.getMessage()
         return f"{log_level} | {logger_name} | {message}"
+
+
+class DialogLogger(logging.Logger):
+    """Logger that also opens dialogs when errors occur."""
+
+    type = LoggerType.DIALOG
+
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+
+    def debug(self, msg, *args, **kwargs):
+        super().debug(msg, *args, **kwargs)
+        if self.isEnabledFor(logging.DEBUG):
+            QMessageBox.information(None, "Debug", msg)
+
+    def info(self, msg, *args, **kwargs):
+        super().info(msg, *args, **kwargs)
+        if self.isEnabledFor(logging.INFO):
+            QMessageBox.information(None, "Info", msg)
+
+    def warning(self, msg, *args, **kwargs):
+        super().warning(msg, *args, **kwargs)
+        if self.isEnabledFor(logging.WARNING):
+            QMessageBox.warning(None, "Warning", msg)
+
+    def exception(self, msg, *args, **kwargs):
+        super().exception(msg, *args, **kwargs)
+        if self.isEnabledFor(logging.ERROR):
+            QMessageBox.critical(None, "Exception", msg)
+
+    def error(self, msg, *args, **kwargs):
+        super().error(msg, *args, **kwargs)
+        if self.isEnabledFor(logging.ERROR):
+            QMessageBox.critical(None, "Error", msg)
 
 
 class SchaakPlezierLogging:
@@ -24,19 +66,20 @@ class SchaakPlezierLogging:
         self,
         settings: LogConfig = LogConfig(),
         formatter: logging.Formatter = _DEFAULT_FORMATTER,
+        logger_type: LoggerType = LoggerType.DEFAULT,
     ) -> None:
         """Initialize the logging system for the SchaakPlezier."""
         self._formatter = formatter
 
-        self._root_logger.setLevel(settings.log_level)
+        self.setLoggerClass(logger_type)
 
         # Add file handler if provided
         if settings.log_file is not None:
-            self.add_file_handler(settings.log_file, settings.log_level, formatter)
+            self.add_file_handler(settings.log_file, settings.log_level_files, formatter)
 
         # Add console handler
         console_handler = logging.StreamHandler(stream=sys.stdout)
-        console_handler.setLevel(settings.log_level)
+        console_handler.setLevel(settings.log_level_console)
         console_handler.setFormatter(formatter)
         self.getLogger().addHandler(console_handler)
 
@@ -70,7 +113,22 @@ class SchaakPlezierLogging:
                 cls.getLogger().removeHandler(handler)
 
     @classmethod
-    def getLogger(cls, name: Optional[str] = None, level: Optional[int] = None) -> logging.Logger:
+    def setLoggerClass(cls, type: LoggerType) -> None:
+        match type:
+            case LoggerType.DIALOG:
+                logging.setLoggerClass(DialogLogger)
+            case LoggerType.DEFAULT:
+                logging.setLoggerClass(logging.Logger)
+            case _:
+                raise ValueError(f"Invalid LoggerType: {type}")
+
+    @classmethod
+    def getLogger(
+        cls,
+        name: Optional[str] = None,
+        level: Optional[int] = None,
+        type: LoggerType = LoggerType.DEFAULT,
+    ) -> logging.Logger | DialogLogger:
         """Get a logger with the specified name. If no name is provided, return the root logger.
 
         If the logger does not exist, it is created with the specified level. If no level is provided, the logger inherits the level of the root logger.
@@ -88,6 +146,8 @@ class SchaakPlezierLogging:
             The logger with the specified name.
 
         """
+        cls.setLoggerClass(type)
+
         if name is None:
             logger = cls._root_logger
         else:
