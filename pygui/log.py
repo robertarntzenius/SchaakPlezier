@@ -7,7 +7,7 @@ from typing import Optional
 
 from PyQt5.QtWidgets import QMessageBox
 
-from schaak_plezier.config import LogConfig
+from pygui.config import LogConfig
 
 
 class LoggerType(Enum):

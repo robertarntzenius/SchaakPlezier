@@ -3,8 +3,8 @@ from enum import Enum
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QSoundEffect
 
-from schaak_plezier import ASSETS_DIR
-from schaak_plezier.interface.observe import Observable, Observer
+from pygui import ASSETS_DIR
+from pygui.interface.observe import Observable, Observer
 
 
 class Sound(str, Enum):

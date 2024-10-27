@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "schaak_plezier"
+name = "pygui"
 description = "A chess clone that always works perfectly and has 0 bugs"
 readme = "README.md"
 authors = [
@@ -23,14 +23,14 @@ version = "0.1.0"
 
 [tool.setuptools]
 zip-safe = false
-package-dir = { "" = "core" }
+package-dir = { "" = "pygui" }
 
 [tool.setuptools.packages.find]
-where = ["core"]
-include = ["schaak_plezier*", "schaak_plezier.*"]
+where = ["pygui"]
+include = ["pygui*", "pygui.*"]
 
 [tool.setuptools.package-data]
-schaak_plezier = [
+pygui = [
     "**/*.toml",
     "**/*.png",
     "**/*.wav",

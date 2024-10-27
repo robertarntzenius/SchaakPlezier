@@ -2,9 +2,9 @@ from typing import List
 
 from PyQt5.QtWidgets import QApplication
 
-from schaak_plezier.config import Settings
-from schaak_plezier.gui import Gui
-from schaak_plezier.log import SchaakPlezierLogging
+from pygui.config import Settings
+from pygui.gui import Gui
+from pygui.log import SchaakPlezierLogging
 
 
 class SchaakPlezier(QApplication):

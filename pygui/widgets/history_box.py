@@ -3,7 +3,7 @@ from typing import Optional
 from PyQt5.QtCore import QStringListModel
 from PyQt5.QtWidgets import QLabel, QListView, QSizePolicy, QVBoxLayout, QWidget
 
-from schaak_plezier.objects.chessboard import Chessboard
+from pygui.objects.chessboard import Chessboard
 
 
 class HistoryBox(QWidget):

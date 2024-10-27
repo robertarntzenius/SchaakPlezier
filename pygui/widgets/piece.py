@@ -2,7 +2,7 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QImage, QPainter
 from wrappers import Color, Piecetype, Square
 
-from schaak_plezier import ASSETS_DIR
+from pygui import ASSETS_DIR
 
 
 class Piece:

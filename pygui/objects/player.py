@@ -4,7 +4,7 @@ from typing import Optional, Protocol
 from PyQt5.QtCore import QEventLoop
 from wrappers import Board, Move, PlayerType, makePlayer
 
-from schaak_plezier.widgets.chessboard_view import ChessboardView
+from pygui.widgets.chessboard_view import ChessboardView
 
 
 class IPlayer(Protocol):

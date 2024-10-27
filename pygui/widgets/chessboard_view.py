@@ -5,9 +5,9 @@ from PyQt5.QtGui import QColor, QMouseEvent, QPainter, QPen
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QSizePolicy, QWidget
 from wrappers import Move, Piecetype, Square
 
-from schaak_plezier.config import ColorConfig, Mode
-from schaak_plezier.objects.chessboard import Chessboard
-from schaak_plezier.widgets.piece import Piece
+from pygui.config import ColorConfig, Mode
+from pygui.objects.chessboard import Chessboard
+from pygui.widgets.piece import Piece
 
 
 class ChessboardView(QWidget):

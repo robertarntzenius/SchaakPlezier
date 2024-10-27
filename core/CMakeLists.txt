@@ -2,13 +2,16 @@ cmake_minimum_required(VERSION 3.22)
 project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin) # for now all the same since its easier
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin) # maybe change to lib when stuff works?
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # External dependencies
 get_filename_component(ROOT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY)
 set(EXTERN_DIR "${ROOT_DIR}/extern")
+
+set(CMAKE_INSTALL_BINDIR "bin")
+set(CMAKE_INSTALL_LIBDIR "lib")
 
 add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3 -fopenmp -fPIC)
 
@@ -57,8 +60,23 @@ add_executable(SchaakPlezier
     main.cpp
 )
 
+set_target_properties(SchaakPlezier PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"  # Same as above
+    BUILD_WITH_INSTALL_RPATH TRUE  # Ensure RPATH is set during build
+)
+
 target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
 
 add_subdirectory(board)
 add_subdirectory(game)
 add_subdirectory(api)
+
+# Set RPATH
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+install(TARGETS SchaakPlezier
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}        # For executables (Windows/Linux)
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}        # For shared libraries (Linux/Unix)
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}        # For static libraries
+)
