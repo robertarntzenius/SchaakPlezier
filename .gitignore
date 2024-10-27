@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Excludes
+!/build/Release/bin/libGame*.so
+
 # Compiled Object files
 *.slo
 *.lo
@@ -34,12 +37,22 @@
 # Log files
 *.log
 
-# Cython files
+# Python
 __pycache__
 *.pyc
+.venv
+*.egg-info
+.ruff_cache
 
+/build/Release/*
+!/build/Release/bin/libGame*.so
+dist
 
-build
-cmake-build-debug
 .idea
 .vscode
+.git
+
+cmake-build-debug
+testFENS.txt
+
+# Excludes

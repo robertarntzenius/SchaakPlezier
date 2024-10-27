@@ -1,29 +1,31 @@
 #include "humanplayer.h"
 
 
-size_t HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
+Move HumanPlayer::decideOnMove( [[maybe_unused]] Board boardCopy, const std::vector<Move> &moves) {
     std::string input;
     size_t playerMoveIndex = 0;
-    ChessLogger &logger = ChessLogger::getInstance("HumanPlayer.log");
-    
+    ChessLogger &logger = ChessLogger::getInstance();
+
+
+    // FIXME
     do {
         std::cout << "Move: ";
         std::cin >> input;
         if (input == "quit") {
             logger.verbose("quit");
-            return SIZE_MAX;
+//            return SIZE_MAX;
         }
         if (input.starts_with('q') || input.starts_with('Q')) {
             std::cout << "Did you intend to quit the game? (y/n)\n";
             std::cin >> input;
             if (input == "y") {
                 logger.verbose("quit");
-                return SIZE_MAX;
+//                return SIZE_MAX;
             }
         }
     } while (!parseMove(moves, input, playerMoveIndex));
 
-    return playerMoveIndex;
+    return moves[playerMoveIndex];
 }
 
 
@@ -84,11 +86,11 @@ bool HumanPlayer::parseMove(const std::vector<Move> &moves, std::string& userInp
                         break;
                 }
             } while (!valid);
-            
+
             Piecetype promotionPiecetype = move.promotionPiece;
             auto isPromotionMove = [fromSquare, toSquare, promotionPiecetype](const Move &move) {
-                return (   (move.fromSquare == fromSquare) 
-                        && (move.targetSquare == toSquare) 
+                return (   (move.fromSquare == fromSquare)
+                        && (move.targetSquare == toSquare)
                         && (move.promotionPiece == promotionPiecetype));
             };
 

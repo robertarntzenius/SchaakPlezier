@@ -1,0 +1,80 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygui"
+description = "A chess clone that always works perfectly and has 0 bugs"
+readme = "README.md"
+authors = [
+    { name = "Luuk Blom", email = "ljcluukb@gmail.com" },
+    { name = "Robert Arntzenius", email = "robertarntzenius@gmail.com" },
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyqt5",
+    "pydantic",
+    "tomli",
+    "tomli-w",
+]
+version = "0.1.0"
+
+[tool.setuptools]
+zip-safe = false
+package-dir = { "" = "pygui" }
+
+[tool.setuptools.packages.find]
+where = ["pygui"]
+include = ["pygui*", "pygui.*"]
+
+[tool.setuptools.package-data]
+pygui = [
+    "**/*.toml",
+    "**/*.png",
+    "**/*.wav",
+    "py.typed",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff       == 0.5.5",
+    "pre-commit == 3.8.0",
+    "mypy",
+    "pylint",
+]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+extend-exclude = ["extern"]
+
+[tool.ruff.format]
+docstring-code-format = true
+indent-style = "space"
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "E",
+    "F",
+    "NPY",
+    "PD",
+    "C4",
+    "I",
+]
+ignore = [
+    "PD010",
+    "PD013",
+    "PD901",
+    "PD011",
+
+    "E501",
+    "E741",
+    "NPY201"
+]
+fixable = [
+    "I",
+    "F",
+]

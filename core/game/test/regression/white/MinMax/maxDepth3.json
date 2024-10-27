@@ -7,7 +7,7 @@
         "playerType": "Random"
     },
     "metrics": {
-        "duration (s)": 82,
+        "duration (s)": 80,
         "winRate (%)": 39.0,
         "drawRate (%)": 49.0,
         "nrGames (#)": 100

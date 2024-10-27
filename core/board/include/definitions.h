@@ -5,10 +5,12 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <cassert>
 
 #include <unordered_map>
 #include <array>
 #include <string>
+#include <random>
 
 constexpr const char *defaultStartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 constexpr const char *testFEN1 = "r3k2r/p1pp1pb1/bn2Qnp1/2qPN3/1p2P3/2N5/PPPBBPPP/R3K2R b KQkq - 3 2";
@@ -19,18 +21,7 @@ constexpr const char *gameOverFEN = "k7/2KP4/8/8/8/8/8/8 b - - 20 10";
 
 
 #ifdef DEBUG
-// _assert will be compiled in Debug
-#define _assert(expr) \
-    if (!(expr)) { \
-        std::string logstream = "-- [ASSERTION FAILED] at " + \
-            std::string(__FILE__) + ":" + std::to_string(__LINE__); \
-        std::cerr << logstream << std::endl; \
-        std::cerr << "See build/Debug/board/test/PerformanceTest_defaultFEN.log for more information" << std::endl; \
-        exit(-1); \
-    }
-#else
-// _assert will not be compiled in Release
-#define _assert(expr) ((void)0)
+
 #endif
 
 [[nodiscard]] constexpr Square intToSquare(int i) {
@@ -63,8 +54,33 @@ constexpr std::array<Piecetype, NrPromotiontypes> promotionPiecetypes {
 };
 
 constexpr BoardState defaultBoardState = {
-    White, false, false, false, false, NoSquare, 0, 0
+    White, false, false, false, false, NoSquare, 0, 0, 0
 };
+
+[[nodiscard]] static uint64_t randomKeyGenerator () {
+    static std::random_device rd;
+    static std::mt19937_64 gen(rd());
+    static std::uniform_int_distribution<uint64_t> distribution;
+
+    return distribution(gen);
+};
+
+[[nodiscard]] static std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> initZobrist()
+{
+    std::array<std::array<std::array<uint64_t, NrPiecetypes>, NrColors>, NrSquares> table{};
+
+    for (auto &square : table) {
+        for (auto &color : square) {
+            for (auto &value : color) {
+                // Generate a random uint64_t
+                value = randomKeyGenerator();
+            }
+        }
+    }
+    return table;
+}
+
+
 /**
  * Directional offsets based on L-shifts
  */
@@ -294,8 +310,16 @@ static std::ostream& operator<<(std::ostream &os, const Move &move) {
 
     if (move.isCastling) {
         os << " | Castling | ";
-        // os << ...;
     }
 
+    return os;
+}
+
+static std::ostream& operator<<(std::ostream &os, const BoardState &boardState) {
+    os << "activePlayer: " << boardState.activePlayer << std::endl;
+    os << "wKC: " << boardState.wKC << ", wQC: "<< boardState.wQC << ", bKC: "<< boardState.bKC << ", bQC: "<< boardState.bQC << std::endl;
+    os << "halfMoveClock: " << boardState.halfMoveClock << "fullMoveNumber: " << boardState.fullMoveNumber << std::endl;
+    os << "enPassant: " << boardState.enPassantSquare <<std::endl;
+    os << "hash: " << boardState.hash <<std::endl;
     return os;
 }

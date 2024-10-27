@@ -5,22 +5,29 @@ Board::Board(const char *FENString, const std::string &logFile)
     : logger(ChessLogger::getInstance(logFile)),
       boardState(defaultBoardState),
       history(),
+      repetitionTable(),
       piecetypeBitboards(),
       colorBitboards(),
-      pieceMaps()
+      pieceMaps(),
+      zobristPieceTable(),
+      zobristCastlingTable(),
+      zobristActivePlayer()
 {
     #if defined(DEBUG)
         logger.setLogLevel(LEVEL_DEBUG);
     #elif defined(VERBOSE)
         logger.setLogLevel(LEVEL_VERBOSE);
     #endif
-    logger.essential("New Board created!");
+    logger.debug("New Board created!");
 
-    initializeFromFEN(FENString);
+    initZobristTables();
+    initFromFEN(FENString);
 }
 
-void Board::initializeFromFEN(const char *FENString)
+void Board::initFromFEN(const char *FENString)
 {
+    clearBoard();
+
     std::string boardString;
     char activeColorChar = 0;
     std::string castlingRightsString;
@@ -43,15 +50,9 @@ void Board::initializeFromFEN(const char *FENString)
             default:
                 const Square square = intToSquare(squareInt);
                 Piecetype type = charPiecetypeMap.at(c);
-                piecetypeBitboards[type].set(square);
+                Color color = (isupper(c) != 0)? White : Black;
 
-                if (isupper(c) != 0) {
-                    colorBitboards[White].set(square);
-                    pieceMaps[White][square] = type;
-                } else {
-                    colorBitboards[Black].set(square);
-                    pieceMaps[Black][square] = type;
-                }
+                addPiece(color, type, square);
 
                 squareInt++;
                 break;
@@ -59,13 +60,16 @@ void Board::initializeFromFEN(const char *FENString)
     }
 
     boardState.activePlayer = charColorMap.at(activeColorChar);
+    if (boardState.activePlayer == Black) {
+        hashActivePlayer();
+    }
 
     for (const char &c : castlingRightsString) {
         switch(c) {
-            case 'K': boardState.wKC = true; break;
-            case 'Q': boardState.wQC = true; break;
-            case 'k': boardState.bKC = true; break;
-            case 'q': boardState.bQC = true; break;
+            case 'K': {hashCastlingRight(wKingside) ; boardState.wKC = true;} break;
+            case 'Q': {hashCastlingRight(wQueenside); boardState.wQC = true;} break;
+            case 'k': {hashCastlingRight(bKingside) ; boardState.bKC = true;} break;
+            case 'q': {hashCastlingRight(bQueenside); boardState.bQC = true;} break;
             case '-': break;
             default:
                 throw std::invalid_argument("Invalid char found in FEN parser during initialization of castling rights: " + std::to_string(c));
@@ -73,10 +77,9 @@ void Board::initializeFromFEN(const char *FENString)
     }
 
     boardState.enPassantSquare = stringSquareMap.at(enPassantSquareString);
+    validate();
 
-    #ifdef DEBUG
-        checkBoardConsistency();
-    #endif
+    repetitionTable[boardState.hash] = 1;
 }
 
 void Board::clearBoard() {
@@ -89,8 +92,46 @@ void Board::clearBoard() {
     for (auto &bitboard : colorBitboards) {
         bitboard.reset();
     }
-    history = std::stack<MoveCommand>();
     boardState = defaultBoardState;
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
+}
+
+void Board::getPseudoLegalMoves(std::vector<Move> &pseudoLegalMoves) const {
+    logger.logHeader("getPseudoLegalMoves");
+    logBoard(LEVEL_VERBOSE);
+    pseudoLegalMoves.clear();
+
+    for (const auto &squarePiecetypePair: pieceMaps[boardState.activePlayer]) {
+        const Square &fromSquare = squarePiecetypePair.first;
+        const Piecetype &type = squarePiecetypePair.second;
+
+        switch (type) {
+            case Pawn:
+                generatePawnMoves(pseudoLegalMoves, fromSquare);
+                break;
+            case Knight:
+                generateKnightMoves(pseudoLegalMoves, fromSquare);
+                break;
+           case Bishop:
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Bishop);
+                break;
+            case Rook:
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Rook);
+                break;
+           case Queen:
+                generateSliderMoves(pseudoLegalMoves, fromSquare, Queen);
+                break;
+           case King:
+                generateKingMoves(pseudoLegalMoves, fromSquare);
+                break;
+           default:
+                // Not implemented / throw
+                break;
+        }
+    }
 }
 
 void Board::getPossibleMoves(std::vector<Move> &moveVector) {
@@ -99,42 +140,35 @@ void Board::getPossibleMoves(std::vector<Move> &moveVector) {
 
     moveVector.clear();
 
-    // for every piece
-    std::vector<Move> psuedoLegalMoves;
+    std::vector<Move> pseudoLegalMoves;
+    pseudoLegalMoves.reserve(64);
+    getPseudoLegalMoves(pseudoLegalMoves);
 
-    for (const auto &squarePiecetypePair: pieceMaps[boardState.activePlayer]) {
-        const Square &fromSquare = squarePiecetypePair.first;
-        const Piecetype &type = squarePiecetypePair.second;
-
-        switch (type) {
-            case Pawn:
-                generatePawnMoves(psuedoLegalMoves, fromSquare);
-                break;
-            case Knight:
-                generateKnightMoves(psuedoLegalMoves, fromSquare);
-                break;
-           case Bishop:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Bishop);
-                break;
-            case Rook:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Rook);
-                break;
-           case Queen:
-                generateSliderMoves(psuedoLegalMoves, fromSquare, Queen);
-                break;
-           case King:
-                generateKingMoves(psuedoLegalMoves, fromSquare);
-                break;
-           default:
-                // Not implemented / throw
-                break;
-        }
-    }
-    
-    for (const auto& move : psuedoLegalMoves) {
+    for (const auto& move : pseudoLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
             moveVector.emplace_back(move);
+        }
+        undoMove();
+    }
+}
+
+void Board::getLoudMoves(std::vector<Move> &moveVector, bool &noLegalMoves) {
+    logger.logHeader("getLoudMoves");
+    logBoard(LEVEL_VERBOSE);
+
+    moveVector.clear();
+    std::vector<Move> pseudoLegalMoves;
+    pseudoLegalMoves.reserve(64);
+    getPseudoLegalMoves(pseudoLegalMoves);
+    noLegalMoves = true;
+    for (const auto& move : pseudoLegalMoves) {
+        doMove(move);
+        if (!inCheck(~boardState.activePlayer)) {
+            noLegalMoves = false;
+            if (move.isCapture || inCheck(boardState.activePlayer)) {
+                moveVector.emplace_back(move);
+            }
         }
         undoMove();
     }
@@ -144,14 +178,14 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
     if (noLegalMoves) {
         if (inCheck()) {
             switch(~getActivePlayer()) {
-                case White: return WHITE_WIN_BY_CHECKMATE; break;
-                case Black: return BLACK_WIN_BY_CHECKMATE; break;
+                case White: return WHITE_WIN_BY_CHECKMATE;
+                case Black: return BLACK_WIN_BY_CHECKMATE;
                 default: throw std::invalid_argument("Invalid color: " + std::to_string(~getActivePlayer()));
             }
         }
         return DRAW_BY_STALEMATE;
     }
-    
+
     // Insufficient material
     if (checkInsufficientMaterial()) {
         return DRAW_BY_INSUFFICIENT_MATERIAL;
@@ -161,7 +195,6 @@ GameResult Board::getGameResult(bool noLegalMoves) const {
         return DRAW_BY_50_MOVES;
     }
 
-    // TODO implement
     if (checkThreeFoldRepetition()) {
         return DRAW_BY_REPETITION;
     }
@@ -172,32 +205,33 @@ Color Board::getActivePlayer() const {
     return boardState.activePlayer;
 }
 
-const BoardState Board::getBoardState() const
+BoardState Board::getBoardState() const
 {
     return boardState;
 }
 
-const std::unordered_map<Square, Piecetype> Board::getPieceMap(Color color) const {
+std::unordered_map<Square, Piecetype> Board::getPieceMap(Color color) const {
     return pieceMaps[color];
 }
 
-const std::array<Bitboard, NrPiecetypes> Board::getPiecetypeBitboards() const {
+std::array<Bitboard, NrPiecetypes> Board::getPiecetypeBitboards() const {
     return piecetypeBitboards;
 }
 
-const std::array<Bitboard, NrColors> Board::getColorBitboards() const {
+std::array<Bitboard, NrColors> Board::getColorBitboards() const {
     return colorBitboards;
 }
 
-const std::stack<MoveCommand> Board::getHistory() const {
+std::stack<MoveCommand> Board::getHistory() const {
     return history;
 }
 
 void Board::setBoardState(const BoardState &copyState) {
     boardState = copyState;
 }
+
 void Board::getPiecetypeBitboards(const std::array<Bitboard, NrPiecetypes> &copyPiecetypeBitboards) {
-    piecetypeBitboards = copyPiecetypeBitboards; 
+    piecetypeBitboards = copyPiecetypeBitboards;
 }
 
 void Board::getColorBitboards(const std::array<Bitboard, NrColors> &copyColorBitboards ) {
@@ -208,36 +242,126 @@ void Board::setPieceMaps(const std::array<std::unordered_map<Square, Piecetype>,
     pieceMaps = copyMaps;
 }
 
-void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare) {
+
+PieceInfo Board::pieceAtSquare(Square square) const
+{
+    PieceInfo pieceInfo;
+
+    if (pieceMaps[White].find(square) != pieceMaps[White].end()) {
+        pieceInfo.color = White;
+        pieceInfo.square = square;
+        pieceInfo.type = pieceMaps[White].at(square);
+    }
+    else if (pieceMaps[Black].find(square) != pieceMaps[Black].end()) {
+        pieceInfo.color = Black;
+        pieceInfo.square = square;
+        pieceInfo.type = pieceMaps[Black].at(square);
+    }
+    return pieceInfo;
+}
+
+void Board::addPiece(Color color, Piecetype pieceType, Square square)
+{
+    PieceInfo piece = pieceAtSquare(square);
+    if (piece != PieceInfo()) {
+        removePiece(piece.color, piece.type, piece.square);
+    }
+
+    piecetypeBitboards[pieceType].set(square);
+    colorBitboards[color].set(square);
+    pieceMaps[color][square] = pieceType;
+    hashPiece(color, pieceType, square);
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
+}
+
+void Board::removePiece(Color color, Piecetype pieceType, Square square)
+{
+    if (pieceAtSquare(square) == PieceInfo()) return;
+
+    piecetypeBitboards[pieceType].set(square, false);
+    colorBitboards[color].set(square, false);
+    pieceMaps[color].erase(square);
+    hashPiece(color, pieceType, square);
+
+    history = std::stack<MoveCommand>();
+    repetitionTable.clear();
+    repetitionTable[boardState.hash] = 1;
+}
+
+void Board::hashPiece(Color player, Piecetype pieceType, Square square) {
+    boardState.hash ^= zobristPieceTable[square][player][pieceType];
+}
+
+void Board::hashCastlingRight(CastlingSide side) {
+    boardState.hash ^= zobristCastlingTable[side];
+}
+
+void Board::hashActivePlayer() {
+    boardState.hash ^= zobristActivePlayer;
+}
+
+void Board::removeCastlingRights(Square square) {
+    switch(square) {
+        case a1: if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; } break;
+        case h1: if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; } break;
+        case a8: if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; } break;
+        case h8: if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; } break;
+        case e1:
+            if (boardState.wQC) { hashCastlingRight(wQueenside); boardState.wQC = false; }
+            if (boardState.wKC) { hashCastlingRight(wKingside);  boardState.wKC = false; }
+            break;
+        case e8:
+            if (boardState.bKC) { hashCastlingRight(bKingside);  boardState.bKC = false; }
+            if (boardState.bQC) { hashCastlingRight(bQueenside); boardState.bQC = false; }
+            break;
+        default:
+            break;
+    }
+}
+
+void Board::movePiece(Color player, Piecetype pieceType, Square fromSquare, Square toSquare, bool updateHash) {
     if (toSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(toSquare);
         pieceMaps[player][toSquare] = pieceType;
         colorBitboards[player].set(toSquare);
+        if (updateHash) {
+            hashPiece(player, pieceType, toSquare);
+        }
     }
 
     if (fromSquare != NoSquare) {
         piecetypeBitboards[pieceType].set(fromSquare, false);
         colorBitboards[player].set(fromSquare, false);
         pieceMaps[player].erase(fromSquare);
+        if (updateHash) {
+            hashPiece(player, pieceType, fromSquare);
+        }
     }
 }
 
 void Board::doMove(const Move &move) {
     history.emplace(MoveCommand(move, boardState));
+
     if (move.isCapture) {
-        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare);
+        movePiece(~boardState.activePlayer, move.capturePiece, move.captureSquare, NoSquare); // capturePiece out@captureSquare
         boardState.halfMoveClock = 0;
     }
     if (move.playerPiece == Pawn) {
         boardState.halfMoveClock = 0;
     }
 
-    movePiece(boardState.activePlayer, move.playerPiece, move.fromSquare, move.targetSquare);
+    movePiece(boardState.activePlayer, move.playerPiece, move.fromSquare, move.targetSquare); // playerPiece out@fromSquare & in@targetSquare
 
     if (move.isPromotion) {
         piecetypeBitboards[Pawn].set(move.targetSquare, false);
         piecetypeBitboards[move.promotionPiece].set(move.targetSquare);
         pieceMaps[boardState.activePlayer][move.targetSquare] = move.promotionPiece;
+
+        hashPiece(boardState.activePlayer, Pawn, move.targetSquare); // Pawn out@targetSquare
+        hashPiece(boardState.activePlayer, move.promotionPiece, move.targetSquare); // promotionPiece in@targetSquare
     }
 
     if (move.isCastling) {
@@ -258,22 +382,10 @@ void Board::doMove(const Move &move) {
             throw std::invalid_argument("Invalid Castle move");
         }
     }
-    
-    auto removeCastlingRights = [this](Square square) {
-        switch(square) {
-            case a1: boardState.wQC = false; break;
-            case h1: boardState.wKC = false; break;
-            case a8: boardState.bQC = false; break;
-            case h8: boardState.bKC = false; break;
-            case e1: boardState.wQC = false; boardState.wKC = false; break;
-            case e8: boardState.bQC = false; boardState.bKC = false; break;
-            default: break; 
-        }
-    };
 
     removeCastlingRights(move.fromSquare);
     removeCastlingRights(move.targetSquare);
-    
+
     boardState.halfMoveClock++;
 
     if (boardState.activePlayer == White) {
@@ -281,26 +393,30 @@ void Board::doMove(const Move &move) {
     }
     boardState.enPassantSquare = move.newEnPassant;
     boardState.activePlayer = ~boardState.activePlayer;
+    hashActivePlayer();
+    repetitionTable[boardState.hash]++;
 }
 
 void Board::undoMove() {
     MoveCommand moveCommand = history.top();
     Move move = moveCommand.move;
+
+    repetitionTable[boardState.hash]--;
     boardState = moveCommand.beforeState;
 
     if (move.isCastling) {
         switch (move.targetSquare) {
         case g1:
-            movePiece(boardState.activePlayer, Rook, f1, h1);
+            movePiece(boardState.activePlayer, Rook, f1, h1, false);
             break;
         case c1:
-            movePiece(boardState.activePlayer, Rook, d1, a1);
+            movePiece(boardState.activePlayer, Rook, d1, a1, false);
             break;
         case g8:
-            movePiece(boardState.activePlayer, Rook, f8, h8);
+            movePiece(boardState.activePlayer, Rook, f8, h8, false);
             break;
         case c8:
-            movePiece(boardState.activePlayer, Rook, d8, a8);
+            movePiece(boardState.activePlayer, Rook, d8, a8, false);
             break;
         default:
             throw std::invalid_argument("Non valid Castle move");
@@ -313,10 +429,10 @@ void Board::undoMove() {
         pieceMaps[boardState.activePlayer][move.targetSquare] = Pawn;
     }
 
-    movePiece(boardState.activePlayer, move.playerPiece, move.targetSquare, move.fromSquare);
+    movePiece(boardState.activePlayer, move.playerPiece, move.targetSquare, move.fromSquare, false);
 
     if (move.isCapture) {
-        movePiece(~boardState.activePlayer, move.capturePiece, NoSquare, move.captureSquare);
+        movePiece(~boardState.activePlayer, move.capturePiece, NoSquare, move.captureSquare, false);
     }
     history.pop();
 }
@@ -333,6 +449,28 @@ bool Board::inCheck() const
     Bitboard opponentAttacks = getPlayerAttackMask(~boardState.activePlayer);
     Bitboard playerKing = piecetypeBitboards[King] & colorBitboards[boardState.activePlayer];
     return (!(opponentAttacks & playerKing).empty());
+}
+
+uint64_t Board::computeHashFromScratch()
+{
+    uint64_t hashValue = 0;
+
+    for (int colorIndex = 0; colorIndex < NrColors; colorIndex++) {
+        for (const auto &piece : pieceMaps[colorIndex]) {
+            const auto &square = piece.first;
+            const auto &type = piece.second;
+            hashValue ^= zobristPieceTable[square][colorIndex][type];
+        }
+    }
+
+    hashValue = (boardState.wKC)? hashValue ^ zobristCastlingTable[wKingside]  : hashValue;
+    hashValue = (boardState.wQC)? hashValue ^ zobristCastlingTable[wQueenside] : hashValue;
+    hashValue = (boardState.bKC)? hashValue ^ zobristCastlingTable[bKingside]  : hashValue;
+    hashValue = (boardState.bQC)? hashValue ^ zobristCastlingTable[bQueenside] : hashValue;
+
+    hashValue = (boardState.activePlayer == Black)? hashValue ^ zobristActivePlayer : hashValue;
+
+    return hashValue;
 }
 
 void Board::logBitboards() const {
@@ -374,38 +512,165 @@ std::ostream &operator<<(std::ostream &os, const Board &board) {
     }
     os << "\n   a b c d e f g h\n";
 
+    os << "\n" << board.getBoardState() << std::endl;
     return os;
 }
 
 
 /* private */
-void Board::checkBoardConsistency() const
-{
-    #if defined(DEBUG) || defined(VERBOSE)
-    _assert(pieceMaps[White].size() == colorBitboards[White].count());
-    _assert(pieceMaps[Black].size() == colorBitboards[Black].count());
+void Board::initZobristTables() {
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> distribution;
+
+    for (auto &square : zobristPieceTable) {
+        for (auto &color : square) {
+            for (auto &value : color) {
+                value = distribution(gen);
+            }
+        }
+    }
+
+    for (auto &value : zobristCastlingTable)
+    {
+        value = distribution(gen);
+    }
+
+    zobristActivePlayer = distribution(gen);
+}
+
+void Board::validate() const {
+    std::vector<Color> colors = {White, Black};
+    for (const Color color : colors) {
+
+    }
+    assert(pieceMaps[White].size() == colorBitboards[White].count());
+    assert(pieceMaps[Black].size() == colorBitboards[Black].count());
 
     for (const auto &squarePiecetypePair : pieceMaps[White]) {
         const Square square = squarePiecetypePair.first;
         const Piecetype type = squarePiecetypePair.second;
 
-        _assert(colorBitboards[White].test(square));
-        _assert(piecetypeBitboards[type].test(square));
+        assert(colorBitboards[White].test(square));
+        assert(piecetypeBitboards[type].test(square));
     }
+    for (const auto &squarePiecetypePair : pieceMaps[Black]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        assert(colorBitboards[Black].test(square));
+        assert(piecetypeBitboards[type].test(square));
+    }
+
 
     Bitboard noOverlapBoard = Bitboard();
     for (const auto &bitboard : colorBitboards) {
-        _assert((bitboard & noOverlapBoard).empty());
+        assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
 
     noOverlapBoard.reset();
     for (const auto &bitboard : piecetypeBitboards) {
-        _assert((bitboard & noOverlapBoard).empty());
+        assert((bitboard & noOverlapBoard).empty());
         noOverlapBoard = noOverlapBoard | bitboard;
     }
-    #endif
+
+    assert((piecetypeBitboards[King] & colorBitboards[White]).count() == 1);
+    assert((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1);
+    assert((finalRank[White] & piecetypeBitboards[Pawn]).empty());
+    assert((finalRank[Black] & piecetypeBitboards[Pawn]).empty());
+
+    if (boardState.wKC) {
+        assert((piecetypeBitboards[King] & colorBitboards[White]).test(e1));
+        assert((piecetypeBitboards[Rook] & colorBitboards[White]).test(h1));
+    }
+    if (boardState.wQC) {
+        assert((piecetypeBitboards[King] & colorBitboards[White]).test(e1));
+        assert((piecetypeBitboards[Rook] & colorBitboards[White]).test(a1));
+    }
+    if (boardState.bKC) {
+        assert((piecetypeBitboards[King] & colorBitboards[Black]).test(e8));
+        assert((piecetypeBitboards[Rook] & colorBitboards[Black]).test(h8));
+    }
+    if (boardState.bQC) {
+        assert((piecetypeBitboards[King] & colorBitboards[Black]).test(e8));
+        assert((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8));
+    }
+
+    // FIXME
+    // This is used to determine the validity FEN strings in board/test/test_hash
+    assert(!inCheck(~boardState.activePlayer));
+
+    assert(boardState.halfMoveClock <= 50);
 }
+
+
+std::pair<bool, std::vector<std::string>> Board::try_validate() const {
+    auto check_expr = [](const auto& expr, const char* msg, std::vector<std::string>& errors) {
+        if (!expr) {
+            errors.push_back(msg);
+        }
+        return expr;
+    };
+
+    bool isValid = true;
+    std::vector<std::string> errors;
+
+
+    isValid &= check_expr(pieceMaps[White].size() == colorBitboards[White].count(), "<White> <pieceMap.size> <eq> <colorbitboard.size>", errors);
+    isValid &= check_expr(pieceMaps[Black].size() == colorBitboards[Black].count(), "<Black> <pieceMap.size> <eq> <colorbitboard.size>", errors);
+
+    for (const auto &squarePiecetypePair : pieceMaps[White]) {
+        const Square square = squarePiecetypePair.first;
+        const Piecetype type = squarePiecetypePair.second;
+
+        isValid &= check_expr(colorBitboards[White].test(square), "<White> <Piecemap.entry> <at> <Bitboard.square>", errors);
+        isValid &= check_expr(piecetypeBitboards[type].test(square), "<Black> <Piecemap.entry> <at> <Bitboard.square>", errors);
+    }
+
+    Bitboard noOverlapBoard = Bitboard();
+    for (const auto &bitboard : colorBitboards) {
+        isValid &= check_expr((bitboard & noOverlapBoard).empty(), "<Colorbitboards> <Bitboard.noOverlap>", errors);
+        noOverlapBoard = noOverlapBoard | bitboard;
+    }
+
+    noOverlapBoard.reset();
+    for (const auto &bitboard : piecetypeBitboards) {
+        isValid &= check_expr((bitboard & noOverlapBoard).empty(), "<PiecetypeBitboards> <Bitboard.noOverlap>", errors);
+        noOverlapBoard = noOverlapBoard | bitboard;
+    }
+
+    isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).count() == 1, "<White> <King.count> <eq> <1>", errors);
+    isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).count() == 1, "<Black> <King.count> <eq> <1>", errors);
+    isValid &= check_expr((finalRank[White] & piecetypeBitboards[Pawn]).empty(), "<Pawn> <White finalRank> <empty>", errors);
+    isValid &= check_expr((finalRank[Black] & piecetypeBitboards[Pawn]).empty(), "<Pawn> <Black finalrank> <empty>", errors);
+
+    if (boardState.wKC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).test(e1), "<wKC> <White King> <at> <e1>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[White]).test(h1), "<wKC> <White Rook> <at> <h1>", errors);
+    }
+    if (boardState.wQC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[White]).test(e1), "<wQC> <White King> <at> <e1>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[White]).test(a1), "<wQC> <White Rook> <at> <a1>", errors);
+    }
+    if (boardState.bKC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).test(e8), "<bKC> <Black King> <at> <e8>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[Black]).test(h8), "<bKC> <Black Rook> <at> <h8>", errors);
+    }
+    if (boardState.bQC) {
+        isValid &= check_expr((piecetypeBitboards[King] & colorBitboards[Black]).test(e8), "<bQC> <Black King> <at> <e8>", errors);
+        isValid &= check_expr((piecetypeBitboards[Rook] & colorBitboards[Black]).test(a8), "<bQC> <Black Rook> <at> <a8>", errors);
+    }
+
+    // FIXME
+    // This is used to determine the validity FEN strings in board/test/test_hash
+    isValid &= check_expr(!inCheck(~boardState.activePlayer), "<Capture opponent king>", errors);
+
+    isValid &= check_expr((boardState.halfMoveClock <= 50), "<halfmoveclock> <gt> <50>", errors);
+
+    return std::make_pair(isValid, errors);
+}
+
 
 bool Board::checkInsufficientMaterial() const
 {
@@ -430,7 +695,7 @@ bool Board::checkInsufficientMaterial() const
 
     // Do checks with 2 bishops on board
     Bitboard whiteBishops = (piecetypeBitboards[Bishop] & colorBitboards[White]);
-    
+
     // One side has 2 Bishops
     if (whiteBishops.count() != 1) {
         return false;
@@ -452,7 +717,8 @@ bool Board::checkFiftyMoveRule() const
 
 bool Board::checkThreeFoldRepetition() const
 {
-    // TODO implement
+    if (repetitionTable.at(boardState.hash) >= 3) return true;
+
     return false;
 }
 
@@ -493,7 +759,7 @@ Bitboard Board::getAttacksFromSlider(Square fromSquare, Piecetype pieceType) con
             firstDirection = FirstOrthogonal;
             lastDirection = LastOrthogonal;
         break;
-        
+
         default:
             throw std::invalid_argument("Invalid Piecetype, generateSliderMoves() should be called with a slider");
         break;
@@ -540,7 +806,7 @@ void Board::logBoard(LogLevel logLevel) const {
     os << "enPassantSquare: " << boardState.enPassantSquare << std::endl;
     os << "wKC: " << boardState.wKC << ", wQC: " << boardState.wQC << ", bKC: " << boardState.bKC << ", bQC: " <<  boardState.bQC << std::endl;
     os << "halfMoveClock: " << boardState.halfMoveClock << ", fullMoveNumber: " << boardState.fullMoveNumber;
-    
+
     switch (logLevel) {
         case LEVEL_ESSENTIAL:   logger.essential(os.str()); break;
         case LEVEL_DEBUG:       logger.debug(os.str());     break;

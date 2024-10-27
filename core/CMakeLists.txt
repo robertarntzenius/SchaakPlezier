@@ -2,36 +2,27 @@ cmake_minimum_required(VERSION 3.22)
 project(SchaakPlezier)
 
 set(CMAKE_CXX_STANDARD 20)
-# Als we heel serieus willen doen:
 
-# add_compile_options(-Wshadow)
-# add_compile_options(-Wconversion)
-add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3 -fopenmp)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# External dependencies
+get_filename_component(ROOT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY)
+set(EXTERN_DIR "${ROOT_DIR}/extern")
+
+set(CMAKE_INSTALL_BINDIR "bin")
+set(CMAKE_INSTALL_LIBDIR "lib")
+
+add_compile_options(-Wall -Wextra -Wpedantic -Weffc++ -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Werror -O3 -fopenmp -fPIC)
 
 # Parallel
 find_package(OpenMP REQUIRED)
 
-# Testing
-find_package(nlohmann_json REQUIRED)
+# Add the header only nlohmann_json submodule to the include directories
+set(NLOHMANN_JSON_DIR "${EXTERN_DIR}/json")
+include_directories(${NLOHMANN_JSON_DIR}/include)
 
-
-# GUI stuff
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
-include_directories(${PYTHON_INCLUDE_DIRS})
-
-find_package(pybind11 REQUIRED)
-add_compile_options(-fPIC)
-
-# Find Clang-Tidy
-# find_program(CLANG_TIDY_EXE REQUIRED NAMES "clang-tidy" "clang-tidy-10")
-# if(CLANG_TIDY_EXE)
-#   set(CMAKE_CXX_CLANG_TIDY
-#           "${CLANG_TIDY_EXE}"
-#           "-checks=bugprone-*,cppcoreguidelines-*,hicpp-*,misc-*,modernize-*,objc-*,performance-*,readability-*,-modernize-use-trailing-return-type,-readability-identifier-length,-cppcoreguidelines-pro-bounds-constant-array-index")
-# else()
-#   message(WARNING "Clang-Tidy not found. Static analysis will not be applied.")
-# endif()
-
+# Build configuration
 if(NOT BUILD_TYPE)
     message(STATUS "Build configuration defaulted to Release")
     set(BUILD_TYPE "Release")
@@ -69,8 +60,23 @@ add_executable(SchaakPlezier
     main.cpp
 )
 
+set_target_properties(SchaakPlezier PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"  # Same as above
+    BUILD_WITH_INSTALL_RPATH TRUE  # Ensure RPATH is set during build
+)
+
 target_compile_definitions(SchaakPlezier PRIVATE ${BUILD_TYPE_FLAGS})
 
 add_subdirectory(board)
 add_subdirectory(game)
 add_subdirectory(api)
+
+# Set RPATH
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+install(TARGETS SchaakPlezier
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}        # For executables (Windows/Linux)
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}        # For shared libraries (Linux/Unix)
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}        # For static libraries
+)

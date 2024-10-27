@@ -9,7 +9,8 @@ constexpr int BOARD_SIZE = BOARD_DIMENSIONS * BOARD_DIMENSIONS;
 enum Color : uint8_t {
     White,
     Black,
-    NrColors = 2
+    NrColors = 2,
+    NoColor = 3
 };
 
 enum Square : int8_t {
@@ -107,18 +108,28 @@ struct Move {
     Piecetype capturePiece    = NoType;   // Captures
     Square captureSquare    = NoSquare;   // Captures
     Square newEnPassant     = NoSquare;   // Double pawn moves
- 
+
     bool operator<=>(const Move&) const = default;
 };
 
 struct BoardState {
     Color activePlayer; //1
-    bool wKC, wQC, bKC, bQC; //4 
+    bool wKC, wQC, bKC, bQC; //4
     Square enPassantSquare; //1
     uint16_t fullMoveNumber, halfMoveClock; // 4
+    uint64_t hash; // 16
 };
 
 struct MoveCommand {
     Move move;
     BoardState beforeState;
+};
+
+struct PieceInfo {
+    Color color = NoColor;
+    Piecetype type = NoType;
+    Square square = NoSquare;
+    bool operator<=>(const PieceInfo&) const = default;
+    bool operator==(const PieceInfo& other) const = default;
+    bool operator!=(const PieceInfo& other) const = default;
 };

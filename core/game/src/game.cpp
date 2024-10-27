@@ -56,27 +56,17 @@ GameResult Game::start(bool print)
         if (board.getGameResult(moves.empty()) != NOT_OVER) break;
 
         // Player interaction
-        size_t playerChoice = players[board.getActivePlayer()]->decideOnMove(board, moves);
-        if (playerChoice == SIZE_MAX) {
-            if (board.getActivePlayer() == White) {
-                return BLACK_WIN_BY_FORFEIT; // Quit
-            }
-            return WHITE_WIN_BY_FORFEIT; // Quit
-        }
-        
-        move = moves[playerChoice];
-
-	logger.verbose(playerChoice, ": ", move);
+        Move move = players[board.getActivePlayer()]->decideOnMove(board, moves);
 
 	board.doMove(move);
-    
+
         if (print) {
             logger.verbose(move);
             // Flush screen
             std::cout << "\033[2J\033[H";
         }
     }
-    
+
     // Game over
     if (print) {
         std::cout << board;
@@ -94,7 +84,7 @@ void Game::setFEN(std::string newFENString)
 void Game::resetBoard()
 {
     board.clearBoard();
-    board.initializeFromFEN(FENString.c_str());
+    board.initFromFEN(FENString.c_str());
 }
 
 void Game::setPlayer(Color color, const std::string &player)

@@ -11,7 +11,7 @@
 #include <cstdarg>
 #include <utility>
 
-/* 
+/*
 LEVEL_VERBOSE: Extra debug info + more verbose, logged if level=verbose
 LEVEL_DEBUG: debug info, logged if level = verbose/debug
 LEVEL_ESSENTIAL: only required output to play chess, always logged
@@ -24,9 +24,11 @@ enum LogLevel {
 
 class ChessLogger {
 public:
-    static ChessLogger& getInstance(const std::string &logFileName = "Schaakplezier.log") {
+    static ChessLogger& getInstance(const std::string &logFileName = "") {
         static ChessLogger instance;
-        instance.setLogFile(logFileName);
+        if (logFileName != "") {
+            instance.setLogFile(logFileName);
+        }
         return instance;
     }
 
@@ -46,7 +48,7 @@ public:
 
         logFilesMap[logFileName] = std::ofstream(logFileName, std::ios::out | std::ios::trunc);
         currentLogFileName = logFileName;
-        
+
         if (!logFilesMap[currentLogFileName].is_open()) {
             std::cerr << "Error: Unable to open logFilesMap[currentLogFileName]: '" << logFileName << "'\n";
         }
@@ -59,7 +61,7 @@ public:
     LogLevel getLogLevel() {
         return logLevel;
     }
-    
+
     template <typename... Args>
     inline void debug(Args... args) {
         if (logLevel < LEVEL_DEBUG) return;
