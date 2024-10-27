@@ -56,3 +56,4 @@ cmake-build-debug
 testFENS.txt
 
 # Excludes
+!archive/*
