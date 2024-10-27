@@ -10,7 +10,7 @@
 
 class PlayerFactory {
 public:
-    PlayerFactory() = default;
+    PlayerFactory();
     ~PlayerFactory() = default;
     [[nodiscard]] static std::unique_ptr<Player> makePlayer(const std::string &playerTypeString);
     [[nodiscard]] static std::unique_ptr<Player> makePlayer(const std::string &playerTypeString, PlayerSettings settings);

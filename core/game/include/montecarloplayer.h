@@ -1,7 +1,6 @@
 #include "player.h"
 #include <omp.h>
 
-
 class MonteCarloPlayer : public Player {
 public:
     explicit MonteCarloPlayer(PlayerSettings settings)
@@ -50,7 +49,11 @@ public:
         };
         return settings;
     }
+
+
 private:
+
+
     [[nodiscard]] GameResult simulateGame(Board board) {
         std::vector<Move> moves;
 

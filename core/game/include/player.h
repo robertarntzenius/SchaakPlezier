@@ -21,12 +21,12 @@ enum PlayerType {
 struct PlayerSettings {
     int MonteCarlo_Depth = 10;
     int MonteCarlo_Breadth = 10;
-    int MonteCarlo_Seed = 12;
 
     int MinMax_Depth = 4;
-
     int AlphaBeta_Depth = 6;
 
+
+    int MonteCarlo_Seed = 12;
     int Random_Seed = 6;
 };
 

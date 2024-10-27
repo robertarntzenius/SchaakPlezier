@@ -1,6 +1,24 @@
 #include "playerfactory.h"
-std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeString) {
+
+PlayerFactory::PlayerFactory() {}
+
+
+PlayerSettings readSettings(const std::string &filePath) {
+    std::ifstream f(filePath);
+    json data = json::parse(f);
     PlayerSettings settings;
+
+    settings.MonteCarlo_Depth = data[playerTypeStringMap.at(MonteCarlo)]["depth"];
+    settings.MonteCarlo_Breadth = data[playerTypeStringMap.at(MonteCarlo)]["breadth"];
+    settings.AlphaBeta_Depth = data[playerTypeStringMap.at(AlphaBeta)]["depth"];
+    settings.MinMax_Depth = data[playerTypeStringMap.at(MinMax)]["depth"];
+    return settings;
+};
+
+std::unique_ptr<Player> PlayerFactory::makePlayer(const std::string &playerTypeString)
+{
+    // TODO think about this
+    PlayerSettings settings = readSettings("../../settings.json");
     return makePlayer(playerTypeString, settings);
 }
 

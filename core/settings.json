@@ -1,0 +1,9 @@
+{
+    "MonteCarlo": {
+        "depth": 10,
+        "breadth": 10
+    },
+    "MinMax": {
+        "depth": 4
+    }
+}
