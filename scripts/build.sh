@@ -32,3 +32,5 @@ source "$root_dir/.venv/bin/activate" || exit 1
 cd "$build_dir/lib" && stubgen --package wrappers --output "$install_dir" && cd "$root_dir" || exit 1
 
 pyreverse "$pygui_dir" -o pdf --output-directory "$root_dir/notes" || exit 1
+
+cp "$build_dir/lib/libGame.so" "$root_dir/archive"

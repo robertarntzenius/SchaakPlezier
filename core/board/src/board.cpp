@@ -166,7 +166,7 @@ void Board::getLoudMoves(std::vector<Move> &moveVector, bool &noLegalMoves) {
         doMove(move);
         if (!inCheck(~boardState.activePlayer)) {
             noLegalMoves = false;
-            if (move.isCapture || inCheck(boardState.activePlayer)) {
+            if (move.isCapture || move.isPromotion || inCheck(boardState.activePlayer)) {
                 moveVector.emplace_back(move);
             }
         }

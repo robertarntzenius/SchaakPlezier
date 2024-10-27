@@ -5,7 +5,7 @@
 
 class AlphaBetaPlayer : public Player {
 public:
-    explicit AlphaBetaPlayer(PlayerSettings settings) : maxDepth(settings.AlphaBeta_Depth), positionsEvaluated(0) {}
+    explicit AlphaBetaPlayer(PlayerSettings settings) : maxDepth(settings.AlphaBeta_Depth), positionsEvaluated(0),  positionsQuiescence(0) {}
 
     [[nodiscard]] Move decideOnMove(Board board, const std::vector<Move> &moves) override {
         double alpha = 2 * MIN_EVAL; // DBL_MIN;
@@ -38,8 +38,8 @@ public:
 
         }
 
-        // std::cout << "Positions evaluated: " << positionsEvaluated << std::endl;
-        // std::cout << "\nbestMoveIndex: "<<  bestMoveIndex << "\nmove: " << moves[bestMoveIndex] << std::endl;
+        std::cout << "Positions evaluated: " << positionsEvaluated << std::endl;
+        std::cout << "Positions Quiescence'd: " << positionsQuiescence << std::endl;
         return moves[bestMoveIndex];
     }
 
@@ -57,12 +57,28 @@ public:
             noLegalMoves = moves.empty();
         }
         else {
+            positionsQuiescence++;
+
             double standPat = evaluate(board);
             if (standPat >= beta)
                 return beta;
             if( standPat > alpha )
                 alpha = standPat;
             board.getLoudMoves(moves, noLegalMoves);
+
+            // TODO better move ordering
+            auto PrioSort = [](const Move& first, const Move& second){
+                double firstPriority = -pieceValues[first.playerPiece];
+                double secondPriority = -pieceValues[second.playerPiece];
+
+                if (first.isCapture) firstPriority += pieceValues[first.capturePiece];
+                if (second.isCapture) secondPriority += pieceValues[second.capturePiece];
+
+                return firstPriority >= secondPriority;
+            };
+
+            std::sort(moves.begin(), moves.end(), PrioSort);
+
         }
 
         switch (board.getGameResult(noLegalMoves)) {
@@ -87,10 +103,6 @@ public:
 
             default:
                 throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.empty())));
-        }
-
-        if (depth < -5 || (depth <= 0 && moves.empty())) {
-            return alpha;
         }
 
         for (auto move : moves) {
@@ -118,12 +130,27 @@ public:
             noLegalMoves = moves.empty();
         }
         else {
+            positionsQuiescence++;
+
             double standPat = evaluate(board);
             if (standPat <= alpha)
                 return alpha;
             if( standPat < beta )
                 beta = standPat;
             board.getLoudMoves(moves, noLegalMoves);
+
+            // TODO better move ordering
+            auto PrioSort = [](const Move& first, const Move& second){
+                double firstPriority = -pieceValues[first.playerPiece];
+                double secondPriority = -pieceValues[second.playerPiece];
+
+                if (first.isCapture) firstPriority += pieceValues[first.capturePiece];
+                if (second.isCapture) secondPriority += pieceValues[second.capturePiece];
+
+                return firstPriority >= secondPriority;
+            };
+
+            std::sort(moves.begin(), moves.end(), PrioSort);
         }
 
         switch (board.getGameResult(moves.empty())) {
@@ -148,10 +175,6 @@ public:
 
             default:
                 throw std::invalid_argument("Invalid Game Result: " + std::to_string(board.getGameResult(moves.empty())));
-        }
-
-        if (depth < -5 || (depth <= 0 && moves.empty())) {
-            return beta;
         }
 
         for (auto move : moves) {
@@ -201,4 +224,5 @@ public:
 private:
     int maxDepth;
     int positionsEvaluated;
+    int positionsQuiescence;
 };
